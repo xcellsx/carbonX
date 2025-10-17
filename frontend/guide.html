@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Emissions Tracking - Onboarding Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c4a52;
+            --primary-darker: #1f3540;
+            --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #e0e8f0 100%);
+            --text-dark: #333;
+            --text-muted: #666;
+            --border-color: #d1d9e6;
+            --button-disabled-bg: #c8d1d9;
+            --interactive-bg: #f8f9fa;
+            --add-new-bg: #ffc107;
+            --add-new-hover-bg: #e0a800;
+            --completed-bg: #d4edda;
+            --completed-text: #155724;
+            --inprogress-bg: #fff3cd;
+            --inprogress-text: #856404;
+            --bar-color-1: #4dabf7;
+            --bar-color-2: #74c0fc;
+            --bar-color-3: #fcc419;
+            --bar-color-4: #51cf66;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Figtree", sans-serif;
+            background: var(--background-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .guide-card {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            padding: 50px 60px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .header-title h1 {
+            font-family: 'Hammersmith One', sans-serif;
+            font-size: 40px;
+            color: var(--primary-color);
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+        
+        .header-actions {
+             display: flex;
+             flex-direction: column;
+             align-items: flex-end;
+        }
+
+        .form-logo {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 20px;
+        }
+        
+        .skip-link {
+            color: var(--text-muted);
+            text-decoration: underline;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .task-accordion .task {
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .task-header svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .task.active .task-header svg {
+            transform: rotate(180deg);
+        }
+
+        .task-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+        }
+
+        .task-content-inner {
+            display: flex;
+            gap: 30px;
+            padding: 10px 10px 30px 10px;
+            align-items: flex-start;
+        }
+        
+        .interactive-preview {
+            flex: 1.5;
+            background-color: var(--interactive-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .task-steps {
+            flex: 1;
+        }
+
+        .task-steps p {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Inventory specific styles */
+        .inventory-header, .settings-header, .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .inventory-header .title h3, .settings-header h3, .dashboard-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .inventory-header .title p, .settings-header p, .dashboard-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .inventory-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .inventory-actions .add-new-btn {
+            color: var(--text-dark);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            background-color: var(--add-new-bg);
+        }
+        .inventory-actions .add-new-btn:hover { background-color: var(--add-new-hover-bg); }
+       
+        .inventory-table { width: 100%; border-collapse: collapse; background-color: #fff; }
+        .inventory-table th, .inventory-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; vertical-align: middle;}
+        .inventory-table th { font-weight: 600; color: var(--text-muted); }
+        .inventory-table .view-btn, .inventory-table .dpp-link { color: var(--primary-color); font-weight: bold; text-decoration: underline; cursor: pointer; }
+        .no-products-message { text-align: center; padding: 40px; color: var(--text-muted); }
+        .calculate-lca-btn-inline {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: "Figtree", sans-serif;
+            transition: background-color 0.2s;
+        }
+        .calculate-lca-btn-inline:hover {
+            background-color: #5a6268;
+        }
+
+        /* Dashboard specific styles */
+        .dashboard-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .dashboard-card { background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .dashboard-card h4 { font-size: 14px; margin-bottom: 15px; }
+        .emissions-value { font-size: 24px; font-weight: bold; }
+        .activities-list .activity { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+        .activity .status { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+        .status.completed { background-color: var(--completed-bg); color: var(--completed-text); }
+        .status.inprogress { background-color: var(--inprogress-bg); color: var(--inprogress-text); }
+        .target-input-editable { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        
+        .bar-chart-container { display: flex; justify-content: space-around; align-items: flex-end; height: 150px; padding: 10px 0; }
+        .bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .bar { width: 40%; background-color: var(--bar-color-1); border-radius: 4px 4px 0 0; transition: height 0.5s; }
+        .bar-label { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+        .pie-chart-container { display: flex; align-items: center; justify-content: center; }
+        .pie-chart { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--primary-color) 0deg, #e9ecef 0deg); display: flex; align-items: center; justify-content: center; }
+        .pie-chart-center { width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .pie-chart-center span { font-size: 24px; font-weight: bold; color: var(--primary-color); }
+
+        .guide-footer { text-align: center; margin-top: 40px; }
+        button { display: block; width: auto; min-width: 220px; margin: 0 auto; padding: 15px 30px; background: var(--button-disabled-bg); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: not-allowed; transition: background 0.3s, transform 0.1s; }
+        button.active { background: var(--primary-color); cursor: pointer; }
+        button.active:hover { background: var(--primary-darker); transform: translateY(-2px); }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: #f0f2f5; padding: 30px; border-radius: 16px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(0.95); transition: transform 0.3s; }
+        #addProductModal .modal-content { max-width: 400px; }
+        #dppModal .modal-content { max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { font-family: 'Figtree', sans-serif; font-size: 24px; font-weight: 700; color: var(--text-dark); }
+        .close-modal-btn { background: none; border: none; font-size: 30px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+        
+        #addProductForm .form-group { margin-bottom: 20px; }
+        #addProductForm label { font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; color: var(--text-dark); }
+        #addProductForm input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: white; }
+        .file-drop-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: white; cursor: pointer; transition: background-color 0.2s; }
+        .file-drop-area:hover { background-color: #f9fafb; }
+        .file-drop-area svg { width: 32px; height: 32px; margin-bottom: 10px; color: var(--text-muted); }
+        .file-attached-info { font-size: 13px; color: var(--text-muted); margin-top: 10px; display: none; }
+        .create-dpp-btn { width: 100%; padding: 14px; background-color: var(--add-new-bg); color: var(--text-dark); font-weight: 700; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; min-width: auto; }
+        .create-dpp-btn:hover { background-color: var(--add-new-hover-bg); }
+
+        .dpp-section { margin-bottom: 25px; }
+        .dpp-section h3 { font-size: 18px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; }
+        .dpp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+        .dpp-item strong { display: block; color: #555; font-weight: 600; margin-bottom: 3px;}
+        .dpp-item span { font-size: 14px; }
+        .dpp-list { list-style-position: inside; padding-left: 5px;}
+        .dpp-list li { margin-bottom: 5px; }
+        .dpp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .dpp-table th, .dpp-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left;}
+        .dpp-table th { background-color: #e9ecef; }
+
+    </style>
+</head>
+<body>
+    <div class="guide-card">
+        <div class="guide-header">
+            <div class="header-title">
+                <h1>Welcome Name!</h1>
+                <p>Let's get you onboarded! Complete the following tasks:</p>
+            </div>
+            <div class="header-actions">
+                 <img src="assets/CarbonX-icon.png" alt="CarbonX Logo" class="form-logo">
+                 <a href="#" class="skip-link">Skip</a>
+            </div>
+        </div>
+
+        <div class="task-accordion">
+            <!-- Task 1 -->
+            <div class="task" id="task1">
+                <div class="task-header">
+                    <span>Task 1 of 3: Add a new product into Inventory</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="task-content">
+                    <div class="task-content-inner">
+                        <div class="interactive-preview">
+                            <div class="inventory-header">
+                                <div class="title"><h3>Inventory</h3><p>Overview of your products.</p></div>
+                                <div class="inventory-actions"><button class="add-new-btn">Add New</button></div>
+                            </div>
+                            <table class="inventory-table">
+                                <thead><tr><th>Product Name</th><th>DPP</th><th>kgCO2e</th><th>Uploaded File</th></tr></thead>
+                                <tbody><tr><td colspan="4"><div class="no-products-message">Your products will appear here.</div></td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="task-steps">
+                            <p><strong>Step 1:</strong> Click on the Add New button</p>
+                            <p><strong>Step 2:</strong> Key in your product name</p>
+                            <p><strong>Step 3:</strong> Upload your product's BoM</p>
+                            <p><strong>Step 4:</strong> Click on the Create DPP button</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Task 2 -->
+             <div class="task" id="task2">
+                <div class="task-header">
+                    <span>Task 2 of 3: Perform Carbon Calculation & Explore Inventory</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="task-content">
+                     <div class="task-content-inner">
+                        <div class="interactive-preview">
+                            <div class="inventory-header">
+                                <div class="title"><h3>Inventory</h3><p>Overview of your products.</p></div>
+                            </div>
+                            <table class="inventory-table">
+                                <thead><tr><th>Product Name</th><th>DPP</th><th>kgCO2e</th><th>Uploaded File</th></tr></thead>
+                                <tbody>
+                                    <tr><td colspan="4"><div class="no-products-message">Your new product will appear here after being added in Task 1.</div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="task-steps">
+                            <p><strong>Step 1:</strong> Click on the Calculate LCA button to get your carbon calculations.</p>
+                            <p><strong>Step 2:</strong> Click on DPP for product name to view the DPP.</p>
+                            <p><strong>Step 3:</strong> Click the View button to view your uploaded BoM.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <!-- Task 3 -->
+             <div class="task" id="task3">
+                <div class="task-header">
+                    <span>Task 3 of 3: Explore your dashboard</span>
+                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="task-content">
+                     <div class="task-content-inner">
+                        <div class="interactive-preview">
+                           <div class="dashboard-header">
+                               <div class="title"><h3>Dashboard</h3><p>Overview of your carbon emissions and activities.</p></div>
+                           </div>
+                           <div class="dashboard-content">
+                               <div class="dashboard-card">
+                                   <h4>Current Total Carbon Emissions</h4>
+                                   <p class="emissions-value">0 kgCO2e</p>
+                               </div>
+                               <div class="dashboard-card">
+                                   <h4>Activities</h4>
+                                   <div class="activities-list">
+                                       <div class="activity"><span>Calculated LCA for...</span><span class="status"></span></div>
+                                       <div class="activity"><span>Added a New Product</span><span class="status"></span></div>
+                                       <div class="activity"><span>Complete Onboarding</span><span class="status inprogress">In Progress</span></div>
+                                   </div>
+                               </div>
+                               <div class="dashboard-card" style="grid-column: span 2;">
+                                   <h4>Top 4 Contributors of Carbon Emissions</h4>
+                                   <div class="bar-chart-container"></div>
+                               </div>
+                               <div class="dashboard-card">
+                                    <h4>Efficiency Target</h4>
+                                    <div class="pie-chart-container">
+                                        <div class="pie-chart">
+                                            <div class="pie-chart-center">
+                                                <span>0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                               </div>
+                           </div>
+                        </div>
+                        <div class="task-steps">
+                             <p><strong>Step 1:</strong> View the total carbon emissions, list of activities and efficiency targets here.</p>
+                             <p><strong>Step 2:</strong> Key in your efficiency target.</p>
+                             <div class="form-group">
+                                 <label for="efficiencyTargetInput" style="font-weight: normal; font-size: 14px; margin-bottom: 5px;">Efficiency Target (kgCO2e)</label>
+                                 <input type="number" step="0.01" id="efficiencyTargetInput" class="target-input-editable" value="0.500">
+                             </div>
+                             <p><strong>Step 3:</strong> Look at your current efficiency target.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-footer">
+            <button id="dashboardButton">Go to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add a New Product</h2>
+                <button class="close-modal-btn">&times;</button>
+            </div>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>File</label>
+                    <div class="file-drop-area">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                        <input type="file" id="fileUpload" class="file-input" hidden>
+                    </div>
+                    <p class="file-attached-info">File Attached: <strong id="fileName"></strong></p>
+                </div>
+                <button type="submit" class="create-dpp-btn">Create DPP</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DPP Modal -->
+    <div id="dppModal" class="modal-overlay">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h2 id="dppProductName">Digital Product Passport</h2>
+                <button class="close-modal-btn">&times;</button>
+            </div>
+            
+            <div class="dpp-section">
+                <h3>Product Overview</h3>
+                <div class="dpp-grid">
+                    <div class="dpp-item"><strong>Part Name:</strong> <span id="dppPartName"></span></div>
+                    <div class="dpp-item"><strong>Part Number:</strong> <span id="dppPartNumber"></span></div>
+                </div>
+                 <div class="dpp-item" style="grid-column: span 2;"><strong>Description:</strong> <span id="dppDescription"></span></div>
+                 <div class="dpp-item" style="grid-column: span 2;"><strong>Application:</strong> <span id="dppApplication"></span></div>
+            </div>
+
+            <div class="dpp-section">
+                <h3>Bill of Materials</h3>
+                <table class="dpp-table">
+                    <thead><tr><th>Item</th><th>Quantity</th><th>Part Name</th><th>Description</th><th>Material</th></tr></thead>
+                    <tbody id="dppBomTable"></tbody>
+                </table>
+            </div>
+            
+            <div class="dpp-section">
+                <h3>Technical Specifications</h3>
+                <div class="dpp-grid" id="dppTechSpecs"></div>
+            </div>
+
+             <div class="dpp-section">
+                <h3>Features & Benefits</h3>
+                <ul class="dpp-list" id="dppFeatures"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let uploadedFile = null; 
+            let lcaValue = 0;
+
+            const dppData = { "dpp": { "productOverview": { "partName": "Handheld Hammer Drill", "partNumber": "HHD-2000", "description": "A robust and versatile handheld hammer drill designed for efficient drilling into various materials, including concrete, masonry, wood, and metal. Features a durable steel gear train for reliable performance and extended lifespan.", "application": "Ideal for professional construction, DIY projects, and general maintenance tasks requiring powerful rotational and percussive drilling." }, "billOfMaterials": [ { "item": 1, "quantity": 1, "partName": "Carrier 1 + Sun Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 4, "quantity": 1, "partName": "Carrier 2 + Sun Gear 3", "description": "Module: 0.706", "material": "Steel" }, { "item": 5, "quantity": 5, "partName": "Planet Gear 3", "description": "Module: 0.7", "material": "Steel" }, { "item": 6, "quantity": 1, "partName": "Ring Gear 3", "description": "Ring Gear 3", "material": "Steel" }, { "item": 7, "quantity": 5, "partName": "Planet Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 8, "quantity": 3, "partName": "Planet Gear 1", "description": "Module: 0.6", "material": "Steel" }, { "item": 9, "quantity": 1, "partName": "Carrier 3", "description": "Carrier 3", "material": "Steel" }, { "item": 10, "quantity": 1, "partName": "Ring Gear 2", "description": "Ring Gear 2", "material": "Steel" }, { "item": 11, "quantity": 1, "partName": "Ring Gear 1", "description": "Ring Gear 1", "material": "Steel" } ], "technicalSpecifications": { "powerInput": "800W", "noLoadSpeed": "0-3000 RPM", "impactRate": "0-48000 BPM", "chuckType": "13mm Keyless Chuck", "maxDrillingDiameter": { "concrete": "16mm", "steel": "13mm", "wood": "30mm" }, "weight": "2.5 kg", "voltage": "230V / 50Hz", "dimensions": "300mm x 70mm x 220mm" }, "featuresAndBenefits": [ "Powerful 800W motor for high performance.", "Durable all-steel gearing for long tool life.", "Dual mode: Hammer action and rotary only.", "Variable speed control for precision.", "Ergonomic design with auxiliary handle." ] } };
+
+            const tasks = document.querySelectorAll('.task');
+            const dashboardButton = document.getElementById('dashboardButton');
+            const completedTasks = new Set();
+            const efficiencyTargetInput = document.getElementById('efficiencyTargetInput');
+
+            tasks.forEach(task => {
+                const header = task.querySelector('.task-header');
+                const content = task.querySelector('.task-content');
+                header.addEventListener('click', () => {
+                    const isActive = task.classList.contains('active');
+                    tasks.forEach(t => {
+                        t.classList.remove('active');
+                        t.querySelector('.task-content').style.maxHeight = null;
+                    });
+                    if (!isActive) {
+                        task.classList.add('active');
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        completedTasks.add(task.id);
+                        if (completedTasks.size === tasks.length) {
+                            dashboardButton.classList.add('active');
+                        }
+                    }
+                });
+            });
+
+            dashboardButton.addEventListener('click', () => {
+                if (dashboardButton.classList.contains('active')) {
+                    const productName = document.querySelector('#task2 .inventory-table td:first-child')?.textContent || "Product";
+                    sessionStorage.setItem('productName', productName);
+                    sessionStorage.setItem('lcaValue', lcaValue);
+                    sessionStorage.setItem('efficiencyTarget', efficiencyTargetInput.value);
+
+                    window.location.href = 'dashboard.html';
+                }
+            });
+
+            const addProductModal = document.getElementById('addProductModal');
+            const openAddProductBtn = document.querySelector('#task1 .add-new-btn');
+            const closeAddProductBtn = addProductModal.querySelector('.close-modal-btn');
+            openAddProductBtn.addEventListener('click', () => addProductModal.classList.add('active'));
+            const closeAddModal = () => addProductModal.classList.remove('active');
+            closeAddProductBtn.addEventListener('click', closeAddModal);
+            addProductModal.addEventListener('click', (e) => { if (e.target === addProductModal) closeAddModal(); });
+            
+            const fileDropArea = addProductModal.querySelector('.file-drop-area');
+            const fileInput = addProductModal.querySelector('#fileUpload');
+            const fileNameDisplay = addProductModal.querySelector('#fileName');
+            const fileAttachedInfo = addProductModal.querySelector('.file-attached-info');
+            fileDropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    fileNameDisplay.textContent = fileInput.files[0].name;
+                    fileAttachedInfo.style.display = 'block';
+                }
+            });
+            
+            document.getElementById('addProductForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const productName = document.getElementById('productName').value;
+                const file = fileInput.files[0];
+                if(productName && file){
+                    uploadedFile = file; 
+                    const tableBody1 = document.querySelector('#task1 .inventory-table tbody');
+                    tableBody1.innerHTML = `<tr><td>${productName}</td><td>-</td><td>-</td><td>${file.name}</td></tr>`;
+                    
+                    const tableBody2 = document.querySelector('#task2 .inventory-table tbody');
+                    tableBody2.innerHTML = `<tr><td>${productName}</td><td class="dpp-cell"><a href="#" class="dpp-link">View DPP</a></td><td><button class="calculate-lca-btn-inline">Calculate LCA</button></td><td class="view-btn">View</td></tr>`;
+
+                    document.getElementById('addProductForm').reset();
+                    fileAttachedInfo.style.display = 'none';
+                    closeAddModal();
+                } else {
+                    alert("Please provide a product name and a file.");
+                }
+            });
+
+            const dppModal = document.getElementById('dppModal');
+            const closeDppBtn = dppModal.querySelector('.close-modal-btn');
+            closeDppBtn.addEventListener('click', () => dppModal.classList.remove('active'));
+            dppModal.addEventListener('click', (e) => { if (e.target === dppModal) dppModal.classList.remove('active'); });
+
+            const barChartContainer = document.querySelector('#task3 .bar-chart-container');
+            const pieChart = document.querySelector('#task3 .pie-chart');
+            const pieChartText = document.querySelector('#task3 .pie-chart-center span');
+
+            function updateDashboardCharts() {
+                barChartContainer.innerHTML = '';
+                if (lcaValue > 0) {
+                    const barData = [ { label: 'Pdt 1', value: 0.04, color: 'var(--bar-color-1)' }, { label: 'Pdt 2', value: 0.03, color: 'var(--bar-color-2)' }, { label: 'Pdt 3', value: 0.02, color: 'var(--bar-color-3)' }, { label: 'Pdt 4', value: 0.035, color: 'var(--bar-color-4)' } ];
+                    const maxValue = Math.max(...barData.map(d => d.value));
+                    barData.forEach(data => {
+                        const barWrapper = document.createElement('div');
+                        barWrapper.className = 'bar-wrapper';
+                        const bar = document.createElement('div');
+                        bar.className = 'bar';
+                        bar.style.height = `${(data.value / maxValue) * 100}%`;
+                        bar.style.backgroundColor = data.color;
+                        const label = document.createElement('div');
+                        label.className = 'bar-label';
+                        label.textContent = data.label;
+                        barWrapper.appendChild(bar);
+                        barWrapper.appendChild(label);
+                        barChartContainer.appendChild(barWrapper);
+                    });
+                }
+                
+                const target = parseFloat(efficiencyTargetInput.value) || 0;
+                let percentage = 0;
+                if (target > 0) percentage = Math.min((lcaValue / target) * 100, 100);
+                const angle = (percentage / 100) * 360;
+                pieChart.style.background = `conic-gradient(var(--primary-color) ${angle}deg, #e9ecef ${angle}deg)`;
+                pieChartText.textContent = `${Math.round(percentage)}%`;
+            }
+
+            efficiencyTargetInput.addEventListener('input', updateDashboardCharts);
+
+            function populateAndShowDpp() {
+                const data = dppData.dpp;
+                document.getElementById('dppProductName').textContent = `DPP: ${data.productOverview.partName}`;
+                document.getElementById('dppPartName').textContent = data.productOverview.partName;
+                document.getElementById('dppPartNumber').textContent = data.productOverview.partNumber;
+                document.getElementById('dppDescription').textContent = data.productOverview.description;
+                document.getElementById('dppApplication').textContent = data.productOverview.application;
+                document.getElementById('dppBomTable').innerHTML = data.billOfMaterials.map(item => `<tr><td>${item.item}</td><td>${item.quantity}</td><td>${item.partName}</td><td>${item.description}</td><td>${item.material}</td></tr>`).join('');
+                
+                const techSpecsContainer = document.getElementById('dppTechSpecs');
+                let techSpecsHtml = '';
+                for (const key in data.technicalSpecifications) {
+                    let value = data.technicalSpecifications[key];
+                    if (typeof value === 'object') value = Object.entries(value).map(([sk, sv]) => `${sk}: ${sv}`).join(', ');
+                    techSpecsHtml += `<div class="dpp-item"><strong>${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> <span>${value}</span></div>`;
+                }
+                techSpecsContainer.innerHTML = techSpecsHtml;
+                document.getElementById('dppFeatures').innerHTML = data.featuresAndBenefits.map(item => `<li>${item}</li>`).join('');
+                dppModal.classList.add('active');
+            }
+
+            document.querySelector('#task2 .inventory-table').addEventListener('click', (e) => {
+                if (e.target.classList.contains('view-btn')) {
+                    if (uploadedFile) window.open(URL.createObjectURL(uploadedFile), '_blank');
+                    else alert("Please complete Task 1 to upload a file first.");
+                }
+                if (e.target.classList.contains('calculate-lca-btn-inline')) {
+                    const button = e.target;
+                    button.textContent = "Calculating...";
+                    setTimeout(() => {
+                        const cell = button.parentElement;
+                        lcaValue = 0.246;
+                        cell.innerHTML = lcaValue;
+                        document.querySelector('#task3 .emissions-value').textContent = `${lcaValue} kgCO2e`;
+                        updateDashboardCharts();
+                    }, 1000);
+                }
+                if(e.target.classList.contains('dpp-link')) {
+                    e.preventDefault();
+                    populateAndShowDpp();
+                }
+            });
+
+            updateDashboardCharts();
+        });
+    </script>
+</body>
+</html>
+
