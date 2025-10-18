@@ -3,214 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carbon Emissions Tracking - Company Information</title>
+    <title>CarbonX</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
     <style>
-        :root {
-            --primary-color: #2c4a52;
-            --primary-darker: #1f3540;
-            --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #e0e8f0 100%);
-            --text-dark: #333;
-            --text-muted: #666;
-            --border-color: #d1d9e6;
-            --input-bg: #ffffff;
-        }
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --background-gradient: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: "Figtree", sans-serif;
-            background: var(--background-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    body {
+        font-family: "Figtree", sans-serif;
+        background: var(--background-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+        color: light-dark(var(--black), var(--white));
+    }
 
-        .form-card {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            padding: 50px 60px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
+    .form-card {
+        width: 100%;
+        max-width: 800px;
+        background: light-dark(var(--white), var(--black));
+        padding: 50px 60px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
 
-        .form-logo {
-            position: absolute;
-            top: 40px;
-            right: 50px;
-            width: 50px;
-            height: 50px;
-        }
+    .form-logo {
+        position: absolute;
+        top: 40px;
+        right: 50px;
+        width: 50px;
+        height: 50px;
+    }
 
-        .form-card h1 {
-            font-family: "Figtree", sans-serif;
-            font-size: 36px;
-            color: var(--primary-color);
-            margin-bottom: 50px;
-            font-weight: bold;
-        }
-        
+    .form-card h1 {
+        font-family: "Figtree", sans-serif;
+        font-size: 36px;
+        color: light-dark(var(--navy), var(--blue));
+        margin-bottom: 50px;
+        font-weight: bold;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px 40px;
+        margin-bottom: 40px;
+    }
+
+    .form-group {
+        position: relative;
+    }
+    
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+    
+    label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: light-dark(var(--black), var(--white));
+        margin-bottom: 10px;
+    }
+
+    .required-asterisk {
+    color: #dc3545; /* A standard red color for errors/warnings */
+    margin-left: 4px;
+}
+    
+    .form-group p {
+        font-size: 12px;
+        color: light-dark(var(--dark-grey), var(--grey));
+        margin-top: 5px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 14px 15px;
+        border: 1px solid var(--light-blue);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        background: light-dark(var(--white), var(--black));
+        color: light-dark(var(--black), var(--white));
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--cream);
+        background: light-dark(var(--white), var(--black));
+    }
+
+    button {
+        display: block;
+        width: auto;
+        min-width: 200px;
+        margin: 20px auto 0;
+        padding: 15px 30px;
+        background: light-dark(var(--navy), var(--blue));
+        color: var(--white);
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.1s;
+    }
+
+    button:hover {
+        background: light-dark(var(--blue), var(--navy));
+        transform: translateY(-2px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
         .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px 40px;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+         .form-card {
+            padding: 40px;
+        }
+         .form-card h1 {
+            font-size: 28px;
             margin-bottom: 40px;
         }
-
-        .form-group {
-            position: relative;
+        .form-logo {
+            top: 25px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
         }
-        
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-        
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-dark);
-            margin-bottom: 10px;
-        }
-        
-        .form-group p {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 14px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background: var(--input-bg);
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(44, 74, 82, 0.1);
-        }
-
-        button {
-            display: block;
-            width: auto;
-            min-width: 200px;
-            margin: 20px auto 0;
-            padding: 15px 30px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.1s;
-        }
-
-        button:hover {
-            background: var(--primary-darker);
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-                gap: 25px;
-            }
-            .form-group.full-width {
-                grid-column: span 1;
-            }
-             .form-card {
-                padding: 40px;
-            }
-             .form-card h1 {
-                font-size: 28px;
-                margin-bottom: 40px;
-            }
-            .form-logo {
-                top: 25px;
-                right: 30px;
-                width: 40px;
-                height: 40px;
-            }
-        }
+    }
     </style>
 </head>
 <body>
     <div class="form-card">
-        <img src="assets/CarbonX-icon.png" alt="CarbonX Logo" class="form-logo">
+        <picture>
+    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+    <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
+</picture>
         <h1>Let us understand you better.</h1>
-        <form id="companyInfoForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="companyName">Company Name</label>
-                    <input type="text" id="companyName" name="companyName" required>
+            <form id="companyInfoForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="companyName">Company Name<span class="required-asterisk">*</span></label>
+                        <input type="text" id="companyName" name="companyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sector">Sector<span class="required-asterisk">*</span></label>
+                        <input type="text" id="sector" name="sector" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="industry">Industry<span class="required-asterisk">*</span></label>
+                        <input type="text" id="industry" name="industry" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subIndustry">Sub-industry<span class="required-asterisk">*</span></label>
+                        <input type="text" id="subIndustry" name="subIndustry" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="headquarters">Headquarters<span class="required-asterisk">*</span></label>
+                        <input type="text" id="headquarters" name="headquarters" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="reportingYear">Reporting Year<span class="required-asterisk">*</span></label>
+                        <input type="text" id="reportingYear" name="reportingYear" required>
+                        <p>Carbon emissions are reported yearly. It's best practice to align your reporting year with your organization's financial accounting period.</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="sector">Sector</label>
-                    <input type="text" id="sector" name="sector" required>
-                </div>
-                <div class="form-group">
-                    <label for="industry">Industry</label>
-                    <input type="text" id="industry" name="industry" required>
-                </div>
-                <div class="form-group">
-                    <label for="subIndustry">Sub-industry</label>
-                    <input type="text" id="subIndustry" name="subIndustry" required>
-                </div>
-                <div class="form-group full-width">
-                    <label for="headquarters">Headquarters</label>
-                    <input type="text" id="headquarters" name="headquarters" required>
-                </div>
-                <div class="form-group full-width">
-                    <label for="reportingYear">Reporting Year</label>
-                    <input type="text" id="reportingYear" name="reportingYear" required>
-                    <p>Carbon emissions are reported yearly. It's best practice to align your reporting year with your organization's financial accounting period.</p>
-                </div>
-            </div>
-            <button type="submit">Continue</button>
-        </form>
+                <button type="submit">Continue</button>
+            </form>
     </div>
 
-    <script>
-        document.getElementById('companyInfoForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            // Handle form submission logic here
-            // For now, it will just alert and then redirect to a placeholder dashboard
-            
-            const formData = {
-                companyName: document.getElementById('companyName').value,
-                sector: document.getElementById('sector').value,
-                industry: document.getElementById('industry').value,
-                subIndustry: document.getElementById('subIndustry').value,
-                headquarters: document.getElementById('headquarters').value,
-                reportingYear: document.getElementById('reportingYear').value,
-            };
+<script>
+    // Define an array of the form field IDs for easy management
+    const formFields = [
+        'companyName', 
+        'sector', 
+        'industry', 
+        'subIndustry', 
+        'headquarters', 
+        'reportingYear'
+    ];
 
-            console.log('Company Details:', formData);
-            alert('Company details saved! Redirecting to dashboard.');
-            
-            // Redirect to the main dashboard page after saving details
-            window.location.href = 'guide.html'; // Replace with actual dashboard URL e.g., /dashboard.html
+    // --- SAVE FORM DATA ON SUBMIT ---
+    document.getElementById('companyInfoForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Loop through the fields and save each one to localStorage
+        formFields.forEach(fieldId => {
+            const value = document.getElementById(fieldId).value;
+            localStorage.setItem(fieldId, value);
         });
-    </script>
+
+        console.log('Company details saved to localStorage!');
+        
+        // Redirect to the guide page after saving details
+        window.location.href = 'guide.html';
+    });
+
+    // --- LOAD FORM DATA ON PAGE LOAD ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Loop through the fields and load any saved data from localStorage
+        formFields.forEach(fieldId => {
+            const savedValue = localStorage.getItem(fieldId);
+            if (savedValue) {
+                document.getElementById(fieldId).value = savedValue;
+            }
+        });
+    });
+</script>
 </body>
 </html>

@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carbon Emissions Tracking - Onboarding</title>
+    <title>CarbonX</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
     <style>
         :root {
-            --primary-color: #2c4a52;
-            --primary-darker: #1f3540;
-            --background-gradient: linear-gradient(135deg, #2c4a52 0%, #34545f 100%);
-            --text-light: #ffffff;
-            --text-dark: #333;
-            --text-muted: #666;
-            --border-color: #e0e0e0;
-            --input-bg: #f8f9fa;
+            color-scheme: light dark;
+            --navy: #223f43;
+            --blue: #59A5B2;
+            --light-blue: #c5e4e7;
+            --cream: #f1e0ce;
+            --yellow: #fbcc58;
+            --black: #020202;
+            --white: #f4f4f4;
+            --background-gradient: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+            --grey: #eaeaea;
+            --dark-grey: #a9a9a9;
         }
 
         * {
@@ -32,12 +37,12 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            color: light-dark(var(--black),var(--white))
         }
 
         .container {
             width: 100%;
             height: 100vh;
-            background: var(--text-light);
             overflow: hidden;
             display: flex;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -51,7 +56,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: var(--text-light);
         }
 
         .dashboard-preview {
@@ -71,7 +75,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: white;
+            background: light-dark(var(--white),var(--black));
         }
 
         .form-container {
@@ -89,13 +93,13 @@
         .form-container h2 {
             font-family: "Figtree", sans-serif;
             font-size: 40px;
-            color: var(--primary-color);
+            color: light-dark(var(--navy),var(--blue));
             margin-bottom: 40px;
             font-weight: bold;
         }
 
         .form-container .subtitle {
-            color: var(--text-muted);
+            color: light-dark(var(--black),var(--white));
             font-size: 16px;
             margin-bottom: 40px;
             margin-top: -20px;
@@ -109,7 +113,7 @@
             display: block;
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-dark);
+            color: light-dark(var(--black),var(--white));
             margin-bottom: 8px;
         }
 
@@ -118,20 +122,19 @@
         input[type="text"] {
             width: 100%;
             padding: 14px 15px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--light-blue);
             border-radius: 8px;
             font-size: 14px;
             transition: border-color 0.3s, box-shadow 0.3s;
-            background: var(--input-bg);
+            background: light-dark(var(--white),var(--black));
         }
 
         input[type="email"]:focus,
         input[type="password"]:focus,
         input[type="text"]:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(44, 74, 82, 0.1);
-            background: white;
+            border-color: var(--cream);
+            background: light-dark(var(--white),var(--black));
         }
 
         .checkbox-group {
@@ -144,7 +147,7 @@
             height: 16px;
             margin-right: 8px;
             cursor: pointer;
-            accent-color: var(--primary-color);
+            accent-color: light-dark(var(--navy),var(--blue));
         }
 
         .checkbox-group label {
@@ -163,9 +166,9 @@
         }
 
         .form-footer a {
-            color: var(--primary-color);
+            color: light-dark(var(--navy),var(--blue));
             text-decoration: none;
-            font-weight: 500;
+            font-weight: bold;
         }
 
         .form-footer a:hover {
@@ -175,8 +178,8 @@
         button {
             width: 100%;
             padding: 15px;
-            background: var(--primary-color);
-            color: white;
+            background:light-dark(var(--navy),var(--blue));
+            color: var(--white);
             border: none;
             border-radius: 8px;
             font-size: 16px;
@@ -186,7 +189,8 @@
         }
 
         button:hover {
-            background: var(--primary-darker);
+            background:light-dark(var(--blue),var(--navy));
+;
             transform: translateY(-2px);
         }
 
@@ -198,11 +202,11 @@
             text-align: center;
             margin-top: 30px;
             font-size: 15px;
-            color: var(--text-muted);
+            color: light-dark(var(--black),var(--white));
         }
 
         .toggle-link a {
-            color: var(--primary-color);
+            color: light-dark(var(--navy),var(--blue));
             text-decoration: none;
             font-weight: 700;
         }
@@ -270,9 +274,12 @@
         <div class="right-section">
             <!-- Sign Up Form -->
             <div id="signupForm" class="form-container">
-                <img src="assets/CarbonX-icon.png" alt="CarbonX Logo" class="form-logo">
+                <picture>
+    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+    <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
+                </picture>
                 <h2>Welcome.</h2>
-                <p class="subtitle">Create your account to get started.</p>
+                <p class="subtitle">Sign up with your credentials.</p>
                 
                 <form id="signupFormEl" onsubmit="handleSignup(event)">
                      <div class="form-group">
@@ -303,9 +310,9 @@
 
             <!-- Sign In Form -->
             <div id="signinForm" class="form-container hidden">
-                <img src="assets/CarbonX-icon.png" alt="CarbonX Logo" class="form-logo">
-                <h2>Welcome back</h2>
-                <p class="subtitle">Please enter your details.</p>
+                <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo" media="(prefers-color-scheme: light)">
+                <h2>Welcome Back.</h2>
+                <p class="subtitle">Sign in with your credentials.</p>
 
                 <form id="signinFormEl" onsubmit="handleSignin(event)">
                     <div class="form-group">
@@ -354,75 +361,73 @@
         }
 
         // Handle Sign Up
-        async function handleSignup(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('signupName').value.trim();
-            const email = document.getElementById('signupEmail').value.trim();
-            const password = document.getElementById('signupPassword').value.trim();
-            const form = document.getElementById('signupFormEl');
-            const successMsg = document.getElementById('signupSuccess');
-            const nameError = document.getElementById('signupNameError');
-            const emailError = document.getElementById('signupEmailError');
-            const passwordError = document.getElementById('signupPasswordError');
+        // Handle Sign Up
+async function handleSignup(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    const form = document.getElementById('signupFormEl');
+    const successMsg = document.getElementById('signupSuccess');
+    const nameError = document.getElementById('signupNameError');
+    const emailError = document.getElementById('signupEmailError');
+    const passwordError = document.getElementById('signupPasswordError');
 
-            // Clear previous messages
-            nameError.style.display = 'none';
-            emailError.style.display = 'none';
-            passwordError.style.display = 'none';
-            successMsg.style.display = 'none';
+    // --- LOGIC TO RESTORE ---
+    // 1. Clear previous messages
+    nameError.style.display = 'none';
+    emailError.style.display = 'none';
+    passwordError.style.display = 'none';
+    successMsg.style.display = 'none';
 
-            // Basic Validation
-            let hasError = false;
-             if (!name) {
-                nameError.textContent = 'Full name is required';
-                nameError.style.display = 'block';
-                hasError = true;
-            }
-            if (!email) {
-                emailError.textContent = 'Email is required';
-                emailError.style.display = 'block';
-                hasError = true;
-            }
-            if (!password || password.length < 6) {
-                passwordError.textContent = 'Password must be at least 6 characters';
-                passwordError.style.display = 'block';
-                hasError = true;
-            }
-            if (hasError) return;
+    // 2. Basic Validation
+    let hasError = false;
+    if (!name) {
+        nameError.textContent = 'Full name is required';
+        nameError.style.display = 'block';
+        hasError = true;
+    }
+    if (!email) {
+        emailError.textContent = 'Email is required';
+        emailError.style.display = 'block';
+        hasError = true;
+    }
+    if (!password || password.length < 6) {
+        passwordError.textContent = 'Password must be at least 6 characters';
+        passwordError.style.display = 'block';
+        hasError = true;
+    }
+    if (hasError) return; // Stop if there's an error
+    // --- END OF RESTORED LOGIC ---
 
-            try {
-                form.classList.add('loading');
+    try {
+        form.classList.add('loading');
 
-                // NOTE: The following is mock logic. Replace with your actual API calls.
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                if (email === "user@example.com") {
-                     emailError.textContent = 'This email is already registered. Please sign in instead.';
-                     emailError.style.display = 'block';
-                     form.classList.remove('loading');
-                     return;
-                }
+        // 3. Mock API call delay (restored)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Save the user's full name to localStorage
+        localStorage.setItem('signupFullName', name);
+        
+        successMsg.textContent = 'Account created successfully!';
+        successMsg.style.display = 'block';
+        
+        setTimeout(() => {
+            // Redirect to company-info.html
+            window.location.href = 'company-info.html'; 
+        }, 2000);
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                successMsg.textContent = 'Account created successfully! Redirecting...';
-                successMsg.style.display = 'block';
-                
-                setTimeout(() => {
-                    // Redirect new users to the company info page
-                    window.location.href = 'company-info.html'; 
-                }, 2000);
-
-            } catch (error) {
-                console.error('Sign up error:', error);
-                emailError.textContent = 'An error occurred. Please check your connection and try again.';
-                emailError.style.display = 'block';
-            } finally {
-                form.classList.remove('loading');
-            }
-        }
-
-        // Handle Sign In
+    } catch (error) {
+        console.error('Sign up error:', error);
+        emailError.textContent = 'An error occurred. Please try again.';
+        emailError.style.display = 'block';
+    } finally {
+        // This was in the original, good to have it back
+        form.classList.remove('loading');
+    }
+}
+    // Handle Sign In
         async function handleSignin(event) {
             event.preventDefault();
             
@@ -456,19 +461,19 @@
             try {
                 form.classList.add('loading');
                 
-                // NOTE: The following is mock logic.
+                // Mock API call delay
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                if (email !== "user@example.com" || password !== "password123") {
-                     passwordError.textContent = 'Invalid email or password. Please try again.';
-                     passwordError.style.display = 'block';
-                     form.classList.remove('loading');
-                     return;
+                // Check for specific credentials
+                if (email !== "test@carbonx.com" || password !== "test") {
+                    passwordError.textContent = 'Invalid email or password. Please try again.';
+                    passwordError.style.display = 'block';
+                    form.classList.remove('loading');
+                    return;
                 }
                 
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                successMsg.textContent = 'Signed in successfully! Redirecting...';
+                // Show success and redirect
+                successMsg.textContent = 'Signed in successfully!';
                 successMsg.style.display = 'block';
                 
                 if (rememberMe) {
@@ -479,7 +484,7 @@
                 
                 setTimeout(() => {
                     // Redirect existing users to the dashboard
-                    window.location.href = '#'; // Replace with actual dashboard URL e.g., /dashboard.html
+                    window.location.href = 'dashboard.html'; 
                 }, 2000);
 
             } catch (error) {
@@ -487,10 +492,17 @@
                 emailError.textContent = 'An error occurred. Please check your connection and try again.';
                 emailError.style.display = 'block';
             } finally {
-                form.classList.remove('loading');
+                // Do not remove loading class here to prevent user interaction during redirect
             }
         }
-    </script>
+        
+        document.addEventListener('DOMContentLoaded', () => {
+        const savedName = localStorage.getItem('signupFullName');
+        if (savedName) {
+            document.getElementById('signupName').value = savedName;
+        }
+    });
+        </script>
 </body>
 </html>
 

@@ -3,290 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carbon Emissions Tracking - Onboarding Guide</title>
+    <title>CarbonX</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #2c4a52;
-            --primary-darker: #1f3540;
-            --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #e0e8f0 100%);
-            --text-dark: #333;
-            --text-muted: #666;
-            --border-color: #d1d9e6;
-            --button-disabled-bg: #c8d1d9;
-            --interactive-bg: #f8f9fa;
-            --add-new-bg: #ffc107;
-            --add-new-hover-bg: #e0a800;
-            --completed-bg: #d4edda;
-            --completed-text: #155724;
-            --inprogress-bg: #fff3cd;
-            --inprogress-text: #856404;
-            --bar-color-1: #4dabf7;
-            --bar-color-2: #74c0fc;
-            --bar-color-3: #fcc419;
-            --bar-color-4: #51cf66;
-        }
+<link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+<style>
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --background-gradient: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+        --border-color: var(--dark-grey);
+        --interactive-bg: light-dark(var(--white), var(--black));
+        --card-bg: light-dark(var(--white), var(--black));
+        --modal-bg: light-dark(var(--white), var(--black));
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: "Figtree", sans-serif;
-            background: var(--background-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    body {
+        font-family: "Figtree", sans-serif;
+        background: var(--background-gradient);
+        color: light-dark(var(--black), var(--white));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
 
-        .guide-card {
-            width: 100%;
-            max-width: 900px;
-            background: white;
-            padding: 50px 60px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
+    .guide-card {
+        width: 100%;
+        max-width: 900px;
+        background: var(--card-bg);
+        padding: 50px 60px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
 
-        .guide-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        
-        .header-title h1 {
-            font-family: 'Hammersmith One', sans-serif;
-            font-size: 40px;
-            color: var(--primary-color);
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-        
-        .header-title p {
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-        
-        .header-actions {
-             display: flex;
-             flex-direction: column;
-             align-items: flex-end;
-        }
+    .guide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .header-title h1 {
+        font-size: 40px;
+        color: light-dark(var(--navy), var(--blue));
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .header-title p {
+        color: light-dark(var(--black), var());
+        font-size: 16px;
+    }
+    
+    .header-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 
-        .form-logo {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 20px;
-        }
-        
-        .skip-link {
-            color: var(--text-muted);
-            text-decoration: underline;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .task-accordion .task {
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .task:last-child {
-            border-bottom: none;
-        }
+    .form-logo {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 20px;
+    }
+    
+    .skip-link {
+        color: light-dark(var(--navy), var(--blue));
+        text-decoration: underline;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .task-accordion .task {
+        border-bottom: 1px solid var(--dark-grey);
+    }
+    
+    .task:last-child {
+        border-bottom: none;
+    }
 
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        color: light-dark(var(--black), var(--white));
+    }
 
-        .task-header svg {
-            width: 20px;
-            height: 20px;
-            transition: transform 0.3s;
-        }
-        
-        .task.active .task-header svg {
-            transform: rotate(180deg);
-        }
+    .task-header svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s;
+    }
+    
+    .task.active .task-header svg {
+        transform: rotate(180deg);
+    }
 
-        .task-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-        }
+    .task-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    }
 
-        .task-content-inner {
-            display: flex;
-            gap: 30px;
-            padding: 10px 10px 30px 10px;
-            align-items: flex-start;
-        }
-        
-        .interactive-preview {
-            flex: 1.5;
-            background-color: var(--interactive-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        
-        .task-steps {
-            flex: 1;
-        }
+    .task-content-inner {
+        display: flex;
+        gap: 30px;
+        padding: 10px 10px 30px 10px;
+        align-items: flex-start;
+    }
+    
+    .interactive-preview {
+        flex: 1.5;
+        background-color: var(--interactive-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        font-size: 14px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .task-steps {
+        flex: 1;
+    }
 
-        .task-steps p {
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
+    .task-steps p {
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
 
-        /* Inventory specific styles */
-        .inventory-header, .settings-header, .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .inventory-header .title h3, .settings-header h3, .dashboard-header h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        .inventory-header .title p, .settings-header p, .dashboard-header p {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+    .inventory-header, .settings-header, .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .inventory-header .title h3, .settings-header h3, .dashboard-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: light-dark(var(--black), var(--white));
+    }
+    .inventory-header .title p, .settings-header p, .dashboard-header p {
+        font-size: 13px;
+        color: light-dark(var(--black), var(--white));
+    }
 
-        .inventory-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .inventory-actions .add-new-btn {
-            color: var(--text-dark);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            background-color: var(--add-new-bg);
-        }
-        .inventory-actions .add-new-btn:hover { background-color: var(--add-new-hover-bg); }
-       
-        .inventory-table { width: 100%; border-collapse: collapse; background-color: #fff; }
-        .inventory-table th, .inventory-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; vertical-align: middle;}
-        .inventory-table th { font-weight: 600; color: var(--text-muted); }
-        .inventory-table .view-btn, .inventory-table .dpp-link { color: var(--primary-color); font-weight: bold; text-decoration: underline; cursor: pointer; }
-        .no-products-message { text-align: center; padding: 40px; color: var(--text-muted); }
-        .calculate-lca-btn-inline {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            font-family: "Figtree", sans-serif;
-            transition: background-color 0.2s;
-        }
-        .calculate-lca-btn-inline:hover {
-            background-color: #5a6268;
-        }
+    .inventory-actions .add-new-btn {
+        color: var(--black);
+        border: none;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        background-color: var(--yellow);
+    }
+    .inventory-actions .add-new-btn:hover { background-color: var(--cream); }
+    
+    .inventory-table { width: 100%; border-collapse: collapse; background-color: light-dark(var(--white), var(--black)); }
+    .inventory-table th, .inventory-table td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; vertical-align: middle;}
+    .inventory-table th { font-weight: 600; color: light-dark(var(--black), var(--white)); }
+    .inventory-table .view-btn, .inventory-table .dpp-link { color: light-dark(var(--navy), var(--blue)); font-weight: bold; text-decoration: underline; cursor: pointer; }
+    .no-products-message { text-align: center; padding: 40px; color: var(--dark-grey); }
+    
+    .calculate-lca-btn-inline {
+        background-color: light-dark(var(--navy), var(--blue)); color: light-dark(var(--white),var(--black)); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: "Figtree", sans-serif; transition: background-color 0.2s; font-weight: bold
+    }
+    .calculate-lca-btn-inline:hover { background-color: light-dark(var(--blue), var(--navy)); color: light-dark(var(--black), var(--white)) }
 
-        /* Dashboard specific styles */
-        .dashboard-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .dashboard-card { background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .dashboard-card h4 { font-size: 14px; margin-bottom: 15px; }
-        .emissions-value { font-size: 24px; font-weight: bold; }
-        .activities-list .activity { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
-        .activity .status { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
-        .status.completed { background-color: var(--completed-bg); color: var(--completed-text); }
-        .status.inprogress { background-color: var(--inprogress-bg); color: var(--inprogress-text); }
-        .target-input-editable { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); }
-        
-        .bar-chart-container { display: flex; justify-content: space-around; align-items: flex-end; height: 150px; padding: 10px 0; }
-        .bar-wrapper { display: flex; flex-direction: column; align-items: center; flex: 1; }
-        .bar { width: 40%; background-color: var(--bar-color-1); border-radius: 4px 4px 0 0; transition: height 0.5s; }
-        .bar-label { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+    .dashboard-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .dashboard-card { background-color: var(--interactive-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .dashboard-card h4 { font-size: 14px; margin-bottom: 15px; }
+    .emissions-value { font-size: 24px; font-weight: bold; }
+    .activities-list .activity { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .activity .status { padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+    .status.completed { background-color: var(--yellow); color: var(--black); }
+    .status.inprogress { background-color: var(--light-blue); color: var(--black); }
+    .status.not-started {
+    background-color: var(--grey);
+    color: var(--black);
+}
+    .target-input-editable { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: light-dark(var(--black), var(--white)); }
+    
+    .pie-chart-container { display: flex; align-items: center; gap: 20px; padding: 20px; }
+    .pie-chart { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--blue) 0deg, #e9ecef 0deg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pie-chart-center { width: 110px; height: 110px; background: var(--interactive-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .pie-chart-center span { font-size: 28px; font-weight: bold; color: var(--blue); }
+    .pie-legend .legend-text .value { font-weight: 600; color: light-dark(var(--black), var(--white)); }
 
-        .pie-chart-container { display: flex; align-items: center; justify-content: center; }
-        .pie-chart { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--primary-color) 0deg, #e9ecef 0deg); display: flex; align-items: center; justify-content: center; }
-        .pie-chart-center { width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .pie-chart-center span { font-size: 24px; font-weight: bold; color: var(--primary-color); }
+    .guide-footer { text-align: center; margin-top: 40px; }
+    button#dashboardButton { background: var(--dark-grey); cursor: not-allowed; padding: 15px 30px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; color: light-dark(var(--white), var(--black)); transition: background 0.3s, transform 0.3s; }
+    button#dashboardButton.active { background: light-dark(var(--navy), var(--blue)); cursor: pointer; }
+    button#dashboardButton.active:hover { background: light-dark(var(--blue), var(--navy)); transform: translateY(-2px); color: light-dark(var(--white), var(--white)); }
 
-        .guide-footer { text-align: center; margin-top: 40px; }
-        button { display: block; width: auto; min-width: 220px; margin: 0 auto; padding: 15px 30px; background: var(--button-disabled-bg); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: not-allowed; transition: background 0.3s, transform 0.1s; }
-        button.active { background: var(--primary-color); cursor: pointer; }
-        button.active:hover { background: var(--primary-darker); transform: translateY(-2px); }
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%; /* Fixes centering */
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
 
-        /* Modal Styles */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: #f0f2f5; padding: 30px; border-radius: 16px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(0.95); transition: transform 0.3s; }
-        #addProductModal .modal-content { max-width: 400px; }
-        #dppModal .modal-content { max-width: 800px; max-height: 90vh; overflow-y: auto; }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h2 { font-family: 'Figtree', sans-serif; font-size: 24px; font-weight: 700; color: var(--text-dark); }
-        .close-modal-btn { background: none; border: none; font-size: 30px; cursor: pointer; color: var(--text-muted); line-height: 1; }
-        
-        #addProductForm .form-group { margin-bottom: 20px; }
-        #addProductForm label { font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; color: var(--text-dark); }
-        #addProductForm input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: white; }
-        .file-drop-area { border: 2px dashed var(--border-color); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: white; cursor: pointer; transition: background-color 0.2s; }
-        .file-drop-area:hover { background-color: #f9fafb; }
-        .file-drop-area svg { width: 32px; height: 32px; margin-bottom: 10px; color: var(--text-muted); }
-        .file-attached-info { font-size: 13px; color: var(--text-muted); margin-top: 10px; display: none; }
-        .create-dpp-btn { width: 100%; padding: 14px; background-color: var(--add-new-bg); color: var(--text-dark); font-weight: 700; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; min-width: auto; }
-        .create-dpp-btn:hover { background-color: var(--add-new-hover-bg); }
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: light-dark(var(--black), var(--white));
+}
 
-        .dpp-section { margin-bottom: 25px; }
-        .dpp-section h3 { font-size: 18px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; }
-        .dpp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
-        .dpp-item strong { display: block; color: #555; font-weight: 600; margin-bottom: 3px;}
-        .dpp-item span { font-size: 14px; }
-        .dpp-list { list-style-position: inside; padding-left: 5px;}
-        .dpp-list li { margin-bottom: 5px; }
-        .dpp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .dpp-table th, .dpp-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left;}
-        .dpp-table th { background-color: #e9ecef; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content {
+    background: var(--modal-bg);
+    color: light-dark(var(--black), var(--white));
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%; /* Let the container control the width */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s;
+}
+    .modal-overlay.active .modal-content { transform: scale(1); }
+#addProductModal .modal-content {
+    max-width: 420px;
+}
+#addProductForm input[type="text"] {
+    background-color: var(--card-bg);
+    color: light-dark(var(--black), var(--white));
+    border: 1px solid var(--dark-grey); /* Default border color */
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    transition: border-color 0.3s; /* Smooth transition for hover */
+}
+    .file-drop-area { border: 2px dashed var(--border-color); background-color: var(--card-bg); border-radius: 8px; height: 10vh; display: flex; justify-content: center; align-items: center; }
+    .create-dpp-btn {
+    width: 100%; /* Make button full-width */
+    color: var(--black);
+    background: var(--yellow);
+    border: none;
+    padding: 14px; /* Added for better size */
+    border-radius: 8px; /* Rounded corners */
+    font-weight: bold;
+    font-size: 16px; /* Consistent font size */
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 20px; /* Added space above the button */
+}
 
-    </style>
+.create-dpp-btn:hover {
+    background-color: var(--cream);
+}
+</style>
 </head>
 <body>
     <div class="guide-card">
         <div class="guide-header">
             <div class="header-title">
-                <h1>Welcome Name!</h1>
+                <h1 id="welcomeMessage">Welcome Name!</h1>
                 <p>Let's get you onboarded! Complete the following tasks:</p>
             </div>
             <div class="header-actions">
-                 <img src="assets/CarbonX-icon.png" alt="CarbonX Logo" class="form-logo">
+                 <picture>
+    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+    <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
+</picture>
                  <a href="#" class="skip-link">Skip</a>
             </div>
         </div>
 
         <div class="task-accordion">
-            <!-- Task 1 -->
-            <div class="task" id="task1">
+            <!-- Task 1 --><div class="task" id="task1">
                 <div class="task-header">
                     <span>Task 1 of 3: Add a new product into Inventory</span>
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -312,8 +332,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Task 2 -->
-             <div class="task" id="task2">
+            <!-- Task 2 --><div class="task" id="task2">
                 <div class="task-header">
                     <span>Task 2 of 3: Perform Carbon Calculation & Explore Inventory</span>
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -339,8 +358,7 @@
                     </div>
                 </div>
             </div>
-             <!-- Task 3 -->
-             <div class="task" id="task3">
+             <!-- Task 3 --><div class="task" id="task3">
                 <div class="task-header">
                     <span>Task 3 of 3: Explore your dashboard</span>
                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -358,24 +376,46 @@
                                </div>
                                <div class="dashboard-card">
                                    <h4>Activities</h4>
-                                   <div class="activities-list">
-                                       <div class="activity"><span>Calculated LCA for...</span><span class="status"></span></div>
-                                       <div class="activity"><span>Added a New Product</span><span class="status"></span></div>
-                                       <div class="activity"><span>Complete Onboarding</span><span class="status inprogress">In Progress</span></div>
+<div class="activities-list">
+    <div class="activity">
+        <span id="textLca">Calculated LCA for...</span>
+        <span id="statusLca" class="status not-started">Not Started</span>
+    </div>
+    <div class="activity">
+        <span>Added a New Product</span>
+        <span id="statusAddProduct" class="status not-started">Not Started</span>
+    </div>
+    <div class="activity">
+        <span>Complete Onboarding</span>
+        <span class="status inprogress">In Progress</span>
+    </div>
+</div>
+                               </div>
+                               <!-- Removed Top Contributors of Carbon Emissions card --><!-- <div class="dashboard-card" style="grid-column: span 2;">
+                                   <h4>Top Contributors of Carbon Emissions</h4>
+                                   <div class="chart-area">
+                                       <div class="y-axis"></div>
+                                       <div class="bar-chart-container">
+                                            <div class="no-products-message">Calculate LCA for products in Task 2 to see data here.</div>
+                                       </div>
                                    </div>
-                               </div>
-                               <div class="dashboard-card" style="grid-column: span 2;">
-                                   <h4>Top 4 Contributors of Carbon Emissions</h4>
-                                   <div class="bar-chart-container"></div>
-                               </div>
-                               <div class="dashboard-card">
-                                    <h4>Efficiency Target</h4>
+                               </div> --><div class="dashboard-card" style="grid-column: span 2;"> <!-- Make pie chart card span 2 columns --><h4>Efficiency Target</h4>
                                     <div class="pie-chart-container">
                                         <div class="pie-chart">
                                             <div class="pie-chart-center">
                                                 <span>0%</span>
                                             </div>
                                         </div>
+                                        <div class="pie-legend">
+                                            <div class="legend-item">
+                                                 <div class="legend-color" style="background-color: var(--primary-color);"></div>
+                                                 <div class="legend-text">Actual Target: <span class="value" id="legend-actual">0 kgCO2e</span></div>
+                                            </div>
+                                            <div class="legend-item">
+                                                <div class="legend-color" style="background-color: #e9ecef;"></div>
+                                                 <div class="legend-text">Amount Left: <span class="value" id="legend-left">0 kgCO2e</span></div>
+                                            </div>
+                                         </div>
                                     </div>
                                </div>
                            </div>
@@ -399,8 +439,7 @@
         </div>
     </div>
 
-    <!-- Add Product Modal -->
-    <div id="addProductModal" class="modal-overlay">
+    <!-- Add Product Modal --><div id="addProductModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Add a New Product</h2>
@@ -424,8 +463,7 @@
         </div>
     </div>
 
-    <!-- DPP Modal -->
-    <div id="dppModal" class="modal-overlay">
+    <!-- DPP Modal --><div id="dppModal" class="modal-overlay">
         <div class="modal-content">
              <div class="modal-header">
                 <h2 id="dppProductName">Digital Product Passport</h2>
@@ -462,175 +500,233 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let uploadedFile = null; 
-            let lcaValue = 0;
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Welcome message and skip button logic ---
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const fullName = localStorage.getItem('signupFullName');
 
-            const dppData = { "dpp": { "productOverview": { "partName": "Handheld Hammer Drill", "partNumber": "HHD-2000", "description": "A robust and versatile handheld hammer drill designed for efficient drilling into various materials, including concrete, masonry, wood, and metal. Features a durable steel gear train for reliable performance and extended lifespan.", "application": "Ideal for professional construction, DIY projects, and general maintenance tasks requiring powerful rotational and percussive drilling." }, "billOfMaterials": [ { "item": 1, "quantity": 1, "partName": "Carrier 1 + Sun Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 4, "quantity": 1, "partName": "Carrier 2 + Sun Gear 3", "description": "Module: 0.706", "material": "Steel" }, { "item": 5, "quantity": 5, "partName": "Planet Gear 3", "description": "Module: 0.7", "material": "Steel" }, { "item": 6, "quantity": 1, "partName": "Ring Gear 3", "description": "Ring Gear 3", "material": "Steel" }, { "item": 7, "quantity": 5, "partName": "Planet Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 8, "quantity": 3, "partName": "Planet Gear 1", "description": "Module: 0.6", "material": "Steel" }, { "item": 9, "quantity": 1, "partName": "Carrier 3", "description": "Carrier 3", "material": "Steel" }, { "item": 10, "quantity": 1, "partName": "Ring Gear 2", "description": "Ring Gear 2", "material": "Steel" }, { "item": 11, "quantity": 1, "partName": "Ring Gear 1", "description": "Ring Gear 1", "material": "Steel" } ], "technicalSpecifications": { "powerInput": "800W", "noLoadSpeed": "0-3000 RPM", "impactRate": "0-48000 BPM", "chuckType": "13mm Keyless Chuck", "maxDrillingDiameter": { "concrete": "16mm", "steel": "13mm", "wood": "30mm" }, "weight": "2.5 kg", "voltage": "230V / 50Hz", "dimensions": "300mm x 70mm x 220mm" }, "featuresAndBenefits": [ "Powerful 800W motor for high performance.", "Durable all-steel gearing for long tool life.", "Dual mode: Hammer action and rotary only.", "Variable speed control for precision.", "Ergonomic design with auxiliary handle." ] } };
+        if (fullName) {
+            const capitalizedName = fullName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            welcomeMessage.textContent = `Welcome, ${capitalizedName}!`;
+        } else {
+            welcomeMessage.textContent = 'Welcome!';
+        }
 
-            const tasks = document.querySelectorAll('.task');
-            const dashboardButton = document.getElementById('dashboardButton');
-            const completedTasks = new Set();
-            const efficiencyTargetInput = document.getElementById('efficiencyTargetInput');
-
-            tasks.forEach(task => {
-                const header = task.querySelector('.task-header');
-                const content = task.querySelector('.task-content');
-                header.addEventListener('click', () => {
-                    const isActive = task.classList.contains('active');
-                    tasks.forEach(t => {
-                        t.classList.remove('active');
-                        t.querySelector('.task-content').style.maxHeight = null;
-                    });
-                    if (!isActive) {
-                        task.classList.add('active');
-                        content.style.maxHeight = content.scrollHeight + "px";
-                        completedTasks.add(task.id);
-                        if (completedTasks.size === tasks.length) {
-                            dashboardButton.classList.add('active');
-                        }
-                    }
-                });
-            });
-
-            dashboardButton.addEventListener('click', () => {
-                if (dashboardButton.classList.contains('active')) {
-                    const productName = document.querySelector('#task2 .inventory-table td:first-child')?.textContent || "Product";
-                    sessionStorage.setItem('productName', productName);
-                    sessionStorage.setItem('lcaValue', lcaValue);
-                    sessionStorage.setItem('efficiencyTarget', efficiencyTargetInput.value);
-
-                    window.location.href = 'dashboard.html';
-                }
-            });
-
-            const addProductModal = document.getElementById('addProductModal');
-            const openAddProductBtn = document.querySelector('#task1 .add-new-btn');
-            const closeAddProductBtn = addProductModal.querySelector('.close-modal-btn');
-            openAddProductBtn.addEventListener('click', () => addProductModal.classList.add('active'));
-            const closeAddModal = () => addProductModal.classList.remove('active');
-            closeAddProductBtn.addEventListener('click', closeAddModal);
-            addProductModal.addEventListener('click', (e) => { if (e.target === addProductModal) closeAddModal(); });
-            
-            const fileDropArea = addProductModal.querySelector('.file-drop-area');
-            const fileInput = addProductModal.querySelector('#fileUpload');
-            const fileNameDisplay = addProductModal.querySelector('#fileName');
-            const fileAttachedInfo = addProductModal.querySelector('.file-attached-info');
-            fileDropArea.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    fileNameDisplay.textContent = fileInput.files[0].name;
-                    fileAttachedInfo.style.display = 'block';
-                }
-            });
-            
-            document.getElementById('addProductForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const productName = document.getElementById('productName').value;
-                const file = fileInput.files[0];
-                if(productName && file){
-                    uploadedFile = file; 
-                    const tableBody1 = document.querySelector('#task1 .inventory-table tbody');
-                    tableBody1.innerHTML = `<tr><td>${productName}</td><td>-</td><td>-</td><td>${file.name}</td></tr>`;
-                    
-                    const tableBody2 = document.querySelector('#task2 .inventory-table tbody');
-                    tableBody2.innerHTML = `<tr><td>${productName}</td><td class="dpp-cell"><a href="#" class="dpp-link">View DPP</a></td><td><button class="calculate-lca-btn-inline">Calculate LCA</button></td><td class="view-btn">View</td></tr>`;
-
-                    document.getElementById('addProductForm').reset();
-                    fileAttachedInfo.style.display = 'none';
-                    closeAddModal();
-                } else {
-                    alert("Please provide a product name and a file.");
-                }
-            });
-
-            const dppModal = document.getElementById('dppModal');
-            const closeDppBtn = dppModal.querySelector('.close-modal-btn');
-            closeDppBtn.addEventListener('click', () => dppModal.classList.remove('active'));
-            dppModal.addEventListener('click', (e) => { if (e.target === dppModal) dppModal.classList.remove('active'); });
-
-            const barChartContainer = document.querySelector('#task3 .bar-chart-container');
-            const pieChart = document.querySelector('#task3 .pie-chart');
-            const pieChartText = document.querySelector('#task3 .pie-chart-center span');
-
-            function updateDashboardCharts() {
-                barChartContainer.innerHTML = '';
-                if (lcaValue > 0) {
-                    const barData = [ { label: 'Pdt 1', value: 0.04, color: 'var(--bar-color-1)' }, { label: 'Pdt 2', value: 0.03, color: 'var(--bar-color-2)' }, { label: 'Pdt 3', value: 0.02, color: 'var(--bar-color-3)' }, { label: 'Pdt 4', value: 0.035, color: 'var(--bar-color-4)' } ];
-                    const maxValue = Math.max(...barData.map(d => d.value));
-                    barData.forEach(data => {
-                        const barWrapper = document.createElement('div');
-                        barWrapper.className = 'bar-wrapper';
-                        const bar = document.createElement('div');
-                        bar.className = 'bar';
-                        bar.style.height = `${(data.value / maxValue) * 100}%`;
-                        bar.style.backgroundColor = data.color;
-                        const label = document.createElement('div');
-                        label.className = 'bar-label';
-                        label.textContent = data.label;
-                        barWrapper.appendChild(bar);
-                        barWrapper.appendChild(label);
-                        barChartContainer.appendChild(barWrapper);
-                    });
-                }
-                
-                const target = parseFloat(efficiencyTargetInput.value) || 0;
-                let percentage = 0;
-                if (target > 0) percentage = Math.min((lcaValue / target) * 100, 100);
-                const angle = (percentage / 100) * 360;
-                pieChart.style.background = `conic-gradient(var(--primary-color) ${angle}deg, #e9ecef ${angle}deg)`;
-                pieChartText.textContent = `${Math.round(percentage)}%`;
-            }
-
-            efficiencyTargetInput.addEventListener('input', updateDashboardCharts);
-
-            function populateAndShowDpp() {
-                const data = dppData.dpp;
-                document.getElementById('dppProductName').textContent = `DPP: ${data.productOverview.partName}`;
-                document.getElementById('dppPartName').textContent = data.productOverview.partName;
-                document.getElementById('dppPartNumber').textContent = data.productOverview.partNumber;
-                document.getElementById('dppDescription').textContent = data.productOverview.description;
-                document.getElementById('dppApplication').textContent = data.productOverview.application;
-                document.getElementById('dppBomTable').innerHTML = data.billOfMaterials.map(item => `<tr><td>${item.item}</td><td>${item.quantity}</td><td>${item.partName}</td><td>${item.description}</td><td>${item.material}</td></tr>`).join('');
-                
-                const techSpecsContainer = document.getElementById('dppTechSpecs');
-                let techSpecsHtml = '';
-                for (const key in data.technicalSpecifications) {
-                    let value = data.technicalSpecifications[key];
-                    if (typeof value === 'object') value = Object.entries(value).map(([sk, sv]) => `${sk}: ${sv}`).join(', ');
-                    techSpecsHtml += `<div class="dpp-item"><strong>${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> <span>${value}</span></div>`;
-                }
-                techSpecsContainer.innerHTML = techSpecsHtml;
-                document.getElementById('dppFeatures').innerHTML = data.featuresAndBenefits.map(item => `<li>${item}</li>`).join('');
-                dppModal.classList.add('active');
-            }
-
-            document.querySelector('#task2 .inventory-table').addEventListener('click', (e) => {
-                if (e.target.classList.contains('view-btn')) {
-                    if (uploadedFile) window.open(URL.createObjectURL(uploadedFile), '_blank');
-                    else alert("Please complete Task 1 to upload a file first.");
-                }
-                if (e.target.classList.contains('calculate-lca-btn-inline')) {
-                    const button = e.target;
-                    button.textContent = "Calculating...";
-                    setTimeout(() => {
-                        const cell = button.parentElement;
-                        lcaValue = 0.246;
-                        cell.innerHTML = lcaValue;
-                        document.querySelector('#task3 .emissions-value').textContent = `${lcaValue} kgCO2e`;
-                        updateDashboardCharts();
-                    }, 1000);
-                }
-                if(e.target.classList.contains('dpp-link')) {
-                    e.preventDefault();
-                    populateAndShowDpp();
-                }
-            });
-
-            updateDashboardCharts();
+        const skipButton = document.querySelector('.skip-link');
+        skipButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.location.href = 'dashboard.html';
         });
-    </script>
+
+        // --- Application logic ---
+        let products = [];
+        let isFirstLcaDone = false;
+        
+        const statusLcaText = document.getElementById('textLca');
+        const statusLca = document.getElementById('statusLca');
+        const statusAddProduct = document.getElementById('statusAddProduct');
+        
+        const dppData = { "dpp": { "productOverview": { "partName": "Handheld Hammer Drill", "partNumber": "HHD-2000", "description": "A robust and versatile handheld hammer drill designed for efficient drilling into various materials, including concrete, masonry, wood, and metal. Features a durable steel gear train for reliable performance and extended lifespan.", "application": "Ideal for professional construction, DIY projects, and general maintenance tasks requiring powerful rotational and percussive drilling." }, "billOfMaterials": [ { "item": 1, "quantity": 1, "partName": "Carrier 1 + Sun Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 4, "quantity": 1, "partName": "Carrier 2 + Sun Gear 3", "description": "Module: 0.706", "material": "Steel" }, { "item": 5, "quantity": 5, "partName": "Planet Gear 3", "description": "Module: 0.7", "material": "Steel" }, { "item": 6, "quantity": 1, "partName": "Ring Gear 3", "description": "Ring Gear 3", "material": "Steel" }, { "item": 7, "quantity": 5, "partName": "Planet Gear 2", "description": "Module: 0.685", "material": "Steel" }, { "item": 8, "quantity": 3, "partName": "Planet Gear 1", "description": "Module: 0.6", "material": "Steel" }, { "item": 9, "quantity": 1, "partName": "Carrier 3", "description": "Carrier 3", "material": "Steel" }, { "item": 10, "quantity": 1, "partName": "Ring Gear 2", "description": "Ring Gear 2", "material": "Steel" }, { "item": 11, "quantity": 1, "partName": "Ring Gear 1", "description": "Ring Gear 1", "material": "Steel" } ], "technicalSpecifications": { "powerInput": "800W", "noLoadSpeed": "0-3000 RPM", "impactRate": "0-48000 BPM", "chuckType": "13mm Keyless Chuck", "maxDrillingDiameter": { "concrete": "16mm", "steel": "13mm", "wood": "30mm" }, "weight": "2.5 kg", "voltage": "230V / 50Hz", "dimensions": "300mm x 70mm x 220mm" }, "featuresAndBenefits": [ "Powerful 800W motor for high performance.", "Durable all-steel gearing for long tool life.", "Dual mode: Hammer action and rotary only.", "Variable speed control for precision.", "Ergonomic design with auxiliary handle." ] } };
+
+        const tasks = document.querySelectorAll('.task');
+        const dashboardButton = document.getElementById('dashboardButton');
+        const completedTasks = new Set();
+        const efficiencyTargetInput = document.getElementById('efficiencyTargetInput');
+
+        tasks.forEach(task => {
+            const header = task.querySelector('.task-header');
+            const content = task.querySelector('.task-content');
+            header.addEventListener('click', () => {
+                const isActive = task.classList.contains('active');
+                tasks.forEach(t => {
+                    t.classList.remove('active');
+                    t.querySelector('.task-content').style.maxHeight = null;
+                });
+                if (!isActive) {
+                    task.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    completedTasks.add(task.id);
+                    if (completedTasks.size === tasks.length) {
+                        dashboardButton.classList.add('active');
+                    }
+                }
+            });
+        });
+
+        dashboardButton.addEventListener('click', () => {
+            if (dashboardButton.classList.contains('active')) {
+                const totalLca = products.reduce((sum, p) => sum + p.lca, 0);
+                sessionStorage.setItem('products', JSON.stringify(products));
+                sessionStorage.setItem('lcaValue', totalLca);
+                sessionStorage.setItem('efficiencyTarget', efficiencyTargetInput.value);
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        const addProductModal = document.getElementById('addProductModal');
+        const openAddProductBtn = document.querySelector('#task1 .add-new-btn');
+        const closeAddProductBtn = addProductModal.querySelector('.close-modal-btn');
+        openAddProductBtn.addEventListener('click', () => addProductModal.classList.add('active'));
+        const closeAddModal = () => addProductModal.classList.remove('active');
+        closeAddProductBtn.addEventListener('click', closeAddModal);
+        addProductModal.addEventListener('click', (e) => { if (e.target === addProductModal) closeAddModal(); });
+        
+        const fileDropArea = addProductModal.querySelector('.file-drop-area');
+        const fileInput = addProductModal.querySelector('#fileUpload');
+        const fileNameDisplay = addProductModal.querySelector('#fileName');
+        const fileAttachedInfo = addProductModal.querySelector('.file-attached-info');
+        fileDropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = fileInput.files[0].name;
+                fileAttachedInfo.style.display = 'block';
+            }
+        });
+        
+        document.getElementById('addProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const productName = document.getElementById('productName').value;
+            const file = fileInput.files[0];
+            if(productName && file){
+                const newProduct = { id: Date.now(), name: productName, file: file, lca: 0 };
+                products.push(newProduct);
+                renderInventoryTables();
+                document.getElementById('addProductForm').reset();
+                fileAttachedInfo.style.display = 'none';
+                
+                statusAddProduct.textContent = 'Completed';
+                statusAddProduct.classList.remove('not-started');
+                statusAddProduct.classList.add('completed');
+                
+                closeAddModal();
+            } else {
+                alert("Please provide a product name and a file.");
+            }
+        });
+
+        const dppModal = document.getElementById('dppModal');
+        const closeDppBtn = dppModal.querySelector('.close-modal-btn');
+        closeDppBtn.addEventListener('click', () => dppModal.classList.remove('active'));
+        dppModal.addEventListener('click', (e) => { if (e.target === dppModal) dppModal.classList.remove('active'); });
+
+        const pieChart = document.querySelector('#task3 .pie-chart');
+        const pieChartText = document.querySelector('#task3 .pie-chart-center span');
+        const emissionsValueEl = document.querySelector('#task3 .emissions-value');
+        const legendActual = document.querySelector('#legend-actual');
+        const legendLeft = document.querySelector('#legend-left');
+
+        // --- RESTORED FUNCTION LOGIC ---
+        function renderInventoryTables() {
+            const tableBody1 = document.querySelector('#task1 .inventory-table tbody');
+            const tableBody2 = document.querySelector('#task2 .inventory-table tbody');
+            tableBody1.innerHTML = '';
+            tableBody2.innerHTML = '';
+
+            if (products.length === 0) {
+                const placeholder = `<tr><td colspan="4"><div class="no-products-message">Your products will appear here.</div></td></tr>`;
+                tableBody1.innerHTML = placeholder;
+                tableBody2.innerHTML = placeholder.replace('Your products', 'Your new product');
+                return;
+            }
+
+            products.forEach(p => {
+                tableBody1.innerHTML += `<tr><td>${p.name}</td><td>-</td><td>-</td><td>${p.file.name}</td></tr>`;
+                
+                const lcaCell = p.lca > 0 ? p.lca.toFixed(3) : `<button class="calculate-lca-btn-inline" data-id="${p.id}">Calculate LCA</button>`;
+                tableBody2.innerHTML += `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td class="dpp-cell"><a href="#" class="dpp-link" data-id="${p.id}">View DPP</a></td>
+                        <td>${lcaCell}</td>
+                        <td class="view-btn" data-id="${p.id}">View</td>
+                    </tr>`;
+            });
+        }
+
+        function updateDashboardCharts() {
+            const totalLca = products.reduce((sum, p) => sum + p.lca, 0);
+            emissionsValueEl.textContent = `${totalLca.toFixed(3)} kgCO2e`;
+            
+            const target = parseFloat(efficiencyTargetInput.value) || 0;
+            let percentage = 0;
+            if (target > 0) percentage = Math.min((totalLca / target) * 100, 100);
+            const angle = (percentage / 100) * 360;
+            pieChart.style.background = `conic-gradient(var(--navy) ${angle}deg, #e9ecef ${angle}deg)`;
+            pieChartText.textContent = `${Math.round(percentage)}%`;
+            legendActual.textContent = `${totalLca.toFixed(3)} kgCO2e`;
+            const amountLeft = Math.max(0, target - totalLca);
+            legendLeft.textContent = `${amountLeft.toFixed(3)} kgCO2e`;
+
+            const activeTask = document.querySelector('.task.active');
+            if (activeTask) {
+                const content = activeTask.querySelector('.task-content');
+                setTimeout(() => {
+                    if (activeTask.classList.contains('active')) {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                }, 10);
+            }
+        }
+
+        function populateAndShowDpp() {
+            const data = dppData.dpp;
+            document.getElementById('dppProductName').textContent = `DPP: ${data.productOverview.partName}`;
+            document.getElementById('dppPartName').textContent = data.productOverview.partName;
+            document.getElementById('dppPartNumber').textContent = data.productOverview.partNumber;
+            document.getElementById('dppDescription').textContent = data.productOverview.description;
+            document.getElementById('dppApplication').textContent = data.productOverview.application;
+            document.getElementById('dppBomTable').innerHTML = data.billOfMaterials.map(item => `<tr><td>${item.item}</td><td>${item.quantity}</td><td>${item.partName}</td><td>${item.description}</td><td>${item.material}</td></tr>`).join('');
+            
+            const techSpecsContainer = document.getElementById('dppTechSpecs');
+            let techSpecsHtml = '';
+            for (const key in data.technicalSpecifications) {
+                let value = data.technicalSpecifications[key];
+                if (typeof value === 'object') value = Object.entries(value).map(([sk, sv]) => `${sk}: ${sv}`).join(', ');
+                techSpecsHtml += `<div class="dpp-item"><strong>${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> <span>${value}</span></div>`;
+            }
+            techSpecsContainer.innerHTML = techSpecsHtml;
+            document.getElementById('dppFeatures').innerHTML = data.featuresAndBenefits.map(item => `<li>${item}</li>`).join('');
+            dppModal.classList.add('active');
+        }
+        // --- END OF RESTORED LOGIC ---
+
+        document.querySelector('#task2 .inventory-table').addEventListener('click', (e) => {
+            const target = e.target;
+            const productId = target.dataset.id;
+            if (!productId) return;
+
+            const product = products.find(p => p.id == productId);
+            if (!product) return;
+            
+            if (target.classList.contains('view-btn')) {
+                if (product.file) window.open(URL.createObjectURL(product.file), '_blank');
+            } else if (target.classList.contains('calculate-lca-btn-inline')) {
+                target.textContent = "Calculating...";
+                setTimeout(() => {
+                    product.lca = parseFloat((Math.random() * 0.3 + 0.1).toFixed(3));
+                    renderInventoryTables();
+                    updateDashboardCharts();
+                    
+                    if (!isFirstLcaDone) {
+                        statusLcaText.textContent = 'First LCA Calculation';
+                        statusLca.textContent = 'Completed';
+                        statusLca.classList.remove('not-started');
+                        statusLca.classList.add('completed');
+                        isFirstLcaDone = true;
+                    }
+                }, 1000);
+            } else if(target.classList.contains('dpp-link')) {
+                e.preventDefault();
+                populateAndShowDpp();
+            }
+        });
+
+        efficiencyTargetInput.addEventListener('input', updateDashboardCharts);
+        updateDashboardCharts();
+        renderInventoryTables();
+    });
+</script>
 </body>
 </html>
 

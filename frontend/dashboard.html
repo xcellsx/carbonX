@@ -3,233 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonX Dashboard</title>
+    <title>CarbonX</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #2c4a52;
-            --background-color: #f8f9fa;
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --text-dark: #333;
-            --text-muted: #6c757d;
-            --border-color: #e9ecef;
-            --accent-blue: #3d8bfd;
-            --accent-yellow: #ffc107;
-        }
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+<style>
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+        --body-bg: light-dark(var(--grey), var(--black));
+        --card-bg: light-dark(var(--white), #1c1c1e);
+        --border-color: light-dark(#e9ecef, #3a3a3c);
+        --text-dark: light-dark(var(--black), var(--white));
+        --text-muted: #6c757d;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Figtree', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-dark);
-            display: flex;
-            height: 100vh;
-        }
+    body {
+        font-family: 'Figtree', sans-serif;
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
 
-        .sidebar {
-            width: 80px;
-            background-color: var(--sidebar-bg);
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-right: 1px solid var(--border-color);
-            flex-shrink: 0;
-        }
+    .sidebar {
+        width: 80px;
+        background-color: var(--card-bg);
+        padding: 30px 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-right: 1px solid var(--border-color);
+        flex-shrink: 0;
+        transition: width 0.3s ease;
+        overflow-x: hidden;
+    }
+    .sidebar.expanded {
+        width: 240px;
+    }
 
-        .logo {
-            margin-bottom: 40px;
-        }
+    .sidebar-top, .sidebar-bottom {
+        display: flex;
+        flex-direction: column;
+    }
 
-        .nav-item {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .nav-item.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        .nav-item:not(.active):hover {
-             background-color: var(--border-color);
-        }
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-        }
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 50px;
+        flex-shrink: 0;
+        height: 30px;
+    }
+    .logo .logo-text {
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-family: 'Hammersmith One', sans-serif;
+        font-size: 20px;
+        color: var(--text-dark);
+    }
+    .sidebar.expanded .logo .logo-text {
+        opacity: 1;
+    }
 
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+    }
 
-        header h1 {
-            font-family: 'Hammersmith One', sans-serif;
-            font-size: 36px;
-            color: var(--primary-color);
-            font-weight: 400;
-        }
-        header p {
-            color: var(--text-muted);
-            margin-top: 5px;
-            margin-bottom: 30px;
-        }
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .nav-item.active {
+        background-color: light-dark(var(--navy), var(--blue));
+        color: var(--white);
+    }
+    .nav-item:not(.active):hover {
+       background-color: var(--border-color);
+    }
+    .nav-item svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        margin-right: 18px;
+    }
+    .nav-item span {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .sidebar.expanded .nav-item span {
+        opacity: 1;
+    }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 20px;
+    }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-grey);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .user-info {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .sidebar.expanded .user-info {
+        opacity: 1;
+    }
+    .user-info .name {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .user-info .company {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
 
-        .card {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-        }
+    .main-content {
+        flex-grow: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
+    header h1 {
+        font-family: 'Hammersmith One', sans-serif;
+        font-size: 36px;
+        color: var(--text-dark);
+        font-weight: 400;
+    }
+    header p {
+        color: var(--text-muted);
+        margin-top: 5px;
+        margin-bottom: 30px;
+    }
 
-        .emissions-total {
-            text-align: center;
-        }
-        .emissions-total .label {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .emissions-total .value {
-            font-size: 48px;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin: 10px 0;
-        }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr;
+        grid-template-rows: auto auto;
+        gap: 30px;
+    }
 
-        .bar-chart-container {
-            height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 20%;
-        }
-        .bar-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 50px;
-        }
-        .bar {
-            width: 100%;
-            background-color: #d0eaff;
-            border-radius: 5px;
-        }
-        .bar-label {
-            font-size: 12px;
-            margin-top: 8px;
-            white-space: nowrap;
-        }
+    .card {
+        background-color: var(--card-bg);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+    }
 
-        .activity-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-         .activity-item .description .main {
-            font-weight: 500;
-        }
-        .activity-item .description .sub {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .status-badge {
-            background-color: var(--accent-yellow);
-            color: var(--text-dark);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .pie-chart-container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .pie-chart {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: conic-gradient(var(--accent-blue) 0deg, #e9ecef 0deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .pie-chart-center {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        .pie-legend .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-        .legend-text {
-            font-size: 13px;
-        }
-         .legend-text .value {
-            font-weight: 500;
-            margin-left: 5px;
-            color: var(--text-dark);
-        }
-    </style>
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .info-icon {
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    .emissions-card {
+        grid-row: 1 / 3;
+    }
+
+    .emissions-total .value {
+        font-size: 48px;
+        font-weight: 700;
+        color: light-dark(var(--navy), var(--blue));
+        margin: 10px 0;
+    }
+
+    .status-badge {
+        background-color: var(--yellow);
+        color: var(--black);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .status-badge.completed {
+        background-color: var(--yellow);
+        color: var(--black);
+    }
+    .status-badge.inprogress {
+        background-color: var(--light-blue);
+        color: var(--black);
+    }
+    .status-badge.not-started {
+        background-color: var(--grey);
+        color: var(--black);
+    }
+    
+    .pie-chart {
+        background: conic-gradient(var(--blue) 0deg, var(--border-color) 0deg);
+    }
+    .pie-chart-center {
+        background: var(--card-bg);
+        color: light-dark(var(--navy), var(--blue));
+    }
+    .legend-text .value {
+        color: var(--text-dark);
+    }
+
+    a.user-profile {
+        text-decoration: none;
+    }
+
+    .target-input-container {
+        margin-top: 20px;
+    }
+    .target-input-container label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text-muted);
+    }
+    .target-input-editable {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .chart-area {
+        display: flex;
+        margin-top: 30px;
+        height: 220px;
+    }
+    .y-axis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-muted);
+        padding-right: 10px;
+        text-align: right;
+        width: 50px;
+        flex-shrink: 0;
+    }
+    .bar-chart-container {
+        flex-grow: 1;
+        height: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        gap: 15px;
+        border-left: 1px solid var(--border-color);
+        padding: 0 15px;
+    }
+    .bar-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+        flex: 1;
+        max-width: 60px;
+    }
+    .bar {
+        width: 100%;
+        background-color: light-dark(var(--light-blue), var(--navy));
+        border-radius: 5px 5px 0 0;
+        transition: height 0.5s ease-out;
+    }
+    .bar-label {
+        font-size: 12px;
+        margin-top: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+</style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo">
-            <img src="assets/CarbonX-icon.png" alt="Logo" width="30">
+        <div class="sidebar-top">
+            <div class="logo">
+                <picture>
+                    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+                    <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
+                </picture>
+                <span class="logo-text">CarbonX</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item active">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Inventory</span>
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analytics</span>
+                </a>
+                <a href="network.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Network</span>
+                </a>
+                <a href="report.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Report</span>
+                </a>
+                <a href="chat.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>AI Chat</span>
+                </a>
+            </nav>
         </div>
-        <div class="nav-item active">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </div>
-        <div class="nav-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-        </div>
-        <div class="nav-item">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <div class="sidebar-bottom">
+            <nav class="nav-menu">
+                <!-- Settings link removed -->
+            </nav>
+            <a href="settings.html" class="user-profile">
+                <div class="user-avatar" id="user-avatar">JD</div>
+                <div class="user-info">
+                    <div class="name" id="user-name">John Doe</div>
+                    <div class="company" id="user-company">Company Name</div>
+                </div>
+            </a>
         </div>
     </div>
     <main class="main-content">
@@ -238,13 +381,28 @@
             <p>Overview of your carbon emissions and activities.</p>
         </header>
         <div class="dashboard-grid">
-            <div class="card emissions-total">
-                <div class="card-header"><span class="card-title">Current Total Carbon Emissions</span></div>
-                <div class="label">Sum of all carbon emissions:</div>
-                <div class="value" id="total-emissions">0 kgCO2e</div>
+            <div class="card emissions-card">
+                <div class="card-header">
+                    <span class="card-title">Current Total Carbon Emissions</span>
+                    <span class="info-icon">ⓘ</span>
+                </div>
+                <div class="emissions-total">
+                    <div class="label">Sum of all carbon emissions:</div>
+                    <div class="value" id="total-emissions">0 kgCO2e</div>
+                </div>
+                <div class="card-header" style="margin-top: 30px;"><span class="card-title">Top Contributors of Carbon Emissions</span></div>
+                <div class="chart-area">
+                    <div class="y-axis" id="y-axis"></div>
+                    <div class="bar-chart-container" id="bar-chart">
+                        <div class="no-products-message" style="font-size: 13px;">No data to display.</div>
+                    </div>
+                </div>
             </div>
             <div class="card">
-                <div class="card-header"><span class="card-title">Activities</span></div>
+                <div class="card-header">
+                    <span class="card-title">Activities</span>
+                    <span class="info-icon">ⓘ</span>
+                </div>
                 <div class="activities-list">
                     <div class="activity-item">
                         <div class="description">
@@ -270,71 +428,120 @@
                 </div>
             </div>
             <div class="card">
-                <div class="card-header"><span class="card-title">Top 4 Contributors of Carbon Emissions</span></div>
-                <div class="bar-chart-container" id="bar-chart">
-                     <div class="no-products-message">No data to display. Calculate LCA first.</div>
+                <div class="card-header">
+                    <span class="card-title">Efficiency Target</span>
+                    <span class="info-icon">ⓘ</span>
                 </div>
-            </div>
-             <div class="card">
-                <div class="card-header"><span class="card-title">Efficiency Target</span></div>
-                 <div class="pie-chart-container">
-                     <div class="pie-chart" id="pie-chart">
-                         <div class="pie-chart-center" id="pie-chart-text">0%</div>
-                     </div>
-                     <div class="pie-legend">
+                <div class="pie-chart-container">
+                    <div class="pie-chart" id="pie-chart">
+                        <div class="pie-chart-center" id="pie-chart-text">0%</div>
+                    </div>
+                    <div class="pie-legend">
                         <div class="legend-item">
-                             <div class="legend-color" style="background-color: var(--accent-blue);"></div>
-                             <div class="legend-text">Actual Target: <span class="value" id="legend-actual">0 kgCO2e</span></div>
+                            <div class="legend-color" style="background-color: var(--blue);"></div>
+                            <div class="legend-text">Current Emissions: <span class="value" id="legend-actual">0 kgCO2e</span></div>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background-color: #e9ecef;"></div>
-                             <div class="legend-text">Amount Left: <span class="value" id="legend-left">0 kgCO2e</span></div>
+                            <div class="legend-color" style="background-color: var(--border-color);"></div>
+                            <div class="legend-text">Amount Left: <span class="value" id="legend-left">0 kgCO2e</span></div>
                         </div>
-                     </div>
-                 </div>
+                    </div>
+                </div>
+                <div class="target-input-container">
+                    <label for="efficiencyTargetInput">Set Target (kgCO2e)</label>
+                    <input type="number" step="0.01" id="efficiencyTargetInput" class="target-input-editable">
+                </div>
             </div>
         </div>
     </main>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Sidebar expansion logic ---
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Retrieve data from sessionStorage
-            const productName = sessionStorage.getItem('productName') || 'Not Set';
+        // --- Initial data load ---
+        const efficiencyTargetInput = document.getElementById('efficiencyTargetInput');
+        const storedTarget = sessionStorage.getItem('efficiencyTarget');
+        if (storedTarget) {
+            efficiencyTargetInput.value = parseFloat(storedTarget);
+        }
+
+        // --- Main dashboard update function ---
+        function updateDashboard() {
+            // Get data from storage and the new input field
+            const products = JSON.parse(sessionStorage.getItem('products')) || [];
             const lcaValue = parseFloat(sessionStorage.getItem('lcaValue')) || 0;
-            const efficiencyTarget = parseFloat(sessionStorage.getItem('efficiencyTarget')) || 0.500;
-            
-            // Populate Total Emissions
+            const efficiencyTarget = parseFloat(efficiencyTargetInput.value) || 0;
+
+            // --- User Profile Logic ---
+            const userName = localStorage.getItem('signupFullName') || 'John Doe';
+            const companyName = localStorage.getItem('companyName') || 'Company Name';
+            let initials = 'JD';
+            if (userName) {
+                const nameParts = userName.split(' ');
+                initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+            }
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = initials.toUpperCase();
+            document.getElementById('user-company').textContent = companyName;
+
+            // --- Update Total Emissions & Activities ---
             document.getElementById('total-emissions').textContent = `${lcaValue.toFixed(3)} kgCO2e`;
 
-            // Populate Activities
-            document.getElementById('activity-lca').textContent = `Calculated LCA for ${productName}`;
+            const statusProduct = document.getElementById('status-product');
+            const statusLca = document.getElementById('status-lca');
+            document.getElementById('activity-lca').textContent = `Calculated LCA for ${products.length > 0 ? products.map(p=>p.name).join(', ') : '...'}`;
+
+            if (products.length > 0) {
+                statusProduct.textContent = 'Completed';
+                statusProduct.className = 'status-badge completed';
+            } else {
+                statusProduct.textContent = 'Not Started';
+                statusProduct.className = 'status-badge not-started';
+            }
             if (lcaValue > 0) {
-                 document.getElementById('status-lca').textContent = 'Completed';
-                 document.getElementById('status-product').textContent = 'Completed';
+                statusLca.textContent = 'Completed';
+                statusLca.className = 'status-badge completed';
+            } else {
+                statusLca.textContent = 'Not Started';
+                statusLca.className = 'status-badge not-started';
             }
 
-            // Populate Bar Chart
+            // --- Update Bar Chart (Task 9 Fix) ---
+            const yAxis = document.getElementById('y-axis');
             const barChartContainer = document.getElementById('bar-chart');
-            if (lcaValue > 0) {
-                barChartContainer.innerHTML = ''; // Clear message
-                const barData = [ { label: 'Handheld Hammer Drill', value: lcaValue }];
-                const maxValue = Math.max(...barData.map(d => d.value), 0.4);
-                barData.forEach(data => {
+            const contributors = products.filter(p => p.lca > 0);
+            
+            barChartContainer.innerHTML = ''; // Clear previous bars
+            
+            if (contributors.length > 0) {
+                const dataMaxValue = Math.max(...contributors.map(d => d.lca));
+                const yAxisMax = Math.ceil(dataMaxValue * 10) / 10 || 0.1; // Ensure it's not zero
+                
+                yAxis.innerHTML = [
+                    `<span>${(yAxisMax).toFixed(3)}</span>`,
+                    `<span>${(yAxisMax * 0.5).toFixed(3)}</span>`,
+                    `<span>0.000</span>`
+                ].join('');
+
+                contributors.forEach(data => {
+                    const barHeight = (data.lca / yAxisMax) * 100;
                     const barWrapper = document.createElement('div');
                     barWrapper.className = 'bar-wrapper';
-                    const bar = document.createElement('div');
-                    bar.className = 'bar';
-                    bar.style.height = `${(data.value / maxValue) * 100}%`;
-                    const label = document.createElement('div');
-                    label.className = 'bar-label';
-                    label.textContent = data.label;
-                    barWrapper.appendChild(bar);
-                    barWrapper.appendChild(label);
+                    barWrapper.innerHTML = `
+                        <div class="bar" style="height: ${barHeight}%"></div>
+                        <div class="bar-label">${data.name}</div>
+                    `;
                     barChartContainer.appendChild(barWrapper);
                 });
+            } else {
+                yAxis.innerHTML = '';
+                barChartContainer.innerHTML = `<div class="no-products-message" style="font-size: 13px;">No data to display.</div>`;
             }
 
-            // Populate Pie Chart
+            // --- Update Pie Chart (Task 7 Fix) ---
             const pieChart = document.getElementById('pie-chart');
             const pieChartText = document.getElementById('pie-chart-text');
             const legendActual = document.getElementById('legend-actual');
@@ -346,14 +553,25 @@
             }
             const angle = (percentage / 100) * 360;
             
-            pieChart.style.background = `conic-gradient(var(--accent-blue) ${angle}deg, #e9ecef ${angle}deg)`;
+            pieChart.style.background = `conic-gradient(var(--blue) ${angle}deg, var(--border-color) ${angle}deg)`;
             pieChartText.textContent = `${Math.round(percentage)}%`;
             legendActual.textContent = `${lcaValue.toFixed(3)} kgCO2e`;
-            legendLeft.textContent = `${(efficiencyTarget - lcaValue).toFixed(3)} kgCO2e`;
+            const amountLeft = Math.max(0, efficiencyTarget - lcaValue);
+            legendLeft.textContent = `${amountLeft.toFixed(3)} kgCO2e`;
+        }
 
-            // Clean up sessionStorage
-            // sessionStorage.clear();
+        // --- Event Listener for new input (Task 8) ---
+        efficiencyTargetInput.addEventListener('input', updateDashboard);
+
+        // --- Initial and subsequent page loads ---
+        updateDashboard();
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                updateDashboard();
+            }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
+
