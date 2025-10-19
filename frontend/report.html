@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbonX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+<style>
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+        --body-bg: light-dark(var(--grey), var(--black));
+        --card-bg: light-dark(var(--white), var(--black));
+        --border-color: var(--dark-grey);
+        --text-dark: light-dark(var(--black), var(--white));
+        --text-muted: var(--dark-grey);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Figtree', sans-serif;
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 80px;
+        background-color: var(--card-bg);
+        padding: 30px 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-right: 1px solid var(--border-color);
+        flex-shrink: 0;
+        transition: width 0.3s ease;
+        overflow-x: hidden;
+    }
+    .sidebar.expanded {
+        width: 240px;
+    }
+
+    .sidebar-top, .sidebar-bottom {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 50px;
+        flex-shrink: 0;
+        height: 30px;
+        justify-content: center;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+        font-weight: 500;
+        color: var(--text-dark);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .nav-item.active {
+        background-color: light-dark(var(--navy), var(--blue));
+        color: light-dark(var(--white), var(--black));
+    }
+    .nav-item:not(.active):hover {
+       background-color: var(--border-color);
+    }
+    .nav-item svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        margin-right: 18px;
+    }
+    .nav-item span {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .sidebar.expanded .nav-item span {
+        opacity: 1;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 20px;
+        text-decoration: none;
+        color: inherit;
+    }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-grey);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .user-info {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .sidebar.expanded .user-info {
+        opacity: 1;
+    }
+    .user-info .name {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .user-info .company {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .main-content {
+        flex-grow: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    .main-content h1 {
+        font-size: 36px;
+        color: var(--text-dark);
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .main-content p {
+        color: var(--text-dark);
+    }
+</style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <div class="logo">
+                <picture>
+                    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+                    <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
+                </picture>
+            </div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Inventory</span>
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analytics</span>
+                </a>
+                <a href="network.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Network</span>
+                </a>
+                <a href="report.html" class="nav-item active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Report</span>
+                </a>
+                <a href="chat.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>AI Chat</span>
+                </a>
+            </nav>
+        </div>
+        <div class="sidebar-bottom">
+            <nav class="nav-menu"></nav>
+            <a href="settings.html" class="user-profile">
+                <div class="user-avatar" id="user-avatar"></div>
+                <div class="user-info">
+                    <div class="name" id="user-name"></div>
+                    <div class="company" id="user-company"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <main class="main-content">
+        <h1>Report</h1>
+        <p>This page is under construction.</p>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+            sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+
+            // User Profile Hydration
+            const userName = localStorage.getItem('signupFullName') || 'John Doe';
+            const companyName = localStorage.getItem('companyName') || 'Company Name';
+            let initials = 'JD';
+            if (userName) {
+                const nameParts = userName.split(' ');
+                initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+            }
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = initials.toUpperCase();
+            document.getElementById('user-company').textContent = companyName;
+        });
+    </script>
+</body>
+</html>
