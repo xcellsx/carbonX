@@ -22,10 +22,10 @@
         --grey: #eaeaea;
         --dark-grey: #a9a9a9;
         --body-bg: light-dark(var(--grey), var(--black));
-        --card-bg: light-dark(var(--white), #1c1c1e);
-        --border-color: light-dark(#e9ecef, #3a3a3c);
+        --card-bg: light-dark(var(--white), var(--black));
+        --border-color: var(--dark-grey);
         --text-dark: light-dark(var(--black), var(--white));
-        --text-muted: #6c757d;
+
     }
 
     * {
@@ -71,15 +71,10 @@
         margin-bottom: 50px;
         flex-shrink: 0;
         height: 30px;
+        justify-content: center;
     }
-    .logo .logo-text {
-        opacity: 0;
-        transition: opacity 0.2s;
-        font-family: 'Hammersmith One', sans-serif;
-        font-size: 20px;
-        color: var(--text-dark);
-    }
-    .sidebar.expanded .logo .logo-text {
+
+    .sidebar.expanded .logo {
         opacity: 1;
     }
 
@@ -97,13 +92,13 @@
         cursor: pointer;
         transition: background-color 0.2s, color 0.2s;
         font-weight: 500;
-        color: var(--text-muted);
+        color: light-dark(var(--black), var(--white));
         text-decoration: none;
         white-space: nowrap;
     }
     .nav-item.active {
         background-color: light-dark(var(--navy), var(--blue));
-        color: var(--white);
+        color: light-dark(var(--white), var(--black));
     }
     .nav-item:not(.active):hover {
        background-color: var(--border-color);
@@ -155,7 +150,7 @@
     }
     .user-info .company {
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--dark-grey);
     }
 
     .main-content {
@@ -165,13 +160,12 @@
     }
 
     header h1 {
-        font-family: 'Hammersmith One', sans-serif;
         font-size: 36px;
         color: var(--text-dark);
-        font-weight: 400;
+        font-weight: bold;
     }
     header p {
-        color: var(--text-muted);
+        color: var(--text-dark);
         margin-top: 5px;
         margin-bottom: 30px;
     }
@@ -193,18 +187,45 @@
 
     .card-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        gap: 20px;
     }
     .card-title {
         font-size: 16px;
         font-weight: 600;
     }
     .info-icon {
-        color: var(--text-muted);
-        cursor: pointer;
-    }
+    position: relative; /* Required for tooltip positioning */
+    color: var(--dark-grey);
+    cursor: pointer;
+}
+.info-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%; /* Position above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-grey);
+    color: var(--white);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: normal; /* Allow text to wrap */
+    width: 280px; /* Set a fixed width */
+    text-align: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+    pointer-events: none; /* Prevents tooltip from interfering with mouse */
+}
+.info-icon:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
 
     .emissions-card {
         grid-row: 1 / 3;
@@ -238,16 +259,56 @@
         color: var(--black);
     }
     
-    .pie-chart {
-        background: conic-gradient(var(--blue) 0deg, var(--border-color) 0deg);
-    }
-    .pie-chart-center {
-        background: var(--card-bg);
-        color: light-dark(var(--navy), var(--blue));
-    }
-    .legend-text .value {
-        color: var(--text-dark);
-    }
+.pie-chart-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.pie-chart {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pie-chart-center {
+    width: 110px;
+    height: 110px;
+    background: var(--card-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: light-dark(var(--navy), var(--blue));
+}
+
+.pie-legend .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.legend-text {
+    font-size: 13px;
+}
+
+.legend-text .value {
+    font-weight: 500;
+    margin-left: 5px;
+    color: var(--text-dark);
+}
 
     a.user-profile {
         text-decoration: none;
@@ -261,7 +322,7 @@
         font-size: 13px;
         font-weight: 500;
         margin-bottom: 8px;
-        color: var(--text-muted);
+        color: var(--text-dark);
     }
     .target-input-editable {
         width: 100%;
@@ -284,7 +345,7 @@
         flex-direction: column;
         justify-content: space-between;
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--dark-grey);
         padding-right: 10px;
         text-align: right;
         width: 50px;
@@ -323,6 +384,30 @@
         text-overflow: ellipsis;
         max-width: 100%;
     }
+
+    .activity-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+    }
+
+    .ai-summary {
+    margin-top: 40px; /* Adds space above the summary */
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.summary-text {
+    color: var(--dark-grey);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+    .info-icon {
+        color: var(--dark-grey);
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
@@ -333,7 +418,6 @@
                     <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
                     <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
                 </picture>
-                <span class="logo-text">CarbonX</span>
             </div>
             <nav class="nav-menu">
                 <a href="dashboard.html" class="nav-item active">
@@ -384,8 +468,7 @@
             <div class="card emissions-card">
                 <div class="card-header">
                     <span class="card-title">Current Total Carbon Emissions</span>
-                    <span class="info-icon">ⓘ</span>
-                </div>
+<span class="info-icon" data-tooltip="This section shows you the total sum of all your carbon emissions from your products, top 4 contributors and an AI summary.">ⓘ</span>                </div>
                 <div class="emissions-total">
                     <div class="label">Sum of all carbon emissions:</div>
                     <div class="value" id="total-emissions">0 kgCO2e</div>
@@ -397,11 +480,19 @@
                         <div class="no-products-message" style="font-size: 13px;">No data to display.</div>
                     </div>
                 </div>
+
+                <!-- ADD THIS NEW SECTION BELOW -->
+<div class="ai-summary">
+    <div class="card-header">
+        <span class="card-title">Summary</span>
+    </div>
+    <p class="summary-text">No info available.</p>
+</div>
             </div>
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">Activities</span>
-                    <span class="info-icon">ⓘ</span>
+                    <span class="info-icon" data-tooltip="This section shows you the top 5 actions you have carried out within our app.">ⓘ</span>
                 </div>
                 <div class="activities-list">
                     <div class="activity-item">
@@ -430,7 +521,7 @@
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">Efficiency Target</span>
-                    <span class="info-icon">ⓘ</span>
+                    <span class="info-icon" data-tooltip="This section shows the comparison between your actual target and the amount left to hit the target.">ⓘ</span>
                 </div>
                 <div class="pie-chart-container">
                     <div class="pie-chart" id="pie-chart">
@@ -438,7 +529,7 @@
                     </div>
                     <div class="pie-legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background-color: var(--blue);"></div>
+                            <div class="legend-color" style="background-color: light-dark(var(--navy), var(--blue));"></div>
                             <div class="legend-text">Current Emissions: <span class="value" id="legend-actual">0 kgCO2e</span></div>
                         </div>
                         <div class="legend-item">
@@ -509,16 +600,16 @@
                 statusLca.className = 'status-badge not-started';
             }
 
-            // --- Update Bar Chart (Task 9 Fix) ---
+            // --- Update Bar Chart ---
             const yAxis = document.getElementById('y-axis');
             const barChartContainer = document.getElementById('bar-chart');
             const contributors = products.filter(p => p.lca > 0);
             
-            barChartContainer.innerHTML = ''; // Clear previous bars
+            barChartContainer.innerHTML = ''; 
             
             if (contributors.length > 0) {
                 const dataMaxValue = Math.max(...contributors.map(d => d.lca));
-                const yAxisMax = Math.ceil(dataMaxValue * 10) / 10 || 0.1; // Ensure it's not zero
+                const yAxisMax = Math.ceil(dataMaxValue * 10) / 10 || 0.1;
                 
                 yAxis.innerHTML = [
                     `<span>${(yAxisMax).toFixed(3)}</span>`,
@@ -541,7 +632,7 @@
                 barChartContainer.innerHTML = `<div class="no-products-message" style="font-size: 13px;">No data to display.</div>`;
             }
 
-            // --- Update Pie Chart (Task 7 Fix) ---
+            // --- Update Pie Chart ---
             const pieChart = document.getElementById('pie-chart');
             const pieChartText = document.getElementById('pie-chart-text');
             const legendActual = document.getElementById('legend-actual');
@@ -553,15 +644,20 @@
             }
             const angle = (percentage / 100) * 360;
             
-            pieChart.style.background = `conic-gradient(var(--blue) ${angle}deg, var(--border-color) ${angle}deg)`;
+            pieChart.style.background = `conic-gradient(light-dark(var(--navy), var(--blue)) ${angle}deg, var(--border-color) ${angle}deg)`;
             pieChartText.textContent = `${Math.round(percentage)}%`;
             legendActual.textContent = `${lcaValue.toFixed(3)} kgCO2e`;
             const amountLeft = Math.max(0, efficiencyTarget - lcaValue);
             legendLeft.textContent = `${amountLeft.toFixed(3)} kgCO2e`;
         }
 
-        // --- Event Listener for new input (Task 8) ---
-        efficiencyTargetInput.addEventListener('input', updateDashboard);
+        // --- UPDATED Event Listener ---
+        efficiencyTargetInput.addEventListener('input', () => {
+            // Save the new value to sessionStorage whenever it changes
+            sessionStorage.setItem('efficiencyTarget', efficiencyTargetInput.value);
+            // Then, update the dashboard visuals
+            updateDashboard();
+        });
 
         // --- Initial and subsequent page loads ---
         updateDashboard();
