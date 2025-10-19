@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
-    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
-    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="frontend/assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="frontend/assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
     <style>
         :root {
             color-scheme: light dark;
@@ -266,7 +266,7 @@
         <!-- Left Section with Dashboard Preview -->
         <div class="left-section">
             <div class="dashboard-preview">
-                <img src="assets/Dashboard.png" alt="Dashboard Preview">
+                <img src="frontend/assets/Dashboard.png" alt="Dashboard Preview">
             </div>
         </div>
 
@@ -275,8 +275,8 @@
             <!-- Sign Up Form -->
             <div id="signupForm" class="form-container">
                 <picture>
-    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
-    <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
+    <source srcset="frontend/assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+    <img src="frontend/assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
                 </picture>
                 <h2>Welcome.</h2>
                 <p class="subtitle">Sign up with your credentials.</p>
@@ -310,7 +310,10 @@
 
             <!-- Sign In Form -->
             <div id="signinForm" class="form-container hidden">
-                <img src="assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo" media="(prefers-color-scheme: light)">
+                <picture>
+    <source srcset="frontend/assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+    <img src="frontend/assets/CarbonX-icon(light).png" alt="CarbonX Logo" class="form-logo">
+                </picture>
                 <h2>Welcome Back.</h2>
                 <p class="subtitle">Sign in with your credentials.</p>
 
@@ -415,7 +418,7 @@ async function handleSignup(event) {
         
         setTimeout(() => {
             // Redirect to company-info.html
-            window.location.href = 'company-info.html'; 
+            window.location.href = 'frontend/company-info.html'; 
         }, 2000);
 
     } catch (error) {
@@ -484,7 +487,7 @@ async function handleSignup(event) {
                 
                 setTimeout(() => {
                     // Redirect existing users to the dashboard
-                    window.location.href = 'dashboard.html'; 
+                    window.location.href = 'frontend/dashboard.html'; 
                 }, 2000);
 
             } catch (error) {
