@@ -116,13 +116,21 @@
     .user-profile {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
+        justify-content: center;
+        padding: 10.5px;
+        border-radius: 8px;
         margin-top: 20px;
         text-decoration: none;
         color: inherit;
+        border: 1.5px solid var(--dark-grey);
+        background-color: transparent;
+        gap: 0;
     }
+    .sidebar.expanded .user-profile {
+        justify-content: flex-start;
+        gap: 10px;
+    }
+    
     .user-avatar {
         width: 40px;
         height: 40px;
@@ -136,10 +144,12 @@
         flex-shrink: 0;
     }
     .user-info {
+        display: none;
         opacity: 0;
         transition: opacity 0.2s;
     }
     .sidebar.expanded .user-info {
+        display: block;
         opacity: 1;
     }
     .user-info .name {
@@ -153,18 +163,257 @@
 
     .main-content {
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
         padding: 40px;
-        overflow-y: auto;
     }
 
-    .main-content h1 {
-        font-size: 36px;
-        color: var(--text-dark);
+    .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+    }
+
+    .main-header h1 {
+        font-size: 32px;
         font-weight: bold;
+    }
+
+    .chat-area-wrapper {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative; /* Context for overlay */
+    }
+    
+    .chat-container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .chat-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 1;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .chat-empty-state .icon {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 20px;
+    }
+    .chat-empty-state h2 {
+        font-size: 24px;
+        font-weight: 600;
         margin-bottom: 8px;
     }
-    .main-content p {
+    .chat-empty-state p {
         color: var(--text-dark);
+        margin-bottom: 30px;
+    }
+    .suggestion-blocks {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    .suggestion-block {
+        background-color: light-dark(var(--white), var(--black));
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        width: 220px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .suggestion-block:hover {
+        background-color: light-dark(var(--light-blue), var(--blue));
+    }
+
+    .suggestion-block svg {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 10px;
+    }
+    .suggestion-block.sparkle-1 svg { color: light-dark(var(--blue), var(--light-blue)); }
+    .suggestion-block.sparkle-2 svg { color: var(--yellow); }
+    .suggestion-block.sparkle-3 svg { color: light-dark(var(--navy), var(--cream)); }
+
+    .suggestion-block .title {
+        font-size: 14px;
+        font-weight: 100;
+        text-align: center;
+    }
+
+    .chat-history {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding-right: 15px;
+    }
+    .message {
+        margin-bottom: 20px;
+        max-width: 80%;
+    }
+    .message p {
+        padding: 12px 18px;
+        border-radius: 18px;
+        line-height: 1.6;
+        font-size: 15px;
+    }
+    .message.user {
+        margin-left: auto;
+        text-align: right;
+    }
+    .message.user p {
+        background-color: var(--blue);
+        color: var(--white);
+        border-bottom-right-radius: 4px;
+    }
+    .message.ai {
+        margin-right: auto;
+    }
+    .message.ai p {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-bottom-left-radius: 4px;
+    }
+     .typing-indicator {
+        display: inline-block;
+        margin-left: 10px;
+    }
+    .typing-indicator span {
+        height: 8px;
+        width: 8px;
+        background-color: var(--dark-grey);
+        border-radius: 50%;
+        display: inline-block;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+
+    .chat-input-area {
+        position: relative;
+    }
+    .chat-input {
+        width: 100%;
+        padding: 18px 60px 18px 25px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background-color: light-dark(var(--white), var(--black));
+        color: var(--text-dark);
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+    }
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--blue);
+    }
+    .send-btn {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .send-btn svg {
+        width: 24px;
+        height: 24px;
+        color: var(--text-muted);
+    }
+    
+    .ai-insights {
+        width: 300px;
+        padding: 10px 30px 40px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        border-left: 1px solid var(--border-color);
+        background-color: light-dark(var(--grey), var(--black));
+        transition: transform 0.3s ease-in-out;
+        margin-top: 30px;
+    }
+
+    .new-chat-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: transparent;
+        border: 1.5px solid var(--dark-grey);
+        border-radius: 8px;
+        color: var(--text-dark);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+        margin-bottom: 20px;
+    }
+    .new-chat-btn:hover {
+        background-color: var(--border-color);
+    }
+
+    .icon-btn {
+        background: none;
+        border: none;
+        padding: 5px;
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+    .icon-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .history-item {
+        padding: 12px 0;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        color: var(--text-dark);
+        transition: color 0.2s;
+        white-space: wrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .history-item:hover {
+        color: light-dark(var(--navy), var(--blue));
+    }
+
+    .hidden {
+        display: none;
+    }
+    
+    @media (max-width: 992px) {
+        .ai-insights {
+            position: absolute;
+            top: -20px; /* Align with top of chat area wrapper */
+            right: 0;
+            bottom: -40px; /* Align with bottom of main content */
+            height: auto; /* Override fixed height */
+            width: 300px;
+            max-width: 90vw;
+            z-index: 10;
+            transform: translateX(100%);
+            border-left: 1px solid var(--border-color);
+        }
+        .ai-insights:not(.hidden) {
+            transform: translateX(0);
+        }
+        .chat-container {
+            padding-right: 0;
+        }
     }
 </style>
 </head>
@@ -215,10 +464,61 @@
             </a>
         </div>
     </div>
-    <main class="main-content">
-        <h1>AI Chat</h1>
-        <p>This page is under construction.</p>
-    </main>
+
+    <div class="main-content">
+        <header class="main-header">
+            <h1>AI Insights</h1>
+            <button class="icon-btn" id="history-toggle-btn" title="Toggle History">
+                <!-- Icon will be set by JS -->
+            </button>
+        </header>
+        <div class="chat-area-wrapper">
+            <main class="chat-container">
+                <div class="chat-empty-state" id="chat-empty-state">
+                    <picture>
+                        <source srcset="assets/leaf-dark.png" media="(prefers-color-scheme: dark)">
+                        <img src="assets/leaf-light.png" alt="Leaf Icon" class="icon">
+                    </picture>
+                    <h2>Hi there!</h2>
+                    <p>What can I help with today?</p>
+                    <div class="suggestion-blocks">
+                        <div class="suggestion-block sparkle-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L14.34 9.66L21 12L14.34 14.34L12 21L9.66 14.34L3 12L9.66 9.66L12 3z"/></svg>
+                            <p class="title">Generate a plan to increase efficiency for Product 1.</p>
+                        </div>
+                        <div class="suggestion-block sparkle-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L14.34 9.66L21 12L14.34 14.34L12 21L9.66 14.34L3 12L9.66 9.66L12 3z"/></svg>
+                            <p class="title">Write a report on the carbon emissions from Q2.</p>
+                        </div>
+                         <div class="suggestion-block sparkle-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L14.34 9.66L21 12L14.34 14.34L12 21L9.66 14.34L3 12L9.66 9.66L12 3z"/></svg>
+                            <p class="title">Analyze the carbon emissions for Product 2.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-history hidden" id="chat-history">
+                    <!-- Messages will be added here -->
+                </div>
+                <form class="chat-input-area" id="chat-form">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Type here" autocomplete="off">
+                    <button type="submit" class="send-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </main>
+
+            <aside class="ai-insights hidden">
+                <button class="new-chat-btn" id="new-chat-btn">New Chat</button>
+                <div class="insights-history">
+                    <div class="history-item">Summary of Carbon for Q1.</div>
+                    <div class="history-item">Summarize the insights of carbon emissions.</div>
+                    <div class="history-item">Problem areas to reduce carbon emissions.</div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.querySelector('.sidebar');
@@ -236,7 +536,88 @@
             document.getElementById('user-name').textContent = userName;
             document.getElementById('user-avatar').textContent = initials.toUpperCase();
             document.getElementById('user-company').textContent = companyName;
+
+            // Chat Functionality
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatHistory = document.getElementById('chat-history');
+            const chatEmptyState = document.getElementById('chat-empty-state');
+            const suggestionBlocks = document.querySelectorAll('.suggestion-block');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const historyToggleBtn = document.getElementById('history-toggle-btn');
+            const aiInsightsPanel = document.querySelector('.ai-insights');
+
+            const historyIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h15M1 8h15M1 12h15M1 16h15"></path></svg>`;
+            const closeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+
+            function updateHistoryIcon(isPanelVisible) {
+                historyToggleBtn.innerHTML = isPanelVisible ? closeIconSVG : historyIconSVG;
+            }
+            
+            updateHistoryIcon(false); // Set initial icon
+
+            newChatBtn.addEventListener('click', () => {
+                console.log('New Chat button clicked');
+                // Future logic to start a new chat session
+            });
+
+            historyToggleBtn.addEventListener('click', () => {
+                const isVisible = aiInsightsPanel.classList.toggle('hidden');
+                updateHistoryIcon(!isVisible);
+            });
+
+            function startChat() {
+                if (!chatEmptyState.classList.contains('hidden')) {
+                    chatEmptyState.classList.add('hidden');
+                    chatHistory.classList.remove('hidden');
+                }
+            }
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                const p = document.createElement('p');
+                p.textContent = text;
+                messageDiv.appendChild(p);
+                chatHistory.appendChild(messageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message ai';
+                typingDiv.innerHTML = `<p><div class="typing-indicator"><span></span><span></span><span></span></div></p>`;
+                chatHistory.appendChild(typingDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                return typingDiv;
+            }
+
+            function handleSendMessage(message) {
+                startChat();
+                addMessage(message, 'user');
+                chatInput.value = '';
+                const typingIndicator = showTypingIndicator();
+                setTimeout(() => {
+                    chatHistory.removeChild(typingIndicator);
+                    addMessage("This is a simulated AI response to: " + message, 'ai');
+                }, 1500);
+            }
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+                handleSendMessage(userMessage);
+            });
+            
+            suggestionBlocks.forEach(card => {
+                card.addEventListener('click', () => {
+                    const message = card.querySelector('p').textContent;
+                    handleSendMessage(message);
+                });
+            });
         });
     </script>
 </body>
 </html>
+

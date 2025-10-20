@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonX</title>
+    <title>CarbonX - Analytics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
@@ -22,191 +22,68 @@
         --grey: #eaeaea;
         --dark-grey: #a9a9a9;
         --body-bg: light-dark(var(--grey), var(--black));
-        --card-bg: light-dark(var(--white), var(--black));
-        --border-color: var(--dark-grey);
+        --card-bg: light-dark(var(--white), #1c1c1e);
+        --border-color: light-dark(#e5e7eb, #3a3a3c);
         --text-dark: light-dark(var(--black), var(--white));
-        --text-muted: var(--dark-grey);
+        --text-muted: light-dark(#6b7280, #8e8e93);
     }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'Figtree', sans-serif;
-        background-color: var(--body-bg);
-        color: var(--text-dark);
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    .sidebar {
-        width: 80px;
-        background-color: var(--card-bg);
-        padding: 30px 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        border-right: 1px solid var(--border-color);
-        flex-shrink: 0;
-        transition: width 0.3s ease;
-        overflow-x: hidden;
-    }
-    .sidebar.expanded {
-        width: 240px;
-    }
-
-    .sidebar-top, .sidebar-bottom {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 50px;
-        flex-shrink: 0;
-        height: 30px;
-        justify-content: center;
-    }
-
-    .nav-menu {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: background-color 0.2s, color 0.2s;
-        font-weight: 500;
-        color: var(--text-dark);
-        text-decoration: none;
-        white-space: nowrap;
-    }
-    .nav-item.active {
-        background-color: light-dark(var(--navy), var(--blue));
-        color: light-dark(var(--white), var(--black));
-    }
-    .nav-item:not(.active):hover {
-       background-color: var(--border-color);
-         color: var(--text-dark);
-    }
-    .nav-item svg {
-        width: 24px;
-        height: 24px;
-        flex-shrink: 0;
-        margin-right: 18px;
-    }
-    .nav-item span {
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-    .sidebar.expanded .nav-item span {
-        opacity: 1;
-    }
-
-    .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-        margin-top: 20px;
-        text-decoration: none;
-        color: inherit;
-    }
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--dark-grey);
-        color: var(--white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-    .user-info {
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-    .sidebar.expanded .user-info {
-        opacity: 1;
-    }
-    .user-info .name {
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-    .user-info .company {
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-
-    .main-content {
-        flex-grow: 1;
-        padding: 40px;
-        overflow-y: auto;
-    }
-
-    .main-content h1 {
-        font-size: 36px;
-        color: var(--text-dark);
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    .main-content p {
-        color: var(--text-dark);
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Figtree', sans-serif; background-color: var(--body-bg); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 80px; background-color: var(--card-bg); padding: 30px 15px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border-color); flex-shrink: 0; transition: width 0.3s ease; overflow-x: hidden; }
+    .sidebar.expanded { width: 240px; }
+    .sidebar-top, .sidebar-bottom { display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; flex-shrink: 0; height: 30px; justify-content: center; }
+    .nav-menu { display: flex; flex-direction: column; }
+    .nav-item { display: flex; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; color: var(--text-dark); text-decoration: none; white-space: nowrap; }
+    .nav-item.active { background-color: light-dark(var(--navy), var(--blue)); color: light-dark(var(--white), var(--black)); }
+    .nav-item:not(.active):hover { background-color: var(--border-color); }
+    .nav-item svg { width: 24px; height: 24px; flex-shrink: 0; margin-right: 18px; }
+    .nav-item span { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .nav-item span { opacity: 1; }
+    .user-profile { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; text-decoration: none; color: inherit; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--dark-grey); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    .user-info { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .user-info { opacity: 1; }
+    .user-info .name { font-weight: 600; color: var(--text-dark); }
+    .user-info .company { font-size: 12px; color: var(--text-muted); }
+    .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+    header { margin-bottom: 30px; }
+    header h1 { font-size: 36px; color: var(--text-dark); font-weight: bold; margin-bottom: 8px; }
+    header p { color: var(--text-dark); }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .product-selector { display: flex; align-items: center; gap: 15px; }
+    .product-selector label { font-weight: 600; }
+    .custom-dropdown { position: relative; width: 250px; }
+    .dropdown-selected { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .dropdown-options { position: absolute; top: 105%; left: 0; right: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto; }
+    .dropdown-option { padding: 10px 15px; cursor: pointer; }
+    .dropdown-option:hover { background-color: var(--border-color); }
+    .analytics-card { background-color: var(--card-bg); border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid var(--border-color); }
+    .analytics-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+    .analytics-table { width: 100%; border-collapse: collapse; }
+    .analytics-table th, .analytics-table td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
+    .analytics-table th { font-weight: 500; color: var(--text-muted); }
+    .analytics-table tbody tr:last-child td { border-bottom: none; }
+    .no-data-message { text-align: center; padding: 40px; color: var(--text-muted); }
+    .hidden { display: none; }
 </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="sidebar-top">
             <div class="logo">
-                <picture>
-                    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
-                    <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
-                </picture>
+                <picture><source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)"><img src="assets/CarbonX-icon(light).png" alt="Logo" width="30"></picture>
             </div>
             <nav class="nav-menu">
-                <a href="dashboard.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="inventory.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                    <span>Inventory</span>
-                </a>
-                <a href="analytics.html" class="nav-item active">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                    <span>Analytics</span>
-                </a>
-                <a href="network.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Network</span>
-                </a>
-                <a href="report.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    <span>Report</span>
-                </a>
-                <a href="chat.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span>AI Chat</span>
-                </a>
+                <a href="dashboard.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Dashboard</span></a>
+                <a href="inventory.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span>Inventory</span></a>
+                <a href="analytics.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Analytics</span></a>
+                <a href="network.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Network</span></a>
+                <a href="report.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Report</span></a>
+                <a href="chat.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>AI Chat</span></a>
             </nav>
         </div>
         <div class="sidebar-bottom">
-            <nav class="nav-menu"></nav>
             <a href="settings.html" class="user-profile">
                 <div class="user-avatar" id="user-avatar"></div>
                 <div class="user-info">
@@ -217,26 +94,136 @@
         </div>
     </div>
     <main class="main-content">
-        <h1>Analytics</h1>
-        <p>This page is under construction.</p>
+        <header>
+            <h1>Analytics</h1>
+            <p>Breakdown of your products and processes.</p>
+        </header>
+
+        <div class="controls">
+            <div class="product-selector">
+                <label for="productDropdown">Select your product:</label>
+                <div class="custom-dropdown" id="productDropdown">
+                    <div class="dropdown-selected"><span></span><svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.41 0.589966L6 5.16997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" fill="currentColor"/></svg></div>
+                    <div class="dropdown-options hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <h2>Inputs</h2>
+            <table class="analytics-table"><thead ><tr><th>Flow Name</th><th>Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="inputs-table-body"></tbody></table>
+        </div>
+        <div class="analytics-card">
+            <h2>Outputs</h2>
+            <table class="analytics-table"><thead><tr><th>Flow Name</th><th>Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="outputs-table-body"></tbody></table>
+        </div>
+        <div class="analytics-card">
+            <h2>Impact Categories</h2>
+            <table class="analytics-table"><thead><tr><th>Impact Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="impact-table-body"></tbody></table>
+        </div>
     </main>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.querySelector('.sidebar');
             sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
             sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
 
-            // User Profile Hydration
             const userName = localStorage.getItem('signupFullName') || 'John Doe';
             const companyName = localStorage.getItem('companyName') || 'Company Name';
-            let initials = 'JD';
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-company').textContent = companyName;
             if (userName) {
                 const nameParts = userName.split(' ');
-                initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+                const initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+                document.getElementById('user-avatar').textContent = initials.toUpperCase();
             }
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-avatar').textContent = initials.toUpperCase();
-            document.getElementById('user-company').textContent = companyName;
+
+            // --- ANALYTICS LOGIC ---
+            const allProducts = JSON.parse(sessionStorage.getItem('products')) || [];
+            const calculatedProducts = allProducts.filter(p => p.lcaStatus === 'success');
+            
+            const dropdown = document.getElementById('productDropdown');
+            const selectedText = dropdown.querySelector('.dropdown-selected span');
+            const optionsContainer = dropdown.querySelector('.dropdown-options');
+            
+            const inputsBody = document.getElementById('inputs-table-body');
+            const outputsBody = document.getElementById('outputs-table-body');
+            const impactBody = document.getElementById('impact-table-body');
+
+            function populateProductDropdown() {
+                optionsContainer.innerHTML = '';
+                if (calculatedProducts.length > 0) {
+                    calculatedProducts.forEach(product => {
+                        const option = document.createElement('div');
+                        option.className = 'dropdown-option';
+                        option.textContent = product.name;
+                        option.dataset.productId = product.id;
+                        option.addEventListener('click', () => {
+                            selectedText.textContent = product.name;
+                            optionsContainer.classList.add('hidden');
+                            displayProductData(product);
+                        });
+                        optionsContainer.appendChild(option);
+                    });
+                } else {
+                    selectedText.textContent = "No calculated products";
+                }
+            }
+
+            function displayProductData(product) {
+                // Display Impacts
+                if (product.fullImpacts) {
+                    impactBody.innerHTML = product.fullImpacts
+                        .map(i => `<tr><td>${escapeHtml(i.impactCategory.name)}</td><td>${parseFloat(i.amount).toPrecision(3)}</td><td>${escapeHtml(i.impactCategory.refUnit)}</td></tr>`)
+                        .join('');
+                } else {
+                    impactBody.innerHTML = `<tr><td colspan="3" class="no-data-message">No impact data available.</td></tr>`;
+                }
+                
+                // Display Inventory (Inputs/Outputs)
+                if (product.inventory) {
+                    const inputs = product.inventory.filter(flow => flow.enviFlow?.isInput && flow.amount !== 0);
+                    const outputs = product.inventory.filter(flow => !flow.enviFlow?.isInput && flow.amount !== 0);
+
+                    inputsBody.innerHTML = inputs.length > 0 
+                        ? inputs.map(i => `<tr><td>${escapeHtml(i.enviFlow.flow.name)}</td><td>${escapeHtml(i.enviFlow.flow.category)}</td><td>${parseFloat(i.amount).toPrecision(3)}</td><td>${escapeHtml(i.enviFlow.flow.refUnit)}</td></tr>`).join('')
+                        : `<tr><td colspan="4" class="no-data-message">No input data available.</td></tr>`;
+
+                    outputsBody.innerHTML = outputs.length > 0
+                        ? outputs.map(o => `<tr><td>${escapeHtml(o.enviFlow.flow.name)}</td><td>${escapeHtml(o.enviFlow.flow.category)}</td><td>${parseFloat(o.amount).toPrecision(3)}</td><td>${escapeHtml(o.enviFlow.flow.refUnit)}</td></tr>`).join('')
+                        : `<tr><td colspan="4" class="no-data-message">No output data available.</td></tr>`;
+                } else {
+                     clearInventoryTables();
+                }
+            }
+            
+            function clearTables() {
+                const inputsMsg = `<tr><td colspan="4" class="no-data-message">Please select a product to view its analytics.</td></tr>`;
+                const impactsMsg = `<tr><td colspan="3" class="no-data-message">Please select a product to view its analytics.</td></tr>`;
+                inputsBody.innerHTML = inputsMsg;
+                outputsBody.innerHTML = inputsMsg;
+                impactBody.innerHTML = impactsMsg;
+            }
+             function clearInventoryTables() {
+                const message = `<tr><td colspan="4" class="no-data-message">No inventory data available.</td></tr>`;
+                inputsBody.innerHTML = message;
+                outputsBody.innerHTML = message;
+            }
+
+            dropdown.addEventListener('click', () => optionsContainer.classList.toggle('hidden'));
+            
+            function escapeHtml(text) { return text?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || ''; }
+
+            // Initial setup
+            populateProductDropdown();
+            if (calculatedProducts.length > 0) {
+                selectedText.textContent = calculatedProducts[0].name;
+                displayProductData(calculatedProducts[0]);
+            } else {
+                selectedText.textContent = "Select a product";
+                clearTables();
+            }
         });
     </script>
 </body>

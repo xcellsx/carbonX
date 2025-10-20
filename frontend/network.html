@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonX</title>
+    <title>CarbonX - Network</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
     <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
     <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
     :root {
         color-scheme: light dark;
@@ -22,221 +23,205 @@
         --grey: #eaeaea;
         --dark-grey: #a9a9a9;
         --body-bg: light-dark(var(--grey), var(--black));
-        --card-bg: light-dark(var(--white), var(--black));
-        --border-color: var(--dark-grey);
+        --card-bg: light-dark(var(--white), #1c1c1e);
+        --border-color: light-dark(#e5e7eb, #3a3a3c);
         --text-dark: light-dark(var(--black), var(--white));
-        --text-muted: var(--dark-grey);
+        --text-muted: light-dark(#6b7280, #8e8e93);
     }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'Figtree', sans-serif;
-        background-color: var(--body-bg);
-        color: var(--text-dark);
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    .sidebar {
-        width: 80px;
-        background-color: var(--card-bg);
-        padding: 30px 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        border-right: 1px solid var(--border-color);
-        flex-shrink: 0;
-        transition: width 0.3s ease;
-        overflow-x: hidden;
-    }
-    .sidebar.expanded {
-        width: 240px;
-    }
-
-    .sidebar-top, .sidebar-bottom {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 50px;
-        flex-shrink: 0;
-        height: 30px;
-        justify-content: center;
-    }
-
-    .nav-menu {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: background-color 0.2s, color 0.2s;
-        font-weight: 500;
-        color: var(--text-dark);
-        text-decoration: none;
-        white-space: nowrap;
-    }
-    .nav-item.active {
-        background-color: light-dark(var(--navy), var(--blue));
-        color: light-dark(var(--white), var(--black));
-    }
-    .nav-item:not(.active):hover {
-       background-color: var(--border-color);
-    }
-    .nav-item svg {
-        width: 24px;
-        height: 24px;
-        flex-shrink: 0;
-        margin-right: 18px;
-    }
-    .nav-item span {
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-    .sidebar.expanded .nav-item span {
-        opacity: 1;
-    }
-
-    .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-        margin-top: 20px;
-        text-decoration: none;
-        color: inherit;
-    }
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--dark-grey);
-        color: var(--white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-    .user-info {
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-    .sidebar.expanded .user-info {
-        opacity: 1;
-    }
-    .user-info .name {
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-    .user-info .company {
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-
-    .main-content {
-        flex-grow: 1;
-        padding: 40px;
-        overflow-y: auto;
-    }
-
-    .main-content h1 {
-        font-size: 36px;
-        color: var(--text-dark);
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    .main-content p {
-        color: var(--text-dark);
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Figtree', sans-serif; background-color: var(--body-bg); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 80px; background-color: var(--card-bg); padding: 30px 15px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border-color); flex-shrink: 0; transition: width 0.3s ease; overflow-x: hidden; }
+    .sidebar.expanded { width: 240px; }
+    .sidebar-top, .sidebar-bottom { display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; flex-shrink: 0; height: 30px; justify-content: center; }
+    .nav-menu { display: flex; flex-direction: column; }
+    .nav-item { display: flex; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; color: var(--text-dark); text-decoration: none; white-space: nowrap; }
+    .nav-item.active { background-color: light-dark(var(--navy), var(--blue)); color: light-dark(var(--white), var(--black)); }
+    .nav-item:not(.active):hover { background-color: var(--border-color); }
+    .nav-item svg { width: 24px; height: 24px; flex-shrink: 0; margin-right: 18px; }
+    .nav-item span { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .nav-item span { opacity: 1; }
+    .user-profile { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; text-decoration: none; color: inherit; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--dark-grey); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    .user-info { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .user-info { opacity: 1; }
+    .user-info .name { font-weight: 600; color: var(--text-dark); }
+    .user-info .company { font-size: 12px; color: var(--text-muted); }
+    .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; }
+    header { margin-bottom: 30px; }
+    header h1 { font-size: 36px; font-weight: bold; margin-bottom: 8px; }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .product-selector { display: flex; align-items: center; gap: 15px; }
+    .product-selector label { font-weight: 600; }
+    .custom-dropdown { position: relative; width: 250px; }
+    .dropdown-selected { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .dropdown-options { position: absolute; top: 105%; left: 0; right: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto; }
+    .dropdown-option { padding: 10px 15px; cursor: pointer; }
+    .dropdown-option:hover { background-color: var(--border-color); }
+    .chart-wrapper { flex-grow: 1; background-color: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 25px; display: flex; align-items: center; justify-content: center; }
+    #sankeyChartContainer { width: 100%; height: 100%; min-height: 500px; }
+    .graph-tooltip { position: absolute; text-align: left; padding: 8px 12px; font: 12px sans-serif; background: light-dark(var(--white), var(--black)); border: 1px solid var(--border-color); border-radius: 8px; pointer-events: none; opacity: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: opacity 0.2s; z-index: 1001; }
+    .loading { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border-color); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status-message { color: var(--text-muted); text-align: center; }
+    .hidden { display: none; }
 </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-top">
-            <div class="logo">
-                <picture>
-                    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
-                    <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
-                </picture>
+<div id="graph-tooltip" class="graph-tooltip"></div>
+<div class="sidebar">
+    <div class="sidebar-top">
+        <div class="logo"><picture><source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)"><img src="assets/CarbonX-icon(light).png" alt="Logo" width="30"></picture></div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Dashboard</span></a>
+            <a href="inventory.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span>Inventory</span></a>
+            <a href="analytics.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Analytics</span></a>
+            <a href="network.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Network</span></a>
+            <a href="report.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Report</span></a>
+            <a href="chat.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>AI Chat</span></a>
+        </nav>
+    </div>
+    <div class="sidebar-bottom">
+        <a href="settings.html" class="user-profile"><div class="user-avatar" id="user-avatar"></div><div class="user-info"><div class="name" id="user-name"></div><div class="company" id="user-company"></div></div></a>
+    </div>
+</div>
+<main class="main-content">
+    <header>
+        <h1>Network Graph</h1>
+        <p>Visualize the process network for a selected product.</p>
+    </header>
+    <div class="controls">
+        <div class="product-selector">
+            <label for="productDropdown">Select your product:</label>
+            <div class="custom-dropdown" id="productDropdown">
+                <div class="dropdown-selected"><span></span><svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.41 0.589966L6 5.16997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" fill="currentColor"/></svg></div>
+                <div class="dropdown-options hidden"></div>
             </div>
-            <nav class="nav-menu">
-                <a href="dashboard.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="inventory.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                    <span>Inventory</span>
-                </a>
-                <a href="analytics.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                    <span>Analytics</span>
-                </a>
-                <a href="network.html" class="nav-item active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Network</span>
-                </a>
-                <a href="report.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    <span>Report</span>
-                </a>
-                <a href="chat.html" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span>AI Chat</span>
-                </a>
-            </nav>
-        </div>
-        <div class="sidebar-bottom">
-            <nav class="nav-menu"></nav>
-            <a href="settings.html" class="user-profile">
-                <div class="user-avatar" id="user-avatar"></div>
-                <div class="user-info">
-                    <div class="name" id="user-name"></div>
-                    <div class="company" id="user-company"></div>
-                </div>
-            </a>
         </div>
     </div>
-    <main class="main-content">
-        <h1>Network</h1>
-        <p>This page is under construction.</p>
-    </main>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
-            sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    <div class="chart-wrapper">
+        <div id="sankeyChartContainer"></div>
+    </div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- INITIALIZE UI ---
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+    sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    const userName = localStorage.getItem('signupFullName') || 'John Doe';
+    const companyName = localStorage.getItem('companyName') || 'Company Name';
+    document.getElementById('user-name').textContent = userName;
+    document.getElementById('user-company').textContent = companyName;
+    if (userName) {
+        const nameParts = userName.split(' ');
+        const initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+        document.getElementById('user-avatar').textContent = initials.toUpperCase();
+    }
 
-            // User Profile Hydration
-            const userName = localStorage.getItem('signupFullName') || 'John Doe';
-            const companyName = localStorage.getItem('companyName') || 'Company Name';
-            let initials = 'JD';
-            if (userName) {
-                const nameParts = userName.split(' ');
-                initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
-            }
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-avatar').textContent = initials.toUpperCase();
-            document.getElementById('user-company').textContent = companyName;
+    // --- STATE & DOM ---
+    const allProducts = JSON.parse(sessionStorage.getItem('products')) || [];
+    const calculatedProducts = allProducts.filter(p => p.lcaStatus === 'success' && p.processId);
+    
+    const openLCA = { serverUrl: "http://localhost:8080", requestId: 1, methodId: null, categoryId: null };
+    const dropdown = document.getElementById('productDropdown');
+    const selectedText = dropdown.querySelector('.dropdown-selected span');
+    const optionsContainer = dropdown.querySelector('.dropdown-options');
+    const chartContainer = document.getElementById('sankeyChartContainer');
+
+    // --- CORE LOGIC ---
+    function populateProductDropdown() { /* ... unchanged ... */ }
+    async function generateAndDrawSankey(product) { /* ... unchanged ... */ }
+    async function getSankeyData(product) { /* ... unchanged ... */ }
+
+    // --- D3 DRAWING FUNCTION (MODIFIED) ---
+    function drawNetworkGraph(data) {
+        const container = document.getElementById("sankeyChartContainer");
+        container.innerHTML = "";
+        const tooltip = d3.select("#graph-tooltip");
+
+        if (!data || !data.nodes || data.nodes.length === 0) {
+            container.innerHTML = '<div class="status-message">No data available to display the graph.</div>';
+            return;
+        }
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const svg = d3.select(container).append("svg").attr("width", width).attr("height", height).attr("viewBox", [0, 0, width, height]);
+
+        // Define arrowhead marker
+        svg.append("defs").selectAll("marker")
+            .data(["end"])
+            .enter().append("marker")
+            .attr("id", "arrowhead")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 18) // Corrected position: circle radius (12) + buffer
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "currentColor"); // Use current color to match line
+
+        const links = (data.edges || []).map(edge => ({ source: edge.providerIndex, target: edge.nodeIndex }));
+        const nodeMap = new Map(data.nodes.map(n => ([n.index, { id: n.index, name: n.techFlow.provider.name, directResult: n.directResult, totalResult: n.totalResult, flowName: n.techFlow.flow.name }])));
+        const nodes = Array.from(nodeMap.values());
+        const color = d3.scaleOrdinal(d3.schemeTableau10);
+        
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+            .force("charge", d3.forceManyBody().strength(-400))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collide", d3.forceCollide(35));
+
+        const link = svg.append("g").attr("stroke", "currentColor").attr("stroke-opacity", 0.6).selectAll("line").data(links).join("line").attr("marker-end", "url(#arrowhead)");
+        const node = svg.append("g").selectAll("g").data(nodes).enter().append("g").call(drag(simulation));
+
+        node.append("circle").attr("r", 12).attr("fill", d => color(d.totalResult / nodeMap.get(data.rootIndex).totalResult * 10)).attr("stroke", "#fff").attr("stroke-width", 1.5);
+        node.append("text").attr("x", 18).attr("y", 4).attr("font-size", "12px").attr("fill", "currentColor").text(d => d.name.length > 30 ? d.name.substring(0, 30) + "..." : d.name);
+        
+        node.on("mouseover", function(event, d) {
+            tooltip.style("opacity", .9);
+            tooltip.html(`<strong>Process:</strong> ${escapeHtml(d.name)}<br><hr style="margin: 3px 0; border:0; border-top: 1px solid #eee"><strong>Total Result:</strong> ${parseFloat(d.totalResult).toPrecision(3)}<br><strong>Direct Result:</strong> ${parseFloat(d.directResult).toPrecision(3)}`)
+                .style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px");
+        }).on("mouseout", function(d) {
+            tooltip.style("opacity", 0);
         });
-    </script>
+
+        simulation.on("tick", () => {
+            link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        function drag(simulation) {
+            function dragstarted(event) { if (!event.active) simulation.alphaTarget(0.3).restart(); event.subject.fx = event.subject.x; event.subject.fy = event.subject.y; }
+            function dragged(event) { event.subject.fx = event.x; event.subject.fy = event.y; }
+            function dragended(event) { if (!event.active) simulation.alphaTarget(0); event.subject.fx = null; event.subject.fy = null; }
+            return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+        }
+    }
+
+
+    // --- INITIAL SETUP & HELPERS (UNCHANGED, COLLAPSED FOR BREVITY) ---
+    dropdown.addEventListener('click', () => optionsContainer.classList.toggle('hidden'));
+    function escapeHtml(text) { return text?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || ''; }
+    
+    populateProductDropdown();
+    if (calculatedProducts.length > 0) {
+        selectedText.textContent = calculatedProducts[0].name;
+        generateAndDrawSankey(calculatedProducts[0]);
+    } else {
+        selectedText.textContent = "Select a product";
+        chartContainer.innerHTML = `<div class="status-message">No products with calculated LCA data found in inventory.</div>`;
+    }
+
+    async function findLcaMethodAndCategory(){const e=await olcaRequest("data/get/descriptors",{"@type":"ImpactMethod"}),t=e.find(e=>e.name?.toLowerCase().includes("recipe 2016 v1.03")&&e.name?.toLowerCase().includes("midpoint (h)"));if(!t)throw new Error("RECIPE 2016 Midpoint (H) method not found.");openLCA.methodId=t["@id"];const a=await olcaRequest("data/get",{"@type":"ImpactMethod","@id":openLCA.methodId}),o=a.impactCategories.find(e=>e.name?.toLowerCase().includes("climate change"));if(!o)throw new Error("'Climate Change' category not found.");openLCA.categoryId=o["@id"];}
+    async function olcaRequest(method,params){const response=await fetch(openLCA.serverUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:openLCA.requestId++,method,params})});if(!response.ok)throw new Error(`HTTP error! status: ${response.status}`);const data=await response.json();if(data.error)throw new Error(`OpenLCA Error: ${data.error.message}`);return data.result}
+    function populateProductDropdown(){optionsContainer.innerHTML="";calculatedProducts.length>0?calculatedProducts.forEach(product=>{const option=document.createElement("div");option.className="dropdown-option",option.textContent=product.name,option.addEventListener("click",()=>{selectedText.textContent=product.name,optionsContainer.classList.add("hidden"),generateAndDrawSankey(product)}),optionsContainer.appendChild(option)}):selectedText.textContent="No calculated products found"}
+    async function generateAndDrawSankey(product){chartContainer.innerHTML=`<div class="status-message"><div class="loading"></div><p style="margin-top: 1em;">Generating graph for ${product.name}...</p></div>`;try{await findLcaMethodAndCategory();if(!openLCA.methodId||!openLCA.categoryId)throw new Error("Could not initialize LCA method.");if(!product.processId)throw new Error("Product is missing a valid Process ID.");const sankeyData=await getSankeyData(product);drawNetworkGraph(sankeyData)}catch(error){console.error("Failed to generate Sankey graph:",error),chartContainer.innerHTML=`<div class="status-message" style="color: var(--danger-color)">Error generating graph: ${error.message}</div>`}}
+    async function getSankeyData(product){let resultId=null;try{const setup=await olcaRequest("result/calculate",{target:{"@type":"Process","@id":product.processId},impactMethod:{"@type":"ImpactMethod","@id":openLCA.methodId},amount:product.weight});resultId=setup["@id"];for(let i=0;i<40;i++){await new Promise(resolve=>setTimeout(resolve,500));if((await olcaRequest("result/state",{"@id":resultId})).isReady)break}return await olcaRequest("result/sankey",{"@id":resultId,config:{impactCategory:{"@type":"ImpactCategory","@id":openLCA.categoryId},maxNodes:30}})}finally{if(resultId)await olcaRequest("result/dispose",{"@id":resultId})}}
+});
+</script>
 </body>
 </html>

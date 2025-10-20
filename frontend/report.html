@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonX</title>
+    <title>CarbonX - Report</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
@@ -116,13 +116,21 @@
     .user-profile {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
+        justify-content: center;
+        padding: 10.5px;
+        border-radius: 8px;
         margin-top: 20px;
         text-decoration: none;
         color: inherit;
+        border: 1.5px solid var(--dark-grey);
+        background-color: transparent;
+        gap: 0;
     }
+    .sidebar.expanded .user-profile {
+        justify-content: flex-start;
+        gap: 10px;
+    }
+    
     .user-avatar {
         width: 40px;
         height: 40px;
@@ -136,10 +144,12 @@
         flex-shrink: 0;
     }
     .user-info {
+        display: none;
         opacity: 0;
         transition: opacity 0.2s;
     }
     .sidebar.expanded .user-info {
+        display: block;
         opacity: 1;
     }
     .user-info .name {
@@ -157,14 +167,68 @@
         overflow-y: auto;
     }
 
-    .main-content h1 {
+    header {
+        margin-bottom: 30px;
+    }
+
+    header h1 {
+        font-family: 'Hammersmith One', sans-serif;
         font-size: 36px;
         color: var(--text-dark);
-        font-weight: bold;
+        font-weight: 400;
         margin-bottom: 8px;
     }
-    .main-content p {
-        color: var(--text-dark);
+    header p {
+        color: var(--text-muted);
+    }
+    
+    .reports-card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid var(--border-color);
+    }
+
+    .reports-card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .reports-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .reports-table th, .reports-table td {
+        text-align: left;
+        padding: 16px 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .reports-table th {
+        font-weight: 500;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+    .reports-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .reports-table td {
+        font-weight: 500;
+        font-size: 14px;
+    }
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        color: var(--text-muted);
+    }
+    .action-btn:hover {
+        color: var(--blue);
+    }
+    .action-btn svg {
+        width: 20px;
+        height: 20px;
     }
 </style>
 </head>
@@ -216,8 +280,30 @@
         </div>
     </div>
     <main class="main-content">
-        <h1>Report</h1>
-        <p>This page is under construction.</p>
+        <header>
+            <h1>Report</h1>
+            <p>Find your generated reports here.</p>
+        </header>
+
+        <div class="reports-card">
+            <h2>Reports</h2>
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Products</th>
+                        <th>View</th>
+                        <th>Edit</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted)">No reports generated yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -240,3 +326,4 @@
     </script>
 </body>
 </html>
+
