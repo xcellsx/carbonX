@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbonX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+<style>
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+        --danger-color: #ef4444;
+        --danger-hover-color: #dc2626;
+        --body-bg: light-dark(var(--grey), var(--black));
+        --card-bg: light-dark(var(--white), #1c1c1e);
+        --border-color: light-dark(#e5e7eb, #3a3a3c);
+        --text-dark: light-dark(var(--black), var(--white));
+        --text-muted: light-dark(#6b7280, #8e8e93);
+        --modal-bg: light-dark(var(--white), #2c2c2e);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Figtree', sans-serif; background-color: var(--body-bg); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 80px; background-color: var(--card-bg); padding: 30px 15px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border-color); flex-shrink: 0; transition: width 0.3s ease; overflow-x: hidden; }
+    .sidebar.expanded { width: 240px; }
+    .sidebar-top, .sidebar-bottom { display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; flex-shrink: 0; height: 30px; justify-content: center; }
+    .nav-menu { display: flex; flex-direction: column; }
+    .nav-item { display: flex; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; color: var(--text-dark); text-decoration: none; white-space: nowrap; }
+    .nav-item.active { background-color: light-dark(var(--navy), var(--blue)); color: light-dark(var(--white), var(--black)); }
+    .nav-item:not(.active):hover { background-color: var(--border-color); }
+    .nav-item svg { width: 24px; height: 24px; flex-shrink: 0; margin-right: 18px; }
+    .nav-item span { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .nav-item span { opacity: 1; }
+    .user-profile { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; text-decoration: none; color: inherit; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--dark-grey); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+    .user-info { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.expanded .user-info { opacity: 1; }
+    .user-info .name { font-weight: 600; color: var(--text-dark); }
+    .user-info .company { font-size: 12px; color: var(--text-muted); }
+    .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    header .title h1 { font-size: 36px; color: var(--text-dark); font-weight: bold; }
+    header .title p { color: var(--text-muted); margin-top: 5px; }
+    .lca-status { font-size: 13px; color: var(--text-muted); margin-top: 10px; }
+    .lca-status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .lca-status .dot.connected { background-color: #10b981; }
+    .lca-status .dot.disconnected { background-color: var(--danger-color); }
+    header .actions { display: flex; gap: 15px; }
+    .add-new-btn { background-color: var(--yellow); color: var(--black); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background-color 0.2s; }
+    .inventory-table { width: 100%; border-collapse: collapse; background-color: var(--card-bg); border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border-color); overflow: hidden; }
+    .inventory-table th, .inventory-table td { text-align: left; padding: 16px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    .inventory-table th { font-weight: 500; font-size: 14px; color: var(--text-muted); }
+    .inventory-table td { font-size: 14px; font-weight: 500; }
+    .btn-delete { background-color: light-dark(#fee2e2, #5c2b2b); color: light-dark(#991b1b, #fca5a5); border: none; font-weight: 600; padding: 6px 15px; border-radius: 6px; cursor: pointer; }
+    .btn-calculate { background-color: var(--light-blue); color: var(--navy); border: none; font-weight: 600; padding: 6px 15px; border-radius: 6px; cursor: pointer; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--modal-bg); padding: 30px; border-radius: 16px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(0.95); animation: slideDown 0.3s; color: var(--text-dark); }
+    #addProductModal .modal-content, #confirmDeleteModal .modal-content { max-width: 450px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .modal-header h2 { font-size: 24px; font-weight: 700; }
+    .close-modal-btn { background: none; border: none; font-size: 30px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+    .modal-body { overflow-y: auto; }
+    .modal-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 12px; }
+    .modal-btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-secondary { background-color: var(--body-bg); color: var(--text-dark); border: 1px solid var(--border-color); }
+    .btn-danger { background-color: var(--danger-color); color: var(--white); }
+    #addProductForm .form-group { margin-bottom: 20px; }
+    #addProductForm label { font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; }
+    #addProductForm input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--card-bg); color: var(--text-dark); }
+    .form-submit-btn { width: 100%; padding: 14px; background-color: var(--yellow); color: var(--black); font-weight: 700; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-top">
+        <div class="logo"><picture><source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)"><img src="assets/CarbonX-icon(light).png" alt="Logo" width="30"></picture></div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item"><span>Dashboard</span></a>
+            <a href="inventory.html" class="nav-item active"><span>Inventory</span></a>
+            <a href="analytics.html" class="nav-item"><span>Analytics</span></a>
+            <a href="network.html" class="nav-item"><span>Network</span></a>
+            <a href="report.html" class="nav-item"><span>Report</span></a>
+            <a href="chat.html" class="nav-item"><span>AI Chat</span></a>
+        </nav>
+    </div>
+    <div class="sidebar-bottom">
+        <a href="settings.html" class="user-profile"><div class="user-avatar" id="user-avatar"></div><div class="user-info"><div class="name" id="user-name"></div><div class="company" id="user-company"></div></div></a>
+    </div>
+</div>
+
+<main class="main-content">
+    <header>
+        <div class="title">
+            <h1>Inventory</h1>
+            <p>Overview of your products and their environmental impact.</p>
+            <div class="lca-status"><span id="lcaStatusDot" class="dot disconnected"></span><strong>Backend Status:</strong> <span id="lcaStatusText">Connecting...</span></div>
+        </div>
+        <div class="actions"><button class="add-new-btn">Add New</button></div>
+    </header>
+    <table class="inventory-table">
+        <thead><tr><th>Product Name</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</main>
+
+<div id="addProductModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header"><h2>Add a New Product</h2><button class="close-modal-btn">&times;</button></div>
+        <form id="addProductForm">
+            <div class="form-group"><label for="productName">Product Name</label><input type="text" id="productName" required></div>
+            <button type="submit" class="form-submit-btn">Add Product</button>
+        </form>
+    </div>
+</div>
+
+<div id="confirmDeleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header"><h2>Confirm Deletion</h2><button class="close-modal-btn">&times;</button></div>
+        <div class="modal-body">
+            <p>Are you sure you want to permanently delete this product? This action cannot be undone.</p>
+            <p style="margin-top: 10px; font-weight: 600;" id="productNameToDelete"></p>
+            <div class="modal-actions"><button id="cancelDeleteBtn" class="modal-btn btn-secondary">Cancel</button><button id="confirmDeleteBtn" class="modal-btn btn-danger">Confirm Delete</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // UPDATED: Point to your backend server
+        const API_URL = "http://localhost:8080/api";
+        let products = [];
+        let productIdToDelete = null;
+
+        const tableBody = document.querySelector('.inventory-table tbody');
+        const addProductModal = document.getElementById('addProductModal');
+        const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+
+        initializePage();
+
+        async function initializePage() {
+            initializeUserInterface();
+            await checkBackendStatus();
+            await loadProducts();
+        }
+
+        async function checkBackendStatus() {
+            try {
+                // UPDATED: Check a known backend endpoint
+                const response = await fetch(`${API_URL}/db/health`, { signal: AbortSignal.timeout(2000) });
+                if(response.ok) {
+                   updateLcaStatus('connected', 'Ready');
+                } else {
+                   updateLcaStatus('disconnected', 'Connection failed');
+                }
+            } catch (e) {
+                console.error("Backend Connection Failed:", e);
+                updateLcaStatus('disconnected', 'Connection failed. Is the backend running?');
+            }
+        }
+        
+        // NEW: Load products from your backend database
+        async function loadProducts() {
+            try {
+                products = await apiRequest('/products', 'GET');
+                renderTable();
+            } catch (error) {
+                console.error('Failed to load products:', error);
+                alert('Could not load products from the server.');
+            }
+        }
+
+        document.querySelector('.add-new-btn').addEventListener('click', () => addProductModal.classList.add('active'));
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal || e.target.classList.contains('close-modal-btn')) modal.classList.remove('active');
+            });
+        });
+        
+        // UPDATED: Save new product to the backend database
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productName = document.getElementById('productName').value;
+            if (productName) {
+                const newProduct = { name: productName };
+                try {
+                    const savedProduct = await apiRequest('/products', 'POST', newProduct);
+                    products.push(savedProduct);
+                    renderTable();
+                    addProductModal.classList.remove('active');
+                    e.target.reset();
+                } catch (error) {
+                    console.error('Failed to add product:', error);
+                    alert('Error: Could not add product.');
+                }
+            }
+        });
+        
+        tableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            // UPDATED: Delete handler
+            if (target.classList.contains('btn-delete')) {
+                productIdToDelete = parseInt(target.dataset.id, 10);
+                const product = products.find(p => p.id === productIdToDelete);
+                if (product) {
+                    document.getElementById('productNameToDelete').textContent = `"${escapeHtml(product.name)}"`;
+                    confirmDeleteModal.classList.add('active');
+                }
+            }
+            // NEW: Calculate LCA handler
+            if (target.classList.contains('btn-calculate')) {
+                const productId = parseInt(target.dataset.id, 10);
+                const product = products.find(p => p.id === productId);
+                if(product) {
+                    findAndCalculateLCA(product);
+                }
+            }
+        });
+
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => { confirmDeleteModal.classList.remove('active'); productIdToDelete = null; });
+        
+        // UPDATED: Delete product from the backend database
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (productIdToDelete !== null) {
+                 try {
+                    await apiRequest(`/products/${productIdToDelete}`, 'DELETE');
+                    products = products.filter(p => p.id !== productIdToDelete);
+                    renderTable();
+                } catch (error) {
+                    console.error('Failed to delete product:', error);
+                    alert('Error: Could not delete product.');
+                }
+            }
+            confirmDeleteModal.classList.remove('active');
+            productIdToDelete = null;
+        });
+
+        function renderTable() {
+            tableBody.innerHTML = products.length > 0 
+                ? products.map(createProductRowHTML).join('')
+                : `<tr><td colspan="2" style="text-align: center; padding: 40px;">No products yet. Click 'Add New' to start.</td></tr>`;
+        }
+
+        function createProductRowHTML(product) {
+            return `<tr>
+                <td>${escapeHtml(product.name)}</td>
+                <td>
+                    <button class="btn-calculate" data-id="${product.id}">Calculate LCA</button>
+                    <button class="btn-delete" data-id="${product.id}">Delete</button>
+                </td>
+            </tr>`;
+        }
+
+        // NEW: Function to call the backend for LCA calculation
+        async function findAndCalculateLCA(product) {
+            alert(`Sending request to calculate LCA for: ${product.name}`);
+            try {
+                const result = await apiRequest('/lca/calculate', 'POST', { productName: product.name });
+                console.log('LCA Result:', result);
+                alert(`LCA for '${product.name}' calculated and saved successfully! Status: ${result.message}`);
+            } catch (error) {
+                console.error(`LCA Calculation failed for ${product.name}:`, error);
+                alert(`Error calculating LCA for ${product.name}. Check the browser console for details.`);
+            }
+        }
+        
+        function updateLcaStatus(status,text){document.getElementById("lcaStatusDot").className=`dot ${status}`,document.getElementById("lcaStatusText").textContent=text}
+        function initializeUserInterface(){const e=localStorage.getItem("signupFullName")||"John Doe",t=localStorage.getItem("companyName")||"Company Name";document.getElementById("user-name").textContent=e,document.getElementById("user-company").textContent=t;let a="JD";e&&(a=(nameParts=e.split(" "))[0].charAt(0)+(nameParts.length>1?nameParts[nameParts.length-1].charAt(0):"")),document.getElementById("user-avatar").textContent=a.toUpperCase();const o=document.querySelector(".sidebar");o.addEventListener("mouseenter",()=>o.classList.add("expanded")),o.addEventListener("mouseleave",()=>o.classList.remove("expanded"))}
+        
+        // NEW: Generic function for making API requests to your backend
+        async function apiRequest(endpoint, method, body = null) {
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            const response = await fetch(API_URL + endpoint, options);
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP error ${response.status}: ${errorBody}`);
+            }
+            if (method.toUpperCase() !== 'DELETE' && response.status !== 204) {
+                return response.json();
+            }
+        }
+
+        function escapeHtml(text) { return text?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || ''; }
+    });
+</script>
+</body>
+</html>
