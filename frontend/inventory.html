@@ -165,7 +165,7 @@
         let products = JSON.parse(sessionStorage.getItem('products')) || [];
         let fileStore = {}; 
         let productIdToDelete = null;
-        const openLCA = { serverUrl: "http://localhost:8080", requestId: 1, data: [], methodId: null, categoryId: null, isReady: false };
+        const openLCA = { serverUrl: "http://localhost:8081", requestId: 1, data: [], methodId: null, categoryId: null, isReady: false };
         const tableBody = document.querySelector('.inventory-table tbody');
         const addProductModal = document.getElementById('addProductModal');
         const confirmDeleteModal = document.getElementById('confirmDeleteModal');
