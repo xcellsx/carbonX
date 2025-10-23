@@ -22,4 +22,6 @@ com\carbonx\lca\repo\AnalyticsEventRepository.class
 com\carbonx\lca\repo\UserRepository.class
 com\carbonx\lca\repo\ProductRepository.class
 com\carbonx\lca\repo\FlowRepository.class
+com\carbonx\lca\web\InventoryController.class
+com\carbonx\lca\dto\ProductInventoryDTO.class
 com\carbonx\lca\repo\ReportRepository.class

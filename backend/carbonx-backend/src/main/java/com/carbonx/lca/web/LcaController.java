@@ -22,4 +22,9 @@ public Map<String, Object> calculateLca(@RequestBody Map<String, String> payload
     // Use the new method that saves the data
     return productSearchService.searchAndSave(productName);
 }
+
+@GetMapping("/sync-products")
+public Map<String, Object> syncProducts() {
+    return productSearchService.syncAllProductsFromOpenLCA();
+}
 }

@@ -19,9 +19,14 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+public List<Product> getAllProducts(@RequestParam(name = "name", required = false) String name) {
+    if (name != null && !name.isEmpty()) {
+        // If a search name is provided, find matching products
+        return productRepository.findByNameContainingIgnoreCase(name);
     }
+    // Otherwise, return an empty list
+    return java.util.Collections.emptyList();
+}
 
     @PostMapping
     public Product addProduct(@RequestBody Product product) {
