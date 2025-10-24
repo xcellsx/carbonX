@@ -21,7 +21,9 @@ C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\rep
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\domain\AnalyticsEvent.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\ChatMessageRepository.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\ReportRepository.java
+C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\domain\InventoryItem.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\dto\ProductInventoryDTO.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\FlowRepository.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\NetworkLinkRepository.java
+C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\InventoryItemRepository.java
 C:\Users\celst\carbonX\backend\carbonx-backend\src\main\java\com\carbonx\lca\repo\UserRepository.java

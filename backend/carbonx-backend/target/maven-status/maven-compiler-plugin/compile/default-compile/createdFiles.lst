@@ -4,6 +4,7 @@ com\carbonx\lca\domain\ChatMessage.class
 com\carbonx\lca\domain\Product.class
 com\carbonx\lca\domain\Project.class
 com\carbonx\lca\domain\Calculation.class
+com\carbonx\lca\web\InventoryController$InventoryItemDTO.class
 com\carbonx\lca\repo\ImpactRepository.class
 com\carbonx\lca\web\ProductController.class
 com\carbonx\lca\domain\User.class
@@ -15,6 +16,7 @@ com\carbonx\lca\domain\Impact.class
 com\carbonx\lca\domain\AnalyticsEvent.class
 com\carbonx\lca\repo\ProjectRepository.class
 com\carbonx\lca\web\LcaController.class
+com\carbonx\lca\web\InventoryController$UpdateWeightRequest.class
 com\carbonx\lca\repo\NetworkLinkRepository.class
 com\carbonx\lca\web\DbController.class
 com\carbonx\lca\repo\CalculationRepository.class
@@ -24,4 +26,7 @@ com\carbonx\lca\repo\ProductRepository.class
 com\carbonx\lca\repo\FlowRepository.class
 com\carbonx\lca\web\InventoryController.class
 com\carbonx\lca\dto\ProductInventoryDTO.class
+com\carbonx\lca\domain\InventoryItem.class
+com\carbonx\lca\repo\InventoryItemRepository.class
+com\carbonx\lca\web\InventoryController$AddInventoryItemRequest.class
 com\carbonx\lca\repo\ReportRepository.class
