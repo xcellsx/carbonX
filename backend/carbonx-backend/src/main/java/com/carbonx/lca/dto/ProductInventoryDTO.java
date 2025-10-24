@@ -2,30 +2,36 @@ package com.carbonx.lca.dto;
 
 import java.math.BigDecimal;
 
-// Simple DTO to combine Product info and its primary LCA result
 public class ProductInventoryDTO {
+
     private Long id;
     private String name;
-    private BigDecimal climateChangeImpact; // kgCO2e value
-    private String impactUnit; // e.g., "kg CO2 eq."
+    private BigDecimal carbonEmission;
+    private String processId;
 
-    // Constructors
-    public ProductInventoryDTO() {}
-
-    public ProductInventoryDTO(Long id, String name, BigDecimal climateChangeImpact, String impactUnit) {
-        this.id = id;
-        this.name = name;
-        this.climateChangeImpact = climateChangeImpact;
-        this.impactUnit = impactUnit;
+    public ProductInventoryDTO() {
     }
 
-    // Getters and Setters
+    public ProductInventoryDTO(Long id, String name, BigDecimal carbonEmission, String processId) {
+        this.id = id;
+        this.name = name;
+        this.carbonEmission = carbonEmission;
+        this.processId = processId;
+    }
+
+    // New constructor for the search service
+    public ProductInventoryDTO(String name, String processId) {
+        this.name = name;
+        this.processId = processId;
+    }
+
+    // Getters and setters...
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public BigDecimal getClimateChangeImpact() { return climateChangeImpact; }
-    public void setClimateChangeImpact(BigDecimal climateChangeImpact) { this.climateChangeImpact = climateChangeImpact; }
-    public String getImpactUnit() { return impactUnit; }
-    public void setImpactUnit(String impactUnit) { this.impactUnit = impactUnit; }
+    public BigDecimal getCarbonEmission() { return carbonEmission; }
+    public void setCarbonEmission(BigDecimal carbonEmission) { this.carbonEmission = carbonEmission; }
+    public String getProcessId() { return processId; }
+    public void setProcessId(String processId) { this.processId = processId; }
 }

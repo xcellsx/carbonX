@@ -4,247 +4,353 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CarbonX - Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
     <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
     <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
-<style>
-    :root { color-scheme: light dark; --navy: #223f43; --blue: #59A5B2; --light-blue: #c5e4e7; --cream: #f1e0ce; --yellow: #fbcc58; --black: #020202; --white: #f4f4f4; --grey: #eaeaea; --dark-grey: #a9a9a9; --body-bg: light-dark(var(--grey), var(--black)); --card-bg: light-dark(var(--white), #1c1c1e); --border-color: light-dark(#e5e7eb, #3a3a3c); --text-dark: light-dark(var(--black), var(--white)); --text-muted: light-dark(#6b7280, #8e8e93); }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Figtree', sans-serif; background-color: var(--body-bg); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 80px; background-color: var(--card-bg); padding: 30px 15px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border-color); flex-shrink: 0; transition: width 0.3s ease; overflow-x: hidden; }
-    .sidebar.expanded { width: 240px; }
-    .sidebar-top, .sidebar-bottom { display: flex; flex-direction: column; }
-    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; flex-shrink: 0; height: 30px; justify-content: center; }
-    .nav-menu { display: flex; flex-direction: column; }
-    .nav-item { display: flex; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; color: var(--text-dark); text-decoration: none; white-space: nowrap; }
-    .nav-item.active { background-color: light-dark(var(--navy), var(--blue)); color: light-dark(var(--white), var(--black)); }
-    .nav-item:not(.active):hover { background-color: var(--border-color); }
-    .nav-item svg { width: 24px; height: 24px; flex-shrink: 0; margin-right: 18px; }
-    .nav-item span { display: none; opacity: 0; transition: opacity 0.2s; }
-    .sidebar.expanded .nav-item span { display: inline; opacity: 1; }
-    .user-profile { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; text-decoration: none; color: inherit; }
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--dark-grey); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
-    .user-info { display: none; opacity: 0; transition: opacity 0.2s; }
-    .sidebar.expanded .user-info { display: block; opacity: 1; }
-    .user-info .name { font-weight: 600; color: var(--text-dark); }
-    .user-info .company { font-size: 12px; color: var(--text-muted); }
-    .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
-    header { margin-bottom: 30px; }
-    header h1 { font-size: 36px; color: var(--text-dark); font-weight: bold; margin-bottom: 8px; }
-    header p { color: var(--text-dark); }
-    .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .product-selector { display: flex; align-items: center; gap: 15px; }
-    .product-selector label { font-weight: 600; }
-    .custom-dropdown { position: relative; width: 250px; }
-    .dropdown-selected { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .dropdown-options { position: absolute; top: 105%; left: 0; right: 0; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto; }
-    .dropdown-option { padding: 10px 15px; cursor: pointer; }
-    .dropdown-option:hover { background-color: var(--border-color); }
-    .analytics-card { background-color: var(--card-bg); border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid var(--border-color); }
-    .analytics-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
-    .analytics-table { width: 100%; border-collapse: collapse; }
-    .analytics-table th, .analytics-table td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
-    .analytics-table th { font-weight: 500; color: var(--text-muted); }
-    .analytics-table tbody tr:last-child td { border-bottom: none; }
-    .no-data-message { text-align: center; padding: 40px; color: var(--text-muted); }
-    .hidden { display: none; }
-</style>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --navy: #223f43;
+            --blue: #59A5B2;
+            --light-blue: #c5e4e7;
+            --cream: #f1e0ce;
+            --yellow: #fbcc58;
+            --black: #020202;
+            --white: #f4f4f4;
+            --grey: #eaeaea;
+            --dark-grey: #a9a9a9;
+            --body-bg: light-dark(var(--grey), var(--black));
+            --card-bg: light-dark(var(--white), #1c1c1e);
+            --border-color: light-dark(#e5e7eb, #3a3a3c);
+            --text-dark: light-dark(var(--black), var(--white));
+            --text-muted: light-dark(#6b7280, #8e8e93);
+        }
+        body {
+            font-family: 'Figtree', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-dark);
+        }
+        .sidebar {
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            transition: width 0.3s ease;
+        }
+        .nav-item.active {
+            background-color: light-dark(var(--navy), var(--blue));
+            color: light-dark(var(--white), var(--black));
+        }
+        .nav-item:not(.active):hover {
+            background-color: var(--border-color);
+        }
+        .user-avatar {
+            background-color: var(--dark-grey);
+            color: var(--white);
+        }
+        .user-info .company {
+            color: var(--text-muted);
+        }
+        .custom-dropdown .dropdown-selected {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        .custom-dropdown .dropdown-options {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        .custom-dropdown .dropdown-option:hover {
+            background-color: var(--border-color);
+        }
+        .analytics-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        .analytics-table th {
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .analytics-table td {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar.expanded {
+            width: 240px !important;
+        }
+        .sidebar:not(.expanded) .nav-item span,
+        .sidebar:not(.expanded) .user-info {
+            opacity: 0;
+            display: none;
+        }
+    </style>
 </head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-top">
-            <div class="logo">
-                <picture><source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)"><img src="assets/CarbonX-icon(light).png" alt="Logo" width="30"></picture>
+<body class="flex h-screen overflow-hidden">
+
+    <div class="sidebar w-20 flex-shrink-0 flex flex-col justify-between p-4" id="sidebar">
+        <div>
+            <div class="flex items-center justify-center mb-12 h-8">
+                <img src="assets/CarbonX-icon(light).png" alt="Logo" class="w-8">
             </div>
-            <nav class="nav-menu">
-                <a href="dashboard.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Dashboard</span></a>
-                <a href="inventory_v2.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span>Inventory</span></a>
-                <a href="analytics.html" class="nav-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>Analytics</span></a>
-                <a href="network.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Network</span></a>
-                <a href="report.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Report</span></a>
-                <a href="chat.html" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>AI Chat</span></a>
+            <nav class="flex flex-col space-y-2">
+                <a href="dashboard.html" class="nav-item flex items-center p-3 rounded-lg">
+                    <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span class="ml-4 font-medium whitespace-nowrap">Dashboard</span>
+                </a>
+                <a href="inventory_v2.html" class="nav-item flex items-center p-3 rounded-lg">
+                     <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span class="ml-4 font-medium whitespace-nowrap">Inventory</span>
+                </a>
+                <a href="analytics_v2.html" class="nav-item active flex items-center p-3 rounded-lg">
+                    <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span class="ml-4 font-medium whitespace-nowrap">Analytics</span>
+                </a>
+                 <a href="network.html" class="nav-item flex items-center p-3 rounded-lg">
+                    <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span class="ml-4 font-medium whitespace-nowrap">Network</span>
+                </a>
             </nav>
         </div>
-        <div class="sidebar-bottom">
-            <a href="settings.html" class="user-profile">
-                <div class="user-avatar" id="user-avatar"></div>
-                <div class="user-info">
-                    <div class="name" id="user-name"></div>
-                    <div class="company" id="user-company"></div>
+        <div class="pb-4">
+             <a href="settings.html" class="user-profile flex items-center">
+                <div id="user-avatar" class="user-avatar w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0"></div>
+                <div class="user-info ml-3">
+                    <div id="user-name" class="font-semibold"></div>
+                    <div id="user-company" class="text-xs"></div>
                 </div>
             </a>
         </div>
     </div>
-    <main class="main-content">
-        <header>
-            <h1>Analytics</h1>
-            <p>Breakdown of your products and processes.</p>
+
+    <main class="flex-grow p-10 overflow-y-auto">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">Analytics</h1>
+            <p class="text-lg" style="color: var(--text-muted);">Breakdown of your product's environmental impact and inventory.</p>
         </header>
 
-        <div class="controls">
-            <div class="product-selector">
-                <label for="productDropdown">Select your product:</label>
-                <div class="custom-dropdown" id="productDropdown">
-                    <div class="dropdown-selected"><span></span><svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.41 0.589966L6 5.16997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" fill="currentColor"/></svg></div>
-                    <div class="dropdown-options hidden"></div>
+        <div class="controls mb-8">
+            <div class="product-selector flex items-center gap-4">
+                <label for="productDropdown" class="font-semibold">Select your product:</label>
+                <div class="custom-dropdown relative w-64" id="productDropdown">
+                    <div class="dropdown-selected flex justify-between items-center p-2.5 rounded-lg cursor-pointer">
+                        <span></span>
+                        <svg class="w-3 h-2" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.41 0.589966L6 5.16997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" fill="currentColor"/></svg>
+                    </div>
+                    <div class="dropdown-options absolute top-full left-0 right-0 mt-1 rounded-lg z-10 max-h-48 overflow-y-auto hidden"></div>
                 </div>
             </div>
         </div>
 
-        <div class="analytics-card">
-            <h2>Inputs</h2>
-            <table class="analytics-table"><thead ><tr><th>Flow Name</th><th>Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="inputs-table-body"></tbody></table>
-        </div>
-        <div class="analytics-card">
-            <h2>Outputs</h2>
-            <table class="analytics-table"><thead><tr><th>Flow Name</th><th>Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="outputs-table-body"></tbody></table>
-        </div>
-        <div class="analytics-card">
-            <h2>Impact Categories</h2>
-            <table class="analytics-table"><thead><tr><th>Impact Category</th><th>Amount</th><th>Unit</th></tr></thead><tbody id="impact-table-body"></tbody></table>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="analytics-card rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Top Environmental Flows</h2>
+                <div class="overflow-x-auto">
+                    <table class="analytics-table min-w-full divide-y" id="top-envi-flows-table">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Flow Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="analytics-card rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Inventory Analysis</h2>
+                 <div class="overflow-x-auto">
+                    <table class="analytics-table min-w-full divide-y" id="inventory-analysis-table">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Process Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const API_URL = "http://localhost:8080/api";
-            
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
-            sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const API_BASE_URL = 'http://localhost:8080';
 
-            const userName = localStorage.getItem('signupFullName') || 'John Doe';
-            const companyName = localStorage.getItem('companyName') || 'Company Name';
-            document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-company').textContent = companyName;
-            if (userName) {
-                const nameParts = userName.split(' ');
-                const initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
-                document.getElementById('user-avatar').textContent = initials.toUpperCase();
-            }
+        // --- UI INITIALIZATION ---
+        const sidebar = document.getElementById('sidebar');
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
 
-            let calculatedProducts = [];
-            
-            const dropdown = document.getElementById('productDropdown');
-            const selectedText = dropdown.querySelector('.dropdown-selected span');
-            const optionsContainer = dropdown.querySelector('.dropdown-options');
-            
-            const inputsBody = document.getElementById('inputs-table-body');
-            const outputsBody = document.getElementById('outputs-table-body');
-            const impactBody = document.getElementById('impact-table-body');
+        const userName = localStorage.getItem('signupFullName') || 'John Doe';
+        const companyName = localStorage.getItem('companyName') || 'Company Name';
+        document.getElementById('user-name').textContent = userName;
+        document.getElementById('user-company').textContent = companyName;
+        if (userName) {
+            const nameParts = userName.split(' ');
+            const initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+            document.getElementById('user-avatar').textContent = initials.toUpperCase();
+        }
 
-            async function fetchCalculatedProducts() {
-                selectedText.textContent = "Loading...";
-                clearTables();
-                try {
-                    const response = await fetch(`${API_URL}/lca/calculated-products`); 
-                    if (!response.ok) throw new Error("Failed to fetch calculated products list.");
-                    calculatedProducts = await response.json(); 
-                    populateProductDropdown();
+        // --- DATA & DOM REFERENCES ---
+        const dropdown = document.getElementById('productDropdown');
+        const selectedText = dropdown.querySelector('.dropdown-selected span');
+        const optionsContainer = dropdown.querySelector('.dropdown-options');
+        const topEnviFlowsTbody = document.querySelector('#top-envi-flows-table tbody');
+        const inventoryAnalysisTbody = document.querySelector('#inventory-analysis-table tbody');
 
-                    if (calculatedProducts.length > 0) {
-                        const defaultProduct = calculatedProducts[0];
-                        selectedText.textContent = defaultProduct.name;
-                        fetchAndDisplayAnalytics(defaultProduct.id); 
-                    } else {
-                        selectedText.textContent = "No calculated products";
-                        clearTables();
-                    }
-                } catch (error) {
-                    console.error("Error fetching product list:", error);
-                    selectedText.textContent = "Error loading products";
-                    clearTables();
-                }
-            }
-
-            function populateProductDropdown() {
-                optionsContainer.innerHTML = '';
-                if (calculatedProducts.length > 0) {
-                    calculatedProducts.forEach(product => {
-                        const option = document.createElement('div');
-                        option.className = 'dropdown-option';
-                        option.textContent = product.name;
-                        option.dataset.productId = product.id;
-                        option.addEventListener('click', () => {
-                            selectedText.textContent = product.name;
-                            optionsContainer.classList.add('hidden');
-                            fetchAndDisplayAnalytics(product.id);
-                        });
-                        optionsContainer.appendChild(option);
+        // --- FUNCTIONS ---
+        function populateProductDropdown(products) {
+            optionsContainer.innerHTML = '';
+            if (products && products.length > 0) {
+                products.forEach(product => {
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-option p-2.5 cursor-pointer';
+                    option.textContent = product.name;
+                    option.dataset.productId = product.id;
+                    option.addEventListener('click', () => {
+                        selectedText.textContent = product.name;
+                        optionsContainer.classList.add('hidden');
+                        displayProductData(product.id);
                     });
-                }
+                    optionsContainer.appendChild(option);
+                });
+            } else {
+                selectedText.textContent = "No products in inventory";
             }
+        }
+        
+        async function displayProductData(productId) {
+            setLoadingState(topEnviFlowsTbody, 4);
+            setLoadingState(inventoryAnalysisTbody, 4);
 
-            async function fetchAndDisplayAnalytics(productId) {
-                inputsBody.innerHTML = `<tr><td colspan="4" class="no-data-message">Loading...</td></tr>`;
-                outputsBody.innerHTML = `<tr><td colspan="4" class="no-data-message">Loading...</td></tr>`;
-                impactBody.innerHTML = `<tr><td colspan="3" class="no-data-message">Loading...</td></tr>`;
+            try {
+                const analyticsData = await fetchAnalyticsData(productId);
+                populateTopEnviFlows(analyticsData.topImpacts);
+                populateInventoryAnalysis(analyticsData.inventory);
+            } catch (error) {
+                console.error('Failed to display product data:', error);
+                const friendlyError = error.message.includes('calculated yet') ? 'This product has not been calculated yet.' : error.message;
+                setErrorState(topEnviFlowsTbody, 4, friendlyError);
+                setErrorState(inventoryAnalysisTbody, 4, friendlyError);
+            }
+        }
+        
+        async function fetchAnalyticsData(productId) {
+            const response = await fetch(`${API_BASE_URL}/api/lca/analytics/${productId}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errorText}`);
+            }
+            return await response.json();
+        }
 
-                try {
-                    const response = await fetch(`${API_URL}/lca/results/product/${productId}`);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch analytics for ID ${productId}. Status: ${response.status}`);
-                    }
-                    const productData = await response.json(); 
+        function populateTopEnviFlows(flows) {
+             console.log("Data for Top Environmental Flows:", flows);
+            if (!flows || flows.length === 0) {
+                setEmptyState(topEnviFlowsTbody, 4, "No environmental flow data available.");
+                return;
+            }
+            const rowsHtml = flows.map(impact => {
+                const flowName = impact?.impactCategory?.name ?? 'N/A';
+                const unit = impact?.impactCategory?.refUnit ?? 'units';
+                
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">${escapeHtml(flowName)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-500">Impact Category</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${(impact.amount || 0).toFixed(4)} ${escapeHtml(unit)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${((impact.contribution || 0) * 100).toFixed(2)}%</td>
+                    </tr>
+                `;
+            }).join('');
+            topEnviFlowsTbody.innerHTML = rowsHtml;
+        }
 
-                    console.log("Received analytics data:", productData);
+        function populateInventoryAnalysis(inventory) {
+            console.log("Data for Inventory Analysis:", inventory);
+            if (!inventory || inventory.length === 0) {
+                setEmptyState(inventoryAnalysisTbody, 4, "No inventory analysis data available.");
+                return;
+            }
+            const rowsHtml = inventory.map(item => {
+                const processName = item?.enviFlow?.flow?.name ?? 'N/A';
+                const category = item?.enviFlow?.flow?.category ?? 'N/A';
+                const unit = item?.enviFlow?.flow?.refUnit ?? 'units';
+                
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">${escapeHtml(processName)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${escapeHtml(category)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${(item.amount || 0).toFixed(4)} ${escapeHtml(unit)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${((item.contribution || 0) * 100).toFixed(2)}%</td>
+                    </tr>
+                `;
+            }).join('');
+            inventoryAnalysisTbody.innerHTML = rowsHtml;
+        }
 
-                    // Display Impacts
-                    if (productData.fullImpacts && Array.isArray(productData.fullImpacts) && productData.fullImpacts.length > 0) {
-                        impactBody.innerHTML = productData.fullImpacts
-                            .map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${parseFloat(i.amount).toPrecision(3)}</td><td>${escapeHtml(i.refUnit)}</td></tr>`)
-                            .join('');
+        // --- UI HELPER FUNCTIONS ---
+        function setLoadingState(tbody, colSpan) {
+            tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-4">Loading...</td></tr>`;
+        }
+        function setEmptyState(tbody, colSpan, message) {
+            tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-4">${message}</td></tr>`;
+        }
+        function setErrorState(tbody, colSpan, message) {
+            tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-4 text-red-500">Error: ${escapeHtml(message)}</td></tr>`;
+        }
+        
+        function escapeHtml(text) {
+            if (text === null || typeof text === 'undefined') return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
+        
+        dropdown.addEventListener('click', () => optionsContainer.classList.toggle('hidden'));
+
+        // --- INITIAL PAGE LOAD ---
+        async function initializePage() {
+            try {
+                const inventoryResponse = await fetch(`${API_BASE_URL}/api/inventory`);
+                if (!inventoryResponse.ok) throw new Error("Could not fetch inventory from backend.");
+                
+                const allProducts = await inventoryResponse.json();
+                
+                populateProductDropdown(allProducts);
+
+                if (allProducts.length > 0) {
+                    const firstCalculated = allProducts.find(p => p.lcaResult > 0);
+                    if (firstCalculated) {
+                        selectedText.textContent = firstCalculated.name;
+                        await displayProductData(firstCalculated.id);
                     } else {
-                        impactBody.innerHTML = `<tr><td colspan="3" class="no-data-message">No impact data available.</td></tr>`;
+                        selectedText.textContent = allProducts[0].name;
+                        setEmptyState(topEnviFlowsTbody, 4, "This product has not been calculated yet. Please calculate it in the Inventory page.");
+                        setEmptyState(inventoryAnalysisTbody, 4, "No data to display.");
                     }
-                    
-                    // Display Inventory (Inputs/Outputs)
-                    if (productData.inventory && Array.isArray(productData.inventory)) {
-                        const inputs = productData.inventory.filter(flow => flow.isInput);
-                        const outputs = productData.inventory.filter(flow => !flow.isInput);
-
-                        // **FIX**: Access properties directly on the flow object 'i' and 'o'
-                        inputsBody.innerHTML = inputs.length > 0 
-                            ? inputs.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${escapeHtml(i.category)}</td><td>${parseFloat(i.amount).toPrecision(3)}</td><td>${escapeHtml(i.refUnit)}</td></tr>`).join('')
-                            : `<tr><td colspan="4" class="no-data-message">No input data available.</td></tr>`;
-
-                        outputsBody.innerHTML = outputs.length > 0
-                            ? outputs.map(o => `<tr><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.category)}</td><td>${parseFloat(o.amount).toPrecision(3)}</td><td>${escapeHtml(o.refUnit)}</td></tr>`).join('')
-                            : `<tr><td colspan="4" class="no-data-message">No output data available.</td></tr>`;
-                    } else {
-                        clearInventoryTables();
-                    }
-
-                } catch (error) {
-                    console.error("Error fetching analytics data:", error);
-                    impactBody.innerHTML = `<tr><td colspan="3" class="no-data-message">Failed to load analytics data.</td></tr>`;
-                    inputsBody.innerHTML = `<tr><td colspan="4" class="no-data-message">Failed to load analytics data.</td></tr>`;
-                    outputsBody.innerHTML = `<tr><td colspan="4" class="no-data-message">Failed to load analytics data.</td></tr>`;
+                } else {
+                    selectedText.textContent = "No products found";
+                    setEmptyState(topEnviFlowsTbody, 4, "Add a product in the Inventory page to get started.");
+                    setEmptyState(inventoryAnalysisTbody, 4, "Add a product in the Inventory page to get started.");
                 }
+            } catch (error) {
+                console.error("Failed to initialize analytics page:", error);
+                selectedText.textContent = "Error loading products";
+                setErrorState(topEnviFlowsTbody, 4, "Could not load data. Is the backend server running?");
+                setErrorState(inventoryAnalysisTbody, 4, "Could not load data. Is the backend server running?");
             }
-            
-            function clearTables() {
-                const inputsMsg = `<tr><td colspan="4" class="no-data-message">Please select a product to view its analytics.</td></tr>`;
-                const impactsMsg = `<tr><td colspan="3" class="no-data-message">Please select a product to view its analytics.</td></tr>`;
-                inputsBody.innerHTML = inputsMsg;
-                outputsBody.innerHTML = inputsMsg;
-                impactBody.innerHTML = impactsMsg;
-            }
-             function clearInventoryTables() {
-                const message = `<tr><td colspan="4" class="no-data-message">No inventory data available.</td></tr>`;
-                inputsBody.innerHTML = message;
-                outputsBody.innerHTML = message;
-            }
+        }
+        
+        initializePage();
+    });
+</script>
 
-            dropdown.addEventListener('click', () => optionsContainer.classList.toggle('hidden'));
-            
-            function escapeHtml(text) { return text?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || ''; }
-
-            // Initial setup
-            fetchCalculatedProducts();
-        });
-    </script>
 </body>
 </html>

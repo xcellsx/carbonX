@@ -2,14 +2,15 @@ package com.carbonx.lca.web;
 
 import com.carbonx.lca.domain.Product;
 import com.carbonx.lca.repo.ProductRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "*") // Allows requests from your frontend
 public class ProductController {
 
     private final ProductRepository productRepository;
@@ -19,23 +20,10 @@ public class ProductController {
     }
 
     @GetMapping
-public List<Product> getAllProducts(@RequestParam(name = "name", required = false) String name) {
-    if (name != null && !name.isEmpty()) {
-        // If a search name is provided, find matching products
-        return productRepository.findByNameContainingIgnoreCase(name);
-    }
-    // Otherwise, return an empty list
-    return java.util.Collections.emptyList();
-}
-
-    @PostMapping
-    public Product addProduct(@RequestBody Product product) {
-        return productRepository.save(product);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public List<Product> findProducts(@RequestParam(required = false) String search) {
+        if (search == null || search.isBlank()) {
+            return productRepository.findAll();
+        }
+        return productRepository.findByNameContainingIgnoreCase(search);
     }
 }
