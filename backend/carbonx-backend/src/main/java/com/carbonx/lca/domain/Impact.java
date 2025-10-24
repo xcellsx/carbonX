@@ -3,6 +3,7 @@ package com.carbonx.lca.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Getter
@@ -10,23 +11,33 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "impacts")
 public class Impact {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "flow_id")
-    private Flow flow;
+    // Many-to-One: Many impacts belong to one Calculation
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "calculation_id")
+    private Calculation calculation;
 
-    @Column(name = "method_id")
-    private String methodId;
+    @Column(name = "impact_category", nullable = false)
+    private String categoryName;
 
-    @Column(name = "impact_id")
-    private String impactId;
+    @Column(nullable = false, precision = 10, scale = 4)
+    private BigDecimal amount;
 
-    @Column(name = "impact_id_unit")
-    private String impactIdUnit;
+    @Column(nullable = false)
+    private String unit;
 
-    @Column(name = "impact_value", precision = 10, scale = 4)
-    private BigDecimal impactValue;
+    // Default constructor for JPA
+    public Impact() {}
+
+    // Convenience constructor
+    public Impact(Calculation calculation, String categoryName, BigDecimal amount, String unit) {
+        this.calculation = calculation;
+        this.categoryName = categoryName;
+        this.amount = amount;
+        this.unit = unit;
+    }
 }

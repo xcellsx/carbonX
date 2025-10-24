@@ -7,8 +7,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Getter // Ensure Lombok generates getters (like getWeight)
-@Setter // Ensure Lombok generates setters (like setWeight)
+@Getter 
+@Setter 
 @Entity
 @Table(name = "inventory_items")
 public class InventoryItem {
@@ -24,7 +24,7 @@ public class InventoryItem {
     private BigDecimal weight = BigDecimal.ONE; // Default to 1.0
 
     @Column(name = "climate_change_impact", precision = 10, scale = 4, nullable = true)
-    private BigDecimal climateChangeImpact;
+    private BigDecimal climateChangeImpact; // This now holds the BASE IMPACT (per 1kg)
 
     @Column(name = "impact_unit", length = 50, nullable = true)
     private String impactUnit;
@@ -32,7 +32,7 @@ public class InventoryItem {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    // Default constructor REQUIRED by JPA and Lombok (if using @AllArgsConstructor etc elsewhere)
+    // Default constructor REQUIRED by JPA
     public InventoryItem() {}
 
     // Explicit constructor REQUIRED for InventoryController usage
@@ -46,10 +46,4 @@ public class InventoryItem {
         }
         this.createdAt = Instant.now();
     }
-
-    // Lombok will generate:
-    // getId(), setId(), getProduct(), setProduct(), getWeight(), setWeight(),
-    // getClimateChangeImpact(), setClimateChangeImpact(), getImpactUnit(), setImpactUnit(),
-    // getCreatedAt(), setCreatedAt()
 }
-

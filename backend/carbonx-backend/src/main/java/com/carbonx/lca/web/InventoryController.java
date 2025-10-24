@@ -4,7 +4,6 @@ import com.carbonx.lca.domain.InventoryItem;
 import com.carbonx.lca.domain.Product;
 import com.carbonx.lca.repo.InventoryItemRepository;
 import com.carbonx.lca.repo.ProductRepository;
-import com.carbonx.lca.service.ProductSearchService; // Keep if needed for LCA triggering
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,8 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 
-import java.math.BigDecimal; // Import BigDecimal
-import java.util.HashMap; // Import HashMap
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,35 +28,34 @@ public class InventoryController {
 
     private final InventoryItemRepository inventoryItemRepository;
     private final ProductRepository productRepository;
-    private final LcaController lcaController; // Inject LcaController to trigger calc
+    private final LcaController lcaController; 
 
 
     public InventoryController(InventoryItemRepository inventoryItemRepository,
                                ProductRepository productRepository,
-                               LcaController lcaController) { // Add LcaController
+                               LcaController lcaController) {
         this.inventoryItemRepository = inventoryItemRepository;
         this.productRepository = productRepository;
-        this.lcaController = lcaController; // Assign LcaController
+        this.lcaController = lcaController; 
     }
 
     /**
      * DTO to represent an inventory item including product name.
-     * Using a static inner class or separate DTO file is common.
      */
     public static class InventoryItemDTO {
         public Long id;
         public Long productId;
         public String name;
-        public BigDecimal weight; // Add weight
-        public BigDecimal climateChangeImpact;
+        public BigDecimal weight; 
+        public BigDecimal climateChangeImpact; // This holds the BASE IMPACT (per 1kg)
         public String impactUnit;
 
         public InventoryItemDTO(InventoryItem item) {
             this.id = item.getId();
             this.productId = item.getProduct() != null ? item.getProduct().getId() : null;
             this.name = item.getProduct() != null ? item.getProduct().getName() : "Error: Missing Product";
-            this.weight = item.getWeight(); // Include weight
-            this.climateChangeImpact = item.getClimateChangeImpact();
+            this.weight = item.getWeight(); 
+            this.climateChangeImpact = item.getClimateChangeImpact(); // Send base impact
             this.impactUnit = item.getImpactUnit();
         }
     }
@@ -68,14 +65,17 @@ public class InventoryController {
      */
     public static class AddInventoryItemRequest {
         public Long productId;
-        public BigDecimal weight; // Add weight field
+        public BigDecimal weight; 
     }
 
     /**
      * Request body structure for updating weight.
      */
      public static class UpdateWeightRequest {
-         public BigDecimal weight;
+         private BigDecimal weight;
+
+         public BigDecimal getWeight() { return weight; }
+         public void setWeight(BigDecimal weight) { this.weight = weight; }
      }
 
     @GetMapping
@@ -83,11 +83,10 @@ public class InventoryController {
         log.debug("Fetching inventory items. Search term: {}", search);
         List<InventoryItem> items;
         if (search != null && !search.isEmpty()) {
-            // --- FIX: Correct method name used here ---
             items = inventoryItemRepository.findByProduct_NameContainingIgnoreCase(search);
             log.debug("Found {} items matching search term '{}'", items.size(), search);
         } else {
-            items = inventoryItemRepository.findAll(); // Fetch all
+            items = inventoryItemRepository.findAll(); 
             log.debug("Found {} total inventory items", items.size());
         }
         // Map to DTO to include product name
@@ -97,7 +96,7 @@ public class InventoryController {
     }
 
     @PostMapping
-    @Transactional // Ensure product lookup and item saving are atomic
+    @Transactional 
     public ResponseEntity<?> addInventoryItem(@RequestBody AddInventoryItemRequest request) {
         log.info("Request received to add product ID {} with weight {} to inventory", request.productId, request.weight);
 
@@ -121,26 +120,52 @@ public class InventoryController {
         Product product = productOpt.get();
 
         // Create and save the new inventory item, including weight
-        InventoryItem newItem = new InventoryItem(product, request.weight); // Use constructor
+        InventoryItem newItem = new InventoryItem(product, request.weight); 
         InventoryItem savedItem = inventoryItemRepository.save(newItem);
         log.info("Successfully added inventory item ID {} for product '{}'", savedItem.getId(), product.getName());
 
         // --- Trigger initial LCA calculation asynchronously ---
-        // We don't wait for the calculation to finish before responding
-        // Use try-catch to prevent calculation failure from breaking the add operation
         try {
-            // Directly call the LcaController method (requires LcaController injection)
             lcaController.calculateLcaAndSave(savedItem.getId());
             log.info("Triggered initial LCA calculation for new inventory item ID {}", savedItem.getId());
         } catch (Exception e) {
              log.error("Failed to trigger initial LCA calculation for inventory item ID {}: {}", savedItem.getId(), e.getMessage());
-             // Log the error but still return success for adding the item
         }
 
 
         // Return the created item's DTO
         return ResponseEntity.status(HttpStatus.CREATED).body(new InventoryItemDTO(savedItem));
     }
+    
+    // --- PUT ENDPOINT: Updates weight only and returns confirmation ---
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> updateInventoryItemWeight(@PathVariable Long id, @RequestBody UpdateWeightRequest request) {
+         log.info("Request received to update weight for inventory item ID {} to {}", id, request.getWeight());
+
+         if (request.getWeight() == null || request.getWeight().compareTo(BigDecimal.ZERO) <= 0) {
+             log.warn("Update weight failed for ID {}: Invalid weight provided ({})", id, request.getWeight());
+             return ResponseEntity.badRequest().body(Map.of("message", "Weight must be a positive number."));
+         }
+
+         Optional<InventoryItem> itemOpt = inventoryItemRepository.findById(id);
+         if (itemOpt.isEmpty()) {
+             log.warn("Update weight failed: Inventory item ID {} not found", id);
+             return ResponseEntity.notFound().build();
+         }
+
+         InventoryItem item = itemOpt.get();
+         item.setWeight(request.getWeight());
+         
+         // No need to reset impact fields or trigger re-calculation.
+         
+         InventoryItem updatedItem = inventoryItemRepository.save(item);
+         log.info("Successfully updated weight for inventory item ID {}", id);
+
+         // Return a simplified response containing the new weight
+         return ResponseEntity.ok(Map.of("id", updatedItem.getId(), "weight", updatedItem.getWeight()));
+     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInventoryItem(@PathVariable Long id) {
@@ -153,42 +178,4 @@ public class InventoryController {
         log.info("Successfully deleted inventory item ID: {}", id);
         return ResponseEntity.noContent().build();
     }
-
-     // --- New Endpoint to Update Weight ---
-     @PutMapping("/{id}/weight")
-     @Transactional
-     public ResponseEntity<?> updateInventoryItemWeight(@PathVariable Long id, @RequestBody UpdateWeightRequest request) {
-         log.info("Request received to update weight for inventory item ID {} to {}", id, request.weight);
-
-         if (request.weight == null || request.weight.compareTo(BigDecimal.ZERO) <= 0) {
-             log.warn("Update weight failed for ID {}: Invalid weight provided ({})", id, request.weight);
-             return ResponseEntity.badRequest().body(Map.of("message", "Weight must be a positive number."));
-         }
-
-         Optional<InventoryItem> itemOpt = inventoryItemRepository.findById(id);
-         if (itemOpt.isEmpty()) {
-             log.warn("Update weight failed: Inventory item ID {} not found", id);
-             return ResponseEntity.notFound().build();
-         }
-
-         InventoryItem item = itemOpt.get();
-         item.setWeight(request.weight);
-         // Reset impact as it's now invalid for the old weight
-         item.setClimateChangeImpact(null);
-         item.setImpactUnit(null);
-         InventoryItem updatedItem = inventoryItemRepository.save(item);
-         log.info("Successfully updated weight for inventory item ID {}", id);
-
-         // --- Trigger Re-calculation ---
-         try {
-             lcaController.calculateLcaAndSave(updatedItem.getId());
-             log.info("Triggered LCA re-calculation after weight update for inventory item ID {}", updatedItem.getId());
-         } catch (Exception e) {
-             log.error("Failed to trigger LCA re-calculation after weight update for inventory item ID {}: {}", updatedItem.getId(), e.getMessage());
-             // Log the error, but the weight update was successful. Frontend will show 'Not Calculated'.
-         }
-
-         return ResponseEntity.ok(new InventoryItemDTO(updatedItem)); // Return updated item
-     }
 }
-

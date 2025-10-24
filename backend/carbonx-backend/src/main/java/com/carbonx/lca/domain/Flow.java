@@ -3,6 +3,7 @@ package com.carbonx.lca.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Getter
@@ -10,29 +11,40 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "flows")
 public class Flow {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    // Many-to-One: Many flows belong to one Calculation
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "calculation_id")
+    private Calculation calculation;
 
-    @Column(name = "input_id")
-    private String inputId;
+    @Column(nullable = false)
+    private String name;
 
-    @Column(name = "input_unit")
-    private String inputUnit;
+    private String category;
 
-    @Column(name = "input_value", precision = 10, scale = 4)
-    private BigDecimal inputValue;
+    @Column(nullable = false, precision = 10, scale = 4)
+    private BigDecimal amount;
 
-    @Column(name = "output_id")
-    private String outputId;
+    @Column(nullable = false)
+    private String unit;
 
-    @Column(name = "output_unit")
-    private String outputUnit;
+    @Column(nullable = false)
+    private boolean isInput;
 
-    @Column(name = "output_value", precision = 10, scale = 4)
-    private BigDecimal outputValue;
+    // Default constructor for JPA
+    public Flow() {}
+
+    // Convenience constructor
+    public Flow(Calculation calculation, String name, String category, BigDecimal amount, String unit, boolean isInput) {
+        this.calculation = calculation;
+        this.name = name;
+        this.category = category;
+        this.amount = amount;
+        this.unit = unit;
+        this.isInput = isInput;
+    }
 }

@@ -2,13 +2,10 @@ package com.carbonx.lca.repo;
 
 import com.carbonx.lca.domain.Impact;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List; // Import List
-import java.util.Optional; // Add this import
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ImpactRepository extends JpaRepository<Impact, Long> {
-
-    // Add this method definition
-    List<Impact> findByFlowId(Long flowId);
-
-    Optional<Impact> findFirstByFlowIdAndImpactIdContainingIgnoreCase(Long flowId, String impactId);
+    // This repository should also be clean of any custom methods
+    // that don't match the properties of the Impact entity.
 }
