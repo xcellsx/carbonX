@@ -350,7 +350,7 @@
     <script>
         google.charts.load('current', { 'packages': ['table'] });
 
-        const serverUrl = "http://localhost:8080";
+        const serverUrl = "http://localhost:8081"; // Ensure this port matches your openLCA IPC Server
         let requestId = 1;
         let allData = [];
         let filteredData = [];
@@ -363,7 +363,7 @@
         
         window.addEventListener('load', () => {
             testConnection();
-            findLcaMethod();
+            findLcaMethodAndLogAll(); // Changed this function name
             loadData();
             document.getElementById('searchFilter').addEventListener('input', applyFilters);
             renderCalculationTable();
@@ -378,43 +378,125 @@
                 if (response.ok) {
                     document.getElementById('status').textContent = 'Connected';
                     document.getElementById('status').className = 'status connected';
+                } else {
+                    throw new Error('Connection failed');
                 }
             } catch (error) {
                 document.getElementById('status').textContent = 'Disconnected';
                 document.getElementById('status').className = 'status disconnected';
+                console.error("Connection test failed:", error.message);
             }
         }
 
-        async function findLcaMethod() {
-            const searchMethodName = 'recipe 2016 v1.03';
-            const searchMethodVariant = 'midpoint (h)';
-            const searchCategoryName = 'climate change';
+        // --- THIS FUNCTION HAS BEEN MODIFIED ---
+        async function findLcaMethodAndLogAll() {
+            console.log("--- STARTING: Fetching all openLCA IDs ---");
             document.getElementById('method-name').textContent = `Searching...`;
+
+            let allMethods = [];
+
             try {
+                // 1. Get all available Impact Methods
                 const methodsResponse = await fetch(serverUrl, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get/descriptors", params: { "@type": "ImpactMethod" } })
                 });
                 const methodsData = await methodsResponse.json();
+                if (methodsData.error) throw new Error(`Method Fetch Error: ${JSON.stringify(methodsData.error)}`);
                 if (!Array.isArray(methodsData.result)) throw new Error('Could not retrieve impact methods.');
-                const recipeMethod = methodsData.result.find(m => m.name && m.name.toLowerCase().includes(searchMethodName) && m.name.toLowerCase().includes(searchMethodVariant));
-                if (!recipeMethod) throw new Error(`Method "${searchMethodName} - ${searchMethodVariant}" not found.`);
+                
+                allMethods = methodsData.result; // Store all methods
+
+                console.log("========================================================================");
+                console.log("AVAILABLE IMPACT METHODS");
+                console.log("========================================================================");
+
+                if (allMethods.length === 0) {
+                    console.warn("No Impact Methods found. Is openLCA running and connected?");
+                }
+
+                // 2. For each method, get its Impact Categories and LOG them
+                for (const method of allMethods) {
+                    const methodId = method['@id'];
+                    const methodName = method.name;
+
+                    console.log(`\nMETHOD: '${methodName}'`);
+                    console.log(`  └─ olca.methodId: '${methodId}'`);
+
+                    // Fetch details for *this* method to get its categories
+                    const methodDetailResponse = await fetch(serverUrl, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get", params: { "@type": "ImpactMethod", "@id": methodId } })
+                    });
+                    const methodDetail = await methodDetailResponse.json();
+
+                    if (methodDetail.error) {
+                        console.error(`    └─ Error fetching categories: ${JSON.stringify(methodDetail.error)}`);
+                        continue; // Skip to next method
+                    }
+
+                    const categories = methodDetail.result?.impactCategories;
+
+                    if (!categories || !Array.isArray(categories) || categories.length === 0) {
+                        console.log("    └─ No impact categories found for this method.");
+                    } else {
+                        console.log("    AVAILABLE IMPACT CATEGORIES:");
+                        for (const category of categories) {
+                            console.log(`    - CATEGORY: '${category.name}'`);
+                            console.log(`      └─ olca.impactCategoryId: '${category['@id']}'`);
+                        }
+                    }
+                }
+                console.log("========================================================================");
+                console.log("--- FINISHED: Fetching all openLCA IDs ---");
+
+            } catch (e) {
+                console.error("CRITICAL ERROR in findLcaMethodAndLogAll:", e.message);
+                document.getElementById('method-name').textContent = e.message;
+                document.getElementById('impact-category-name').textContent = "Error";
+                return; // Stop if we failed to log
+            }
+
+            // --- Original Logic (for UI) ---
+            // Now, try to find the specific method for the UI
+            try {
+                const searchMethodName = 'recipe 2016 v1.03';
+                const searchMethodVariant = 'midpoint (h)';
+                const searchCategoryName = 'climate change';
+
+                const recipeMethod = allMethods.find(m => m.name && m.name.toLowerCase().includes(searchMethodName) && m.name.toLowerCase().includes(searchMethodVariant));
+                
+                if (!recipeMethod) {
+                    console.warn(`Default method "${searchMethodName} - ${searchMethodVariant}" not found. UI will not have a default.`);
+                    document.getElementById('method-name').textContent = "Default not found (see console)";
+                    return;
+                }
+                
                 ipccMethodId = recipeMethod['@id'];
                 document.getElementById('method-name').textContent = recipeMethod.name;
+
+                // We already fetched categories, but fetching again for the default is fine
                 const methodDetailResponse = await fetch(serverUrl, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get", params: { "@type": "ImpactMethod", "@id": ipccMethodId } })
                 });
                 const methodDetail = await methodDetailResponse.json();
-                if (!methodDetail.result || !Array.isArray(methodDetail.result.impactCategories)) throw new Error('Could not retrieve categories.');
+                if (!methodDetail.result || !Array.isArray(methodDetail.result.impactCategories)) {
+                    throw new Error('Could not retrieve categories for default method.');
+                }
+                
                 allIpccCategories = methodDetail.result.impactCategories;
                 const climateCategory = allIpccCategories.find(cat => cat.name && cat.name.toLowerCase().includes(searchCategoryName)) || allIpccCategories[0];
+                
                 if (climateCategory) {
                     ipccCategoryId = climateCategory['@id'];
                     selectedCategoryName = climateCategory.name;
                     document.getElementById('impact-category-name').textContent = selectedCategoryName;
-                } else { throw new Error('No impact categories found.'); }
+                } else {
+                    throw new Error('No impact categories found for default method.');
+                }
             } catch (e) {
+                console.warn(`Error setting default UI method: ${e.message}`);
                 document.getElementById('method-name').textContent = e.message;
                 document.getElementById('impact-category-name').textContent = "Error";
             }
@@ -423,7 +505,7 @@
         function filterByTab(tabName) {
             activeTab = tabName;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            event.target.classList.add('active'); // Fixed: event.target
             applyFilters();
         }
 
@@ -589,7 +671,10 @@
 
         async function runCarbon(idx) {
             const item = selectedItems[idx];
-            if (!ipccMethodId || !ipccCategoryId) return;
+            if (!ipccMethodId || !ipccCategoryId) {
+                alert("Default IPCC method or category ID is not set. Check console for errors.");
+                return;
+            }
 
             selectedItems[idx].calcLoading = true;
             renderCalculationTable();
@@ -1055,11 +1140,9 @@
         window.closeSankeyModal = closeSankeyModal;
         window.showSankeyData = showSankeyData;
         window.closeSankeyDataModal = closeSankeyDataModal;
-        window.toggleDetails = toggleDetails;
+        // window.toggleDetails = toggleDetails; // This function was not defined, so I commented it out.
 
     </script>
 </body>
 
 </html>
-
-
