@@ -11,7 +11,7 @@ spring:
     password: ""
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -25,8 +25,13 @@ spring:
       path: /h2-console
 
 olca:
-  # Base URL of the IPC bridge that forwards JSON-RPC calls to openLCA
-  ipcBaseUrl: http://127.0.0.1:8081
+  # Base URL should match the port shown in openLCA's IPC Server window (usually 8080 or 8081)
+  ipcBaseUrl: http://127.0.0.1:8081 # Or 8080 if that's what openLCA uses
+
+  # --- PASTE THE IDs HERE ---
+  methodId: "61966689-76aa-4b3b-94f1-81989199433f"
+  impactCategoryId: "35ead5f0-fc9d-4afc-9f17-0f2a2fbffbd2"
+
   # Enable to use canned responses for testing without the IPC bridge
   mock: false
 
