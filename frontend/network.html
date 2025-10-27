@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonX</title>
+    <title>CarbonX - Network</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allProducts = JSON.parse(sessionStorage.getItem('products')) || [];
     const calculatedProducts = allProducts.filter(p => p.lcaStatus === 'success' && p.processId);
     
-    const openLCA = { serverUrl: "http://localhost:8081", requestId: 1, methodId: null, categoryId: null };
+    const openLCA = { serverUrl: "http://localhost:8080", requestId: 1, methodId: null, categoryId: null };
     const dropdown = document.getElementById('productDropdown');
     const selectedText = dropdown.querySelector('.dropdown-selected span');
     const optionsContainer = dropdown.querySelector('.dropdown-options');
