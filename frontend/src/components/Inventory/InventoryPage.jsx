@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { NavLink } from 'react-router-dom';
-import './InventoryPage.css'; // We will update this file next
+import { NavLink } from 'react-router-dom'; // Keep NavLink import
+import './InventoryPage.css';
 
 const API_BASE = 'http://localhost:8080/api';
 
 const InventoryPage = () => {
   const [userId] = useState(localStorage.getItem('userId') || '');
+  // State for user data (needed for sidebar)
+  const [userName, setUserName] = useState('');
+  const [userInitials, setUserInitials] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [loadingProfile, setLoadingProfile] = useState(true); // Added for sidebar loading
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // State from GuidePage.jsx
+  // State from GuidePage.jsx (keep as is)
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productName, setProductName] = useState('');
   const [productFile, setProductFile] = useState(null);
@@ -27,6 +33,43 @@ const InventoryPage = () => {
   const [suggestions, setSuggestions] = useState({});
   const [activeSuggestionBox, setActiveSuggestionBox] = useState(null);
   const [editableComponents, setEditableComponents] = useState({});
+
+  // Fetch User Profile Data (Copied from DashboardPage.jsx for sidebar)
+  const fetchUserProfile = useCallback(async () => {
+    if (!userId) {
+      setError('User ID not found. Please log in again.');
+      setLoadingProfile(false);
+      return;
+    }
+    setLoadingProfile(true);
+    try {
+      const res = await fetch(`${API_BASE}/users/${userId}/profile`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch profile: ${res.status}`);
+      }
+      const profile = await res.json();
+
+      setUserName(profile.fullName || 'User');
+      setCompanyName(profile.companyName || 'Company');
+
+      let initials = 'U';
+      if (profile.fullName) {
+        const nameParts = profile.fullName.split(' ');
+        initials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '')).toUpperCase();
+      }
+      setUserInitials(initials);
+      // Don't clear main error state here, keep profile loading separate
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      // Set defaults on error, maybe a specific profile error state?
+      setUserName('User');
+      setCompanyName('Company');
+      setUserInitials('U');
+    } finally {
+      setLoadingProfile(false);
+    }
+  }, [userId]);
+
 
   const fetchProducts = useCallback(async () => {
     if (!userId) {
@@ -51,8 +94,9 @@ const InventoryPage = () => {
   }, [userId]);
 
   useEffect(() => {
+    fetchUserProfile(); // Fetch profile for sidebar
     fetchProducts();
-  }, [fetchProducts]);
+  }, [fetchUserProfile, fetchProducts]); // Updated dependencies
 
   // Handle "Add New" form submission
   const handleAddProduct = async e => {
@@ -93,12 +137,12 @@ const InventoryPage = () => {
     if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       const res = await fetch(`${API_BASE}/inventory/${productId}`, {
         method: 'DELETE',
       });
-      
+
       if (res.ok) {
         // Remove product from local state for instant UI update
         setProducts(prevProducts => prevProducts.filter(p => p.productId !== productId));
@@ -111,8 +155,7 @@ const InventoryPage = () => {
     }
   };
 
-  // --- Handlers from GuidePage.jsx ---
-
+  // --- Handlers from GuidePage.jsx (keep as is) ---
   const handleProcessChange = async (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
     const query = e.target.value;
@@ -200,7 +243,7 @@ const InventoryPage = () => {
       });
     });
   };
-  
+
   const handleWeightBlur = (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
     const newWeight = Number(e.target.value);
@@ -242,7 +285,7 @@ const InventoryPage = () => {
       }
       alert("Save successful!");
       // Refetch to get the updated lcaResult on the main product
-      fetchProducts(); 
+      fetchProducts();
     } catch (err) {
       console.error("Save Error:", err);
       alert("Error saving changes: " + err.message);
@@ -278,68 +321,71 @@ const InventoryPage = () => {
   );
 
   return (
-    <div className="dashboard-layout">
-      {/* Sidebar */}
+    <div className="dashboard-layout"> {/* Use dashboard layout class */}
+      {/* --- START OF REPLACEMENT --- */}
       <div className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-square"></div>
-          <div className="logo-square"></div>
-          <div className="logo-square"></div>
-          <div className="logo-square"></div>
-        </div>
-
-        <nav className="sidebar-nav">
-          <NavLink to="/dashboard" className="nav-item">
-            <div className="nav-icon dashboard"><div></div></div>
-            Dashboard
-          </NavLink>
-          <NavLink to="/inventory" className="nav-item">
-            <div className="nav-icon inventory"><div></div></div>
-            Inventory
-          </NavLink>
-          <NavLink to="/analytics" className="nav-item">
-            <div className="nav-icon analytics"><div></div><div></div></div>
-            Analytics
-          </NavLink>
-          <NavLink to="/network" className="nav-item">
-            <div className="nav-icon network">
-              <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-            </div>
-            Network
-          </NavLink>
-          <NavLink to="/reports" className="nav-item">
-            <div className="nav-icon reports"><div></div><div></div></div>
-            Reports
-          </NavLink>
-          <NavLink to="/ai-chat" className="nav-item">
-            <div className="nav-icon ai-chat"><div></div><div></div></div>
-            AI Chat
-          </NavLink>
-        </nav>
-
-        <div className="user-profile">
-          <div className="user-profile-info">
-            <div className="user-avatar"></div>
-            <div className="user-details">
-              <div className="user-name">John Doe</div>
-              <div className="user-company">Company Name</div>
-            </div>
+        <div className="sidebar-top">
+          <div className="logo">
+            <picture>
+              <source srcSet="/src/assets/carbonx.png" media="(prefers-color-scheme: dark)" /> {/* Adjusted path */}
+              <img src="/src/assets/carbonx.png" alt="Logo" width="30" /> {/* Adjusted path */}
+            </picture>
           </div>
+          <nav className="nav-menu">
+            <NavLink to="/dashboard" className="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Dashboard</span>
+            </NavLink>
+             <NavLink to="/inventory" className="nav-item"> {/* NavLink automatically adds 'active' class */}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+              <span>Inventory</span>
+            </NavLink>
+            {/* Add other NavLinks similarly */}
+            <NavLink to="/analytics" className="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              <span>Analytics</span>
+            </NavLink>
+            <NavLink to="/network" className="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Network</span>
+            </NavLink>
+            <NavLink to="/report" className="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Report</span>
+            </NavLink>
+            <NavLink to="/chat" className="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>AI Chat</span>
+            </NavLink>
+          </nav>
+        </div>
+        <div className="sidebar-bottom">
+          {/* Settings link removed from nav-menu */}
+          <NavLink to="/settings" className="user-profile"> {/* Make profile area a link */}
+            <div className="user-avatar">{loadingProfile ? '...' : userInitials}</div>
+            <div className="user-info">
+              <div className="name">{loadingProfile ? 'Loading...' : userName}</div>
+              <div className="company">{loadingProfile ? 'Loading...' : companyName}</div>
+            </div>
+          </NavLink>
         </div>
       </div>
+      {/* --- END OF REPLACEMENT --- */}
 
       {/* Main Content */}
       <div className="main-content">
-        <header className="dashboard-header">
+        <header className="dashboard-header"> {/* Use dashboard header class */}
           <h1>Inventory</h1>
           <p>Overview of your products.</p>
         </header>
-        
+
+        {error && <div className="error-message">{error}</div>} {/* Display errors */}
+
         <div className="inventory-controls">
           <div className="search-bar">
             <span>🔍</span>
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -365,7 +411,6 @@ const InventoryPage = () => {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={7}>Loading...</td></tr>}
-              {error && <tr><td colSpan={7} className="error-message">{error}</td></tr>}
               {!loading && !error && filteredProducts.length === 0 && (
                 <tr>
                   <td colSpan={7}>
@@ -378,7 +423,7 @@ const InventoryPage = () => {
               {!loading && !error && filteredProducts.map(p => {
                 const dpp = p.dppData &&
                   (typeof p.dppData === 'string' ? JSON.parse(p.dppData) : p.dppData);
-                
+
                 return (
                   <React.Fragment key={p.productId}>
                     {/* Main Row */}
@@ -414,7 +459,7 @@ const InventoryPage = () => {
                       </td>
                       <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
                       <td>
-                        <button 
+                        <button
                           className="delete-btn"
                           onClick={() => handleDelete(p.productId)}
                         >
@@ -426,7 +471,7 @@ const InventoryPage = () => {
                     {/* Expanded Row */}
                     {expandedRows[p.productId] && dpp && Array.isArray(dpp) && (
                       <tr className="sub-table-row">
-                        <td colSpan={7}> 
+                        <td colSpan={7}>
                           <div className="sub-table-container">
                             <table className="sub-inventory-table">
                               <thead>
@@ -443,7 +488,7 @@ const InventoryPage = () => {
                                 {dpp.map((item, idx) => {
                                   const key = `${p.productId}_${idx}`;
                                   const lcaValue = item.lcaValue; // Use value from saved dppData
-                                  
+
                                   return (
                                   <tr key={idx}>
                                     <td>
@@ -456,7 +501,7 @@ const InventoryPage = () => {
                                           placeholder="Component name"
                                         />
                                     </td>
-                                    
+
                                     <td>
                                       <div className="suggestion-box">
                                         <input
@@ -490,7 +535,7 @@ const InventoryPage = () => {
                                     </td>
 
                                     <td>{item.weightKg.toFixed(2)}</td>
-                                    
+
                                     <td>
                                       <input
                                         type="number"
@@ -505,7 +550,7 @@ const InventoryPage = () => {
                                         onBlur={(e) => handleWeightBlur(e, p, idx)}
                                       />
                                     </td>
-                                    
+
                                     <td>
                                       <strong>
                                         {(() => {
@@ -526,10 +571,10 @@ const InventoryPage = () => {
                                         disabled={calculating[key] || !(item.processId || item.process)}
                                         onClick={async () => {
                                           setCalculating(prev => ({ ...prev, [key]: true }));
-                                          
+
                                           const processIdentifier = item.processId || item.process;
                                           const newWeightString = subProductWeights[key];
-                                          
+
                                           const weightToSend = (newWeightString !== undefined && newWeightString !== null && newWeightString !== "")
                                             ? Number(newWeightString)
                                             : item.weightKg;
@@ -546,22 +591,22 @@ const InventoryPage = () => {
                                                 }],
                                               }),
                                             });
-                                            
-                                            if (!res.ok) { 
+
+                                            if (!res.ok) {
                                               const errorData = await res.json();
                                               throw new Error(errorData.message || "Calculation failed");
                                             }
 
                                             const data = await res.json();
                                             const value = data.results?.[0]?.lcaValue;
-                                            
+
                                             // Set permanent state in dppData
                                             setProducts(currentProducts => {
                                               return currentProducts.map(prod => {
                                                 if (prod.productId === p.productId) {
                                                   try {
                                                     let dpp = JSON.parse(prod.dppData);
-                                                    dpp[idx].lcaValue = value; 
+                                                    dpp[idx].lcaValue = value;
                                                     return { ...prod, dppData: JSON.stringify(dpp) };
                                                   } catch(err) { return prod; }
                                                 }
@@ -581,16 +626,16 @@ const InventoryPage = () => {
                                 )})}
                               </tbody>
                             </table>
-                            
+
                             <div className="subcomponent-buttons-container">
-                              <button 
-                                className="add-subcomponent-yellow-btn" 
+                              <button
+                                className="add-subcomponent-yellow-btn"
                                 onClick={() => handleAddSubcomponent(p.productId)}
                               >
                                 + Add Subcomponent
                               </button>
                               <button
-                                className="save-navy-btn" 
+                                className="save-navy-btn"
                                 disabled={saving}
                                 onClick={() => handleSaveDpp(p.productId)}
                               >
@@ -609,7 +654,7 @@ const InventoryPage = () => {
         </div>
       </div>
 
-      {/* Add Product Modal */}
+      {/* Add Product Modal (keep as is) */}
       {showAddProduct && (
         <div className="modal-overlay active">
           <div className="modal-content">
@@ -648,7 +693,7 @@ const InventoryPage = () => {
         </div>
       )}
 
-      {/* DPP Modal */}
+      {/* DPP Modal (keep as is) */}
       {showDppModal && (
         <div className="modal-overlay active" onClick={() => setShowDppModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>

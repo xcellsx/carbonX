@@ -106,7 +106,7 @@ const DashboardPage = () => {
           '0.000'
         ]);
         // Update LCA Activity text based on actual contributors if needed
-        setLcaActivityText(`Calculated LCA for ${activeContributors.map(c => c.name).slice(0, 1).join(', ')}...`);
+        setLcaActivityText(`Calculated LCA for ${activeContributors.map(c => c.name).slice(0, 1).join(', ')}`);
 
       } else {
         setYAxisMax(0.1);
