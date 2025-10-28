@@ -17,18 +17,22 @@ const LoginPage = () => {
     }
     // Example only! Replace with your backend call.
     try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
+      // This fetch call targets the backend for login validation
+      const res = await fetch('http://localhost:8080/api/auth/login', { // <-- Backend endpoint
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }) // Sends email and password
       });
       if (res.ok) {
+        // If backend responds with OK (2xx status), navigate to dashboard
         setError('');
         navigate('/dashboard'); // Or your real dashboard route
       } else {
+        // If backend responds with an error status, show an error
         setError('Incorrect email or password');
       }
     } catch (err) {
+      // Handle network errors (e.g., backend not running)
       setError('Could not connect to server');
     }
   };
