@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap');
+
+.login-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: #f4f4f4;
+  font-family: 'Figtree', sans-serif;
+}
+
+.login-left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 440px;
+  background: #f4f4f4;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 410px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.login-logo {
+  width: 15%;
+  margin-bottom: 24px;
+  align-self: flex-end;
+}
+
+.login-logo-image {
+  width: 100%;
+  margin-bottom: 24px;
+  align-self: flex-end;
+}
+
+.login-title {
+  color: #334761;
+  font-size: 2.75rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+}
+
+.login-subtitle {
+  color: #020202;
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  width: 100%;
+}
+
+.login-label {
+  color: #020202;
+  font-size: 1.12rem;
+  font-weight: 400;
+  margin-bottom: 0.22rem;
+}
+
+.login-input {
+  background: #eaeaea;
+  border-radius: 8px;
+  border: none;
+  padding: 0 1rem;
+  height: 2.8rem;
+  font-size: 1.06rem;
+  font-family: 'Figtree', sans-serif;
+}
+
+.login-input:focus {
+  outline: 2px solid #334761;
+  background: #f7fafe;
+}
+
+.login-options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.login-checkbox input[type="checkbox"] {
+  accent-color: #334761;
+  margin-right: 8px;
+}
+
+.login-checkbox span {
+  color: #020202;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.login-link {
+  color: #334761;
+  font-size: 1rem;
+  font-weight: 400;
+  text-decoration: underline;
+  margin-left: 0.32rem;
+}
+
+.login-error {
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+.login-btn {
+  width: 100%;
+  background: #334761;
+  color: #f4f4f4;
+  font-family: 'Figtree', sans-serif;
+  font-size: 1.16rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  margin-top: 10px;
+  padding: 0.85rem 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-btn:hover {
+  background: #223f43;
+}
+
+.login-prompt {
+  color: #020202;
+  font-size: 1.08rem;
+  font-weight: 400;
+  margin: 2.1rem 0 0 0;
+  text-align: center;
+  width: 100%;
+}
+
+.login-link-signup {
+  color: #334761;
+  font-size: 1.08rem;
+  font-weight: bold;
+  text-decoration: underline;
+  margin-left: 0.32rem;
+}
+
+.login-right-panel {
+  flex: 1;
+  background: #223F43;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  min-width: 440px;
+}
+
+.login-image {
+  width: 75%;
+  max-width: 650px;
+  object-fit: contain;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(34, 63, 67, 0.13);
+}
