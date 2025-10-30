@@ -388,119 +388,108 @@
             }
         }
 
-        // --- THIS FUNCTION HAS BEEN MODIFIED ---
-        async function findLcaMethodAndLogAll() {
-            console.log("--- STARTING: Fetching all openLCA IDs ---");
-            document.getElementById('method-name').textContent = `Searching...`;
+        // --- CLEAN VERSION: No Console Logs ---
+async function findLcaMethodAndLogAll() {
+    // Indicate search in UI
+    document.getElementById('method-name').textContent = `Searching...`;
 
-            let allMethods = [];
+    let allMethods = [];
 
-            try {
-                // 1. Get all available Impact Methods
-                const methodsResponse = await fetch(serverUrl, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get/descriptors", params: { "@type": "ImpactMethod" } })
-                });
-                const methodsData = await methodsResponse.json();
-                if (methodsData.error) throw new Error(`Method Fetch Error: ${JSON.stringify(methodsData.error)}`);
-                if (!Array.isArray(methodsData.result)) throw new Error('Could not retrieve impact methods.');
-                
-                allMethods = methodsData.result; // Store all methods
+    try {
+        // 1. Get all available Impact Methods
+        const methodsResponse = await fetch(serverUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: requestId++,
+                method: "data/get/descriptors",
+                params: { "@type": "ImpactMethod" }
+            })
+        });
+        const methodsData = await methodsResponse.json();
+        if (methodsData.error) throw new Error(`Method Fetch Error: ${JSON.stringify(methodsData.error)}`);
+        if (!Array.isArray(methodsData.result)) throw new Error('Could not retrieve impact methods.');
+        allMethods = methodsData.result;
 
-                console.log("========================================================================");
-                console.log("AVAILABLE IMPACT METHODS");
-                console.log("========================================================================");
-
-                if (allMethods.length === 0) {
-                    console.warn("No Impact Methods found. Is openLCA running and connected?");
-                }
-
-                // 2. For each method, get its Impact Categories and LOG them
-                for (const method of allMethods) {
-                    const methodId = method['@id'];
-                    const methodName = method.name;
-
-                    console.log(`\nMETHOD: '${methodName}'`);
-                    console.log(`  └─ olca.methodId: '${methodId}'`);
-
-                    // Fetch details for *this* method to get its categories
-                    const methodDetailResponse = await fetch(serverUrl, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get", params: { "@type": "ImpactMethod", "@id": methodId } })
-                    });
-                    const methodDetail = await methodDetailResponse.json();
-
-                    if (methodDetail.error) {
-                        console.error(`    └─ Error fetching categories: ${JSON.stringify(methodDetail.error)}`);
-                        continue; // Skip to next method
-                    }
-
-                    const categories = methodDetail.result?.impactCategories;
-
-                    if (!categories || !Array.isArray(categories) || categories.length === 0) {
-                        console.log("    └─ No impact categories found for this method.");
-                    } else {
-                        console.log("    AVAILABLE IMPACT CATEGORIES:");
-                        for (const category of categories) {
-                            console.log(`    - CATEGORY: '${category.name}'`);
-                            console.log(`      └─ olca.impactCategoryId: '${category['@id']}'`);
-                        }
-                    }
-                }
-                console.log("========================================================================");
-                console.log("--- FINISHED: Fetching all openLCA IDs ---");
-
-            } catch (e) {
-                console.error("CRITICAL ERROR in findLcaMethodAndLogAll:", e.message);
-                document.getElementById('method-name').textContent = e.message;
-                document.getElementById('impact-category-name').textContent = "Error";
-                return; // Stop if we failed to log
-            }
-
-            // --- Original Logic (for UI) ---
-            // Now, try to find the specific method for the UI
-            try {
-                const searchMethodName = 'recipe 2016 v1.03';
-                const searchMethodVariant = 'midpoint (h)';
-                const searchCategoryName = 'climate change';
-
-                const recipeMethod = allMethods.find(m => m.name && m.name.toLowerCase().includes(searchMethodName) && m.name.toLowerCase().includes(searchMethodVariant));
-                
-                if (!recipeMethod) {
-                    console.warn(`Default method "${searchMethodName} - ${searchMethodVariant}" not found. UI will not have a default.`);
-                    document.getElementById('method-name').textContent = "Default not found (see console)";
-                    return;
-                }
-                
-                ipccMethodId = recipeMethod['@id'];
-                document.getElementById('method-name').textContent = recipeMethod.name;
-
-                // We already fetched categories, but fetching again for the default is fine
-                const methodDetailResponse = await fetch(serverUrl, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ jsonrpc: "2.0", id: requestId++, method: "data/get", params: { "@type": "ImpactMethod", "@id": ipccMethodId } })
-                });
-                const methodDetail = await methodDetailResponse.json();
-                if (!methodDetail.result || !Array.isArray(methodDetail.result.impactCategories)) {
-                    throw new Error('Could not retrieve categories for default method.');
-                }
-                
-                allIpccCategories = methodDetail.result.impactCategories;
-                const climateCategory = allIpccCategories.find(cat => cat.name && cat.name.toLowerCase().includes(searchCategoryName)) || allIpccCategories[0];
-                
-                if (climateCategory) {
-                    ipccCategoryId = climateCategory['@id'];
-                    selectedCategoryName = climateCategory.name;
-                    document.getElementById('impact-category-name').textContent = selectedCategoryName;
-                } else {
-                    throw new Error('No impact categories found for default method.');
-                }
-            } catch (e) {
-                console.warn(`Error setting default UI method: ${e.message}`);
-                document.getElementById('method-name').textContent = e.message;
-                document.getElementById('impact-category-name').textContent = "Error";
-            }
+        // 2. For each method, get its Impact Categories (fetch, but do not log)
+        for (const method of allMethods) {
+            const methodId = method['@id'];
+            // Fetch details for each method (not storing here, but you could if needed)
+            const methodDetailResponse = await fetch(serverUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: requestId++,
+                    method: "data/get",
+                    params: { "@type": "ImpactMethod", "@id": methodId }
+                })
+            });
+            const methodDetail = await methodDetailResponse.json();
+            if (methodDetail.error) continue;
+            // categories could be used (methodDetail.result?.impactCategories)
         }
+    } catch (e) {
+        document.getElementById('method-name').textContent = "Error fetching methods";
+        return;
+    }
+
+    // --- Original Logic (for UI) ---
+    // Find the specific method for the UI
+    try {
+        const searchMethodName = 'recipe 2016 v1.03';
+        const searchMethodVariant = 'midpoint (h)';
+        const searchCategoryName = 'climate change';
+
+        const recipeMethod = allMethods.find(m =>
+            m.name &&
+            m.name.toLowerCase().includes(searchMethodName) &&
+            m.name.toLowerCase().includes(searchMethodVariant)
+        );
+
+        if (!recipeMethod) {
+            document.getElementById('method-name').textContent = "Default not found";
+            return;
+        }
+
+        ipccMethodId = recipeMethod['@id'];
+        document.getElementById('method-name').textContent = recipeMethod.name;
+
+        // Fetch categories for selected method
+        const methodDetailResponse = await fetch(serverUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: requestId++,
+                method: "data/get",
+                params: { "@type": "ImpactMethod", "@id": ipccMethodId }
+            })
+        });
+        const methodDetail = await methodDetailResponse.json();
+        if (!methodDetail.result || !Array.isArray(methodDetail.result.impactCategories)) {
+            throw new Error('Could not retrieve categories for default method.');
+        }
+
+        allIpccCategories = methodDetail.result.impactCategories;
+        const climateCategory = allIpccCategories.find(cat =>
+            cat.name && cat.name.toLowerCase().includes(searchCategoryName)
+        ) || allIpccCategories[0];
+
+        if (climateCategory) {
+            ipccCategoryId = climateCategory['@id'];
+            selectedCategoryName = climateCategory.name;
+            document.getElementById('impact-category-name').textContent = selectedCategoryName;
+        } else {
+            throw new Error('No impact categories found for default method.');
+        }
+    } catch (e) {
+        document.getElementById('method-name').textContent = e.message;
+        document.getElementById('impact-category-name').textContent = "Error";
+    }
+}
+
         
         function filterByTab(tabName) {
             activeTab = tabName;
@@ -714,6 +703,8 @@
                 });
                 const impactData = await impactResponse.json();
                 if (impactData.error) throw new Error(`Impact retrieval: ${JSON.stringify(impactData.error)}`);
+
+                console.log(`LCA results for '${item.name}':`, impactData.result);
                 
                 selectedItems[idx].fullImpacts = impactData.result;
                 const categoryResult = (impactData.result || []).find(r => r.impactCategory && r.impactCategory['@id'] === ipccCategoryId);
@@ -782,6 +773,8 @@
                 const inventoryData = await inventoryRes.json();
                 if (inventoryData.error) throw new Error(`Inventory fetch: ${JSON.stringify(inventoryData.error)}`);
                 
+                console.log(`Inventory results for '${item.name}':`, inventoryData.result);
+
                 selectedItems[idx].inventory = (inventoryData.result || []).map(i => ({
                     flow: { name: i.enviFlow?.flow?.name || 'Unknown', category: i.enviFlow?.flow?.category || '-' },
                     isInput: i.enviFlow?.isInput || false,
@@ -893,6 +886,8 @@
                 const sankeyData = await sankeyResponse.json();
                 if (sankeyData.error) throw new Error(`Graph data fetch: ${JSON.stringify(sankeyData.error)}`);
 
+                console.log(`Sankey graph data for '${item.name}':`, sankeyData.result);
+                
                 selectedItems[idx].sankeyData = sankeyData.result;
                 drawNetworkGraph(sankeyData.result);
 

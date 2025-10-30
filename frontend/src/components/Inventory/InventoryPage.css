@@ -1,7 +1,5 @@
-/* Import Font */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap');
 
-/* CSS Variables */
 :root {
   --white-ish: #F4F4F4;
   --main-bg: #EAEAEA;
@@ -14,7 +12,6 @@
   --save-navy: #000080;
 }
 
-/* Base layout (from DashboardPage.css) */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
@@ -56,7 +53,6 @@
   margin: 0;
 }
 
-/* Sidebar (from DashboardPage.css) */
 .sidebar {
   width: 275px;
   background: var(--white-ish);
@@ -99,8 +95,6 @@
 .user-details { display: flex; flex-direction: column; }
 .user-name { color: var(--text-dark); font-size: 16px; font-weight: 700; }
 .user-company { color: var(--text-dark); font-size: 12px; font-weight: 400; }
-
-/* --- Inventory Page Specific Styles --- */
 
 .inventory-controls {
   display: flex;
@@ -257,8 +251,6 @@
   text-decoration: underline;
 }
 
-/* --- Sub-Table Styles (from GuidePage.css) --- */
-
 .sub-table-row td {
   padding: 0;
   border-bottom: 1px solid var(--main-bg);
@@ -399,7 +391,6 @@
   cursor: not-allowed;
 }
 
-/* --- Modal styles (from GuidePage.css) --- */
 .modal-overlay.active {
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
@@ -508,4 +499,80 @@
   background: var(--main-bg);
   padding: 16px;
   border-radius: 8px;
+}
+
+.icon-trash {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+/* --- NEW STYLES FOR CONFIRMATION MODAL --- */
+
+/* Use existing modal overlay */
+/* .modal-overlay.active { ... } */
+
+/* Custom content box for the confirmation */
+.confirm-modal-content {
+  background: var(--white-ish);
+  border-radius: 16px;
+  padding: 30px 40px;
+  box-shadow: 0px 6px 30px rgba(0,0,0,0.14);
+  min-width: 400px;
+  max-width: 500px; /* Smaller than the DPP modal */
+}
+
+.confirm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.confirm-modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+.confirm-modal-body {
+  font-size: 16px;
+  color: var(--text-dark);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.confirm-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.confirm-btn-cancel {
+  padding: 9px 20px;
+  background: var(--main-bg);
+  color: var(--text-dark);
+  border: 1px solid var(--text-grey);
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.confirm-btn-cancel:hover {
+  background: var(--text-grey);
+}
+
+.confirm-btn-danger {
+  padding: 9px 20px;
+  background: var(--accent-red);
+  color: var(--white-ish);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.confirm-btn-danger:hover {
+  background: #c0392b; /* Darker red */
 }
