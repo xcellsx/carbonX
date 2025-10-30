@@ -6,6 +6,7 @@ import CompanyInfoPage from './components/Company/CompanyInfoPage';
 import GuidePage from './components/Guide/GuidePage';
 import DashboardPage from './components/Dashboard/DashboardPage';
 import InventoryPage from './components/Inventory/InventoryPage';
+import AnalyticsPage from './components/Analytics/AnalyticsPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
       </Routes>
     </Router>
   );

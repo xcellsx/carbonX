@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap'); /* */
+
+:root {
+  --white-ish: #F4F4F4;
+  --main-bg: #EAEAEA;
+  --navy: #334761;
+  --text-dark: #020202;
+  --text-grey: #A9A9A9;
+  --accent-yellow: #FBCC58;
+  --accent-light-blue: #C5E4E7;
+  --accent-red: #e74c3c;
+  --save-navy: #000080;
+} /* */
+
+/* --- Page Layout --- */
+/* These styles are assumed to be loaded from your other CSS files (InventoryPage.css, etc.) */
+/* .dashboard-layout, .sidebar, .main-content, .dashboard-header { ... } */
+
+/* --- New Styles for Analytics Page --- */
+
+.product-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.product-selector-container label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.product-selector-container select {
+  font-family: 'Figtree', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-dark);
+  background: var(--white-ish);
+  border: 1px solid var(--text-grey);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 300px;
+  cursor: pointer;
+}
+
+.product-selector-container select:disabled {
+  background: var(--main-bg);
+  color: var(--text-grey);
+  cursor: not-allowed;
+}
+
+.analytics-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analytics-card {
+  width: 100%;
+  background: var(--white-ish); /* */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* */
+  overflow: hidden;
+}
+
+.analytics-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  padding: 20px 20px 0 20px;
+  margin-bottom: 16px;
+}
+
+.analytics-table-container {
+  width: 100%;
+  overflow: hidden; /* No horizontal scroll needed for these tables */
+}
+
+/* --- Table Styles (Copied from InventoryPage.css) --- */
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+} /* */
+
+.analytics-table th, 
+.analytics-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--main-bg);
+  vertical-align: middle;
+} /* */
+
+.analytics-table th {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-grey);
+  background: var(--white-ish);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+} /* */
+
+.analytics-table td {
+  font-size: 16px;
+  color: var(--text-dark);
+  font-weight: 500;
+} /* */
+
+.analytics-table tr:last-child td {
+  border-bottom: none;
+} /* */
+
+.no-data-message {
+  text-align: center;
+  color: var(--text-grey);
+  padding: 24px;
+  font-style: italic;
+  font-size: 16px;
+} /* */
+
+.loading-message {
+  font-size: 18px;
+  color: var(--text-grey);
+  padding: 40px;
+  text-align: center;
+}
+
+/* ... (keep all your existing styles from the previous turn) ... */
+
+/* --- NEW STYLES FOR COMPONENT TABS --- */
+
+.component-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* Space between tabs */
+  margin-bottom: 24px;
+  border-bottom: 1px solid #D1D1D1; /* Light grey border */
+}
+
+.component-tab-btn {
+  font-family: 'Figtree', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-grey); /* Inactive tabs are grey */
+  background: none;
+  border: none;
+  padding: 12px 4px; /* Padding for the bottom border */
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transform: translateY(1px); /* Aligns with the main border */
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.component-tab-btn.active {
+  font-weight: 700;
+  color: var(--text-dark); /* Active tab is dark */
+  border-bottom-color: var(--navy); /* Active tab has navy underline */
+}
+
+.component-tab-btn:hover:not(.active) {
+  color: var(--text-dark); /* Hover on inactive tab */
+}

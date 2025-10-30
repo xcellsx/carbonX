@@ -15,7 +15,7 @@ const LoginPage = () => {
       setError('Please fill in all fields');
       return;
     }
-    // Example only! Replace with your backend call.
+    
     try {
       // This fetch call targets the backend for login validation
       const res = await fetch('http://localhost:8080/api/auth/login', { // <-- Backend endpoint
@@ -23,10 +23,22 @@ const LoginPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }) // Sends email and password
       });
+      
       if (res.ok) {
-        // If backend responds with OK (2xx status), navigate to dashboard
-        setError('');
-        navigate('/dashboard'); // Or your real dashboard route
+        // --- FIX START ---
+        // If backend responds with OK (2xx status), get the user object
+        const loggedInUser = await res.json(); 
+        
+        if (loggedInUser && loggedInUser.id) {
+          // Store the logged-in user's ID in localStorage
+          localStorage.setItem('userId', loggedInUser.id);
+          setError('');
+          navigate('/dashboard'); // Navigate to dashboard
+        } else {
+          // This case should not happen if the backend is correct
+          setError('Login successful but no user ID was returned.');
+        }
+        // --- FIX END ---
       } else {
         // If backend responds with an error status, show an error
         setError('Incorrect email or password');
