@@ -1,6 +1,5 @@
 package com.carbonx.demo.service;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +15,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.carbonx.demo.model.Product;
 import com.carbonx.demo.repository.ProductRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class OpenLCAService {
@@ -25,7 +22,6 @@ public class OpenLCAService {
     @Autowired
     private ProductRepository productRepo;
     
-    // The OpenLCA server is at the root, not /olca/api/v1
     private static final String OPENLCA_RPC_ENDPOINT = "http://localhost:8081/";
 
     // Fetch all OpenLCA processes and store in Product table
@@ -40,7 +36,7 @@ public class OpenLCAService {
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("jsonrpc", "2.0");
-            payload.put("method", "data/get/descriptors"); // Same method as your HTML file
+            payload.put("method", "data/get/descriptors");
             payload.put("params", params);
             payload.put("id", 1);
 
@@ -49,7 +45,7 @@ public class OpenLCAService {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
             // Step 2: POST the request to the root endpoint
-            ResponseEntity<Map> response = restTemplate.postForEntity(OPENLCA_RPC_ENDPOINT, request, Map.class);
+ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(OPENLCA_RPC_ENDPOINT, request, (Class<Map<String, Object>>)(Class<?>)Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body == null || body.get("error") != null) {

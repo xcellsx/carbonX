@@ -1,8 +1,10 @@
 package com.carbonx.demo.controller;
 
-import java.util.HashMap; // <-- ADDED
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors; // <-- ADDED
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -17,21 +19,23 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.carbonx.demo.model.Product;
+import com.carbonx.demo.model.ProductInventory;
 import com.carbonx.demo.repository.ProductInventoryRepository;
-import com.carbonx.demo.repository.ProductRepository; // <-- ADDED
-import com.fasterxml.jackson.databind.ObjectMapper; // <-- ADDED
+import com.carbonx.demo.repository.ProductRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
-@RequestMapping("/api/analytics")
-public class AnalyticsController {
+@RequestMapping("/api/network")
+public class NetworkController {
 
     @Autowired
     private ProductRepository productRepo;
 
     @Autowired
-    private ProductInventoryRepository inventoryRepo; // <-- ADDED
+    private ProductInventoryRepository inventoryRepo;
 
-    private ObjectMapper objectMapper = new ObjectMapper(); // <-- ADDED
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String JSONRPC_ENDPOINT = "http://localhost:8081/";
     private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
@@ -42,61 +46,142 @@ public class AnalyticsController {
     // Using the "Climate change" ID you provided
     private static final String DEFAULT_IMPACT_CATEGORY_ID = "35ead5f0-fc9d-4afc-9f17-0f2a2fbffbd2";
 
-
     /**
-     * Fetches the total flows (inputs and outputs) for a given process.
-     * This mirrors the 'loadInventory' function in openlcav2.html.
+     * Fetches the sankey graph data for all components in a product.
+     * --- NOW INCLUDES LOCATION DATA ---
      */
-    @GetMapping("/flows") // <-- RENAMED from "/impacts"
-    public ResponseEntity<?> getProcessFlows( // <-- Renamed method
-            @RequestParam String processIdentifier,
-            @RequestParam Double weight) {
-
-        String processUuid = resolveProcessIdentifier(processIdentifier);
-        if (processUuid == null) {
-            return ResponseEntity.badRequest().body("Process not found: " + processIdentifier);
-        }
-
-        // We must pass null for the impact method to get flows
-        Object result = runCalculation(processUuid, weight, null, "result/total-flows", null);
+    @GetMapping("/product-network")
+    public ResponseEntity<?> getProductNetwork(@RequestParam Long productId) {
         
-        // Handle if the result itself is an error ResponseEntity
-        if (result instanceof ResponseEntity) {
-            return (ResponseEntity<?>) result;
-        }
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * --- ENDPOINT ADDED/FIXED ---
-     * Fetches the total impact categories for a given process.
-     * This mirrors the 'runCarbon' function in openlcav2.html.
-     */
-    @GetMapping("/impacts")
-    public ResponseEntity<?> getProcessImpacts(
-            @RequestParam String processIdentifier,
-            @RequestParam Double weight) {
-
-        String processUuid = resolveProcessIdentifier(processIdentifier);
-        if (processUuid == null) {
-            return ResponseEntity.badRequest().body("Process not found: " + processIdentifier);
-        }
-
-        // We must pass the impact method ID to get impacts
-        Object result = runCalculation(processUuid, weight, DEFAULT_IMPACT_METHOD_ID, "result/total-impacts", null);
+        // 1. Find Product and parse DPP data
+        ProductInventory product = inventoryRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
         
-        // Handle if the result itself is an error ResponseEntity
-        if (result instanceof ResponseEntity) {
-            return (ResponseEntity<?>) result;
+        String dppDataString = product.getDppData();
+        List<Map<String, Object>> components;
+        try {
+            if (dppDataString == null || dppDataString.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>()); // Return empty list if no components
+            }
+            components = objectMapper.readValue(dppDataString, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to parse DPP data: " + e.getMessage());
         }
-        return ResponseEntity.ok(result);
-    }
 
+        List<Map<String, Object>> responseList = new ArrayList<>();
+        List<String> allProcessUuids = new ArrayList<>(); // <-- To fetch locations
+
+        // 2. Loop through each component and get its graph data
+        for (Map<String, Object> component : components) {
+            String processIdentifier = (String) component.get("processId");
+            if (processIdentifier == null) {
+                processIdentifier = (String) component.get("process");
+            }
+            
+            Double weight = 0.0;
+            if (component.get("weightKg") != null) {
+                 weight = ((Number) component.get("weightKg")).doubleValue();
+            }
+
+            if (processIdentifier == null || processIdentifier.isEmpty()) {
+                continue; // Skip components without a process
+            }
+
+            String processUuid = resolveProcessIdentifier(processIdentifier);
+            if (processUuid == null) {
+                continue; // Skip if process can't be resolved
+            }
+            
+            // Config for the "result/sankey" call
+            Map<String, Object> sankeyConfig = new HashMap<>();
+            sankeyConfig.put("impactCategory", Map.of(
+                "@type", "ImpactCategory",
+                "@id", DEFAULT_IMPACT_CATEGORY_ID 
+            ));
+            sankeyConfig.put("maxNodes", 30); // Max nodes to show
+
+            // We must pass the impact method ID to get the sankey graph
+            Object result = runCalculation(processUuid, weight, DEFAULT_IMPACT_METHOD_ID, "result/sankey", sankeyConfig);
+
+            // --- ADDED: Collect node UUIDs for location fetching ---
+            if (result instanceof Map) {
+                try {
+                    Map<String, Object> graphData = (Map<String, Object>) result;
+                    List<Map<String, Object>> nodes = (List<Map<String, Object>>) graphData.get("nodes");
+                    if (nodes != null) {
+                        for (Map<String, Object> node : nodes) {
+                            String providerId = (String) ((Map<String, Object>) ((Map<String, Object>) node.get("techFlow")).get("provider")).get("@id");
+                            if (providerId != null) {
+                                allProcessUuids.add(providerId);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Warning: Could not parse nodes for location fetching.");
+                }
+            }
+            // --------------------------------------------------------
+
+            // Add the result to our response list
+            Map<String, Object> componentResult = new HashMap<>();
+            componentResult.put("componentName", component.get("component"));
+            componentResult.put("graphData", result);
+            responseList.add(componentResult);
+        }
+        
+        // --- ADDED: Fetch and attach all locations ---
+        Map<String, String> locationMap = getLocationsForProcesses(allProcessUuids.stream().distinct().collect(Collectors.toList()));
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("componentGraphs", responseList);
+        finalResponse.put("locations", locationMap);
+        // ----------------------------------------------
+        
+        return ResponseEntity.ok(finalResponse); // <-- Return the new combined object
+    }
+    
     /**
-     * --- REMOVED ---
-     * This logic now lives in NetworkController.java
+     * --- ADDED: Helper to fetch locations ---
+     * Helper to fetch descriptors and return a Map of [processId, locationCode]
      */
-    // @GetMapping("/product-network") ... (Removed)
+    private Map<String, String> getLocationsForProcesses(List<String> processIds) {
+        if (processIds == null || processIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> locationMap = new HashMap<>();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("@type", "Process");
+        params.put("ids", processIds); // Pass the list of IDs
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("jsonrpc", "2.0");
+        payload.put("method", "data/get/descriptors");
+        payload.put("params", params);
+        payload.put("id", 1);
+        
+        try {
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, new HttpHeaders() {{ setContentType(MediaType.APPLICATION_JSON); }});
+            ResponseEntity<Map> response = restTemplate.postForEntity(JSONRPC_ENDPOINT, request, Map.class);
+            Map<String, Object> body = response.getBody();
+
+            if (body != null && body.get("result") != null) {
+                List<Map<String, Object>> descriptors = (List<Map<String, Object>>) body.get("result");
+                for (Map<String, Object> desc : descriptors) {
+                    String id = (String) desc.get("@id");
+                    String location = (String) desc.get("location");
+                    if (id != null && location != null) {
+                        locationMap.put(id, location);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch process descriptors for locations: " + e.getMessage());
+        }
+        return locationMap;
+    }
 
 
     /**
@@ -126,19 +211,11 @@ public class AnalyticsController {
 
     /**
      * Generic multi-step JSON-RPC calculation runner.
-     * Based on LcaCalculationController.
-     *
-     * @param processId       The UUID of the process to calculate.
-     * @param weight          The amount (e.g., 1.0).
-     * @param impactMethodId  The UUID of the impact method (e.g., ReCiPe) or NULL if fetching flows.
-     * @param resultMethod    The final JSON-RPC method to call ("result/total-impacts", "result/total-flows", or "result/sankey").
-     * @param resultConfig    Optional config map for the final result method (used by "result/sankey").
-     * @return The "result" block from the final JSON-RPC call, or a ResponseEntity on error.
      */
     private Object runCalculation(String processId, Double weight, String impactMethodId, String resultMethod, Map<String, Object> resultConfig) {
         RestTemplate restTemplate = new RestTemplate();
         String resultId = null;
-        Object finalResult = null; // --- Store result here
+        Object finalResult = null;
 
         try {
             // === STEP 1: Call "result/calculate" ===
@@ -150,7 +227,6 @@ public class AnalyticsController {
             params.put("target", target);
             params.put("amount", weight);
 
-            // Add impact method only if provided (for impacts, not for flows)
             if (impactMethodId != null) {
                 Map<String, Object> method = new HashMap<>();
                 method.put("@type", "ImpactMethod");
@@ -204,18 +280,17 @@ public class AnalyticsController {
                 throw new RuntimeException("LCA calculation timed out.");
             }
 
-            // === STEP 3: Get final result (e.g., "result/total-impacts" or "result/total-flows") ===
+            // === STEP 3: Get final result ===
             payload.clear();
             params.clear();
             params.put("@id", resultId);
             
-            // Add config if it exists (for sankey)
             if (resultConfig != null) {
                 params.put("config", resultConfig);
             }
 
             payload.put("jsonrpc", "2.0");
-            payload.put("method", resultMethod); // Use the specified result method
+            payload.put("method", resultMethod);
             payload.put("params", params);
             payload.put("id", 1);
 
@@ -224,26 +299,22 @@ public class AnalyticsController {
             body = response.getBody();
 
             if (body == null || body.get("error") != null) {
-                // --- MODIFIED TO BE MORE SPECIFIC ---
                 throw new RuntimeException("OpenLCA JSON-RPC [Step 3] error: " + body.get("error"));
             }
 
-            finalResult = body.get("result"); // Store the result
-            return finalResult; // Return the entire "result" object
+            finalResult = body.get("result");
+            return finalResult;
 
         } catch (Exception e) {
             e.printStackTrace();
-            // --- FIX: Return the error as a standard JSON object ---
-            // This prevents a 500 server error and sends a meaningful message to the frontend
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "LCA_CALCULATION_FAILED");
             errorResponse.put("message", e.getMessage());
+            // Return the error map directly
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
             // === STEP 4: Dispose of the result ===
             if (resultId != null) {
-                // --- FIX: Wrap dispose in try-catch ---
-                // This ensures that even if dispose fails, the method returns the data
                 try {
                     Map<String, Object> params = new HashMap<>();
                     params.put("@id", resultId);
@@ -257,7 +328,6 @@ public class AnalyticsController {
                     HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, new HttpHeaders() {{ setContentType(MediaType.APPLICATION_JSON); }});
                     restTemplate.postForEntity(JSONRPC_ENDPOINT, request, Map.class);
                 } catch (Exception e) {
-                    // Log the error but do not throw, as we already have the result
                     System.err.println("Warning: Failed to dispose of LCA result " + resultId + ": " + e.getMessage());
                 }
             }

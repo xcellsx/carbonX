@@ -7,6 +7,7 @@ import GuidePage from './components/Guide/GuidePage';
 import DashboardPage from './components/Dashboard/DashboardPage';
 import InventoryPage from './components/Inventory/InventoryPage';
 import AnalyticsPage from './components/Analytics/AnalyticsPage';
+import NetworkPage from './components/Network/NetworkPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/network" element={<NetworkPage />} />
       </Routes>
     </Router>
   );
