@@ -1,4 +1,4 @@
-package com.eCapyBara.CarbonX;
+package com.ecapybara.CarbonX;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
