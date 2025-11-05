@@ -3,6 +3,7 @@ package com.ecapybara.CarbonX;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
 
 @Controller
 public class HomeController {
@@ -10,8 +11,8 @@ public class HomeController {
     private String appName;
 
     @RequestMapping("/")
-    public String homepage() {
-        System.out.println("appName: " + appName);
-        return "homepage.html";
+    public String index(Model model) {
+        model.addAttribute("name", "Hector");
+        return "index";
     }
 }
