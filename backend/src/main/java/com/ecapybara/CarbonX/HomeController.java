@@ -12,7 +12,7 @@ public class HomeController {
 
     @RequestMapping("/")
     public String index(Model model) {
-        model.addAttribute("name", "Hector");
+        model.addAttribute("fileText", "Hector");
         return "index";
     }
 }
