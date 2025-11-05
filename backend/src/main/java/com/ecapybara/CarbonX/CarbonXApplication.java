@@ -9,5 +9,4 @@ public class CarbonXApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CarbonXApplication.class, args);
 	}
-
 }
