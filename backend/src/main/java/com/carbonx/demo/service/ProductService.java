@@ -1,3 +1,4 @@
+// xcellsx/carbonx/carbonX-cells/backend/src/main/java/com/carbonx/demo/service/ProductService.java
 package com.carbonx.demo.service;
 
 import java.util.List;
@@ -35,10 +36,13 @@ public class ProductService {
         Optional<Product> existingProduct = getProductById(openLcaProcessId);
         existingProduct.ifPresent(p -> {
             p.setName(updatedProduct.getName());
-            p.setDescription(updatedProduct.getDescription());
-            p.setUnit(updatedProduct.getUnit());
-            p.setCategory(updatedProduct.getCategory());
-            p.setCarbonFootprint(updatedProduct.getCarbonFootprint());
+            // --- MODIFICATION ---
+            p.setLocation(updatedProduct.getLocation());
+            // --- REMOVED FIELDS ---
+            // p.setDescription(updatedProduct.getDescription());
+            // p.setUnit(updatedProduct.getUnit());
+            // p.setCategory(updatedProduct.getCategory());
+            // p.setCarbonFootprint(updatedProduct.getCarbonFootprint());
         });
         existingProduct.ifPresent(productRepository::save);
         return existingProduct;

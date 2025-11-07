@@ -1,3 +1,4 @@
+// xcellsx/carbonx/carbonX-cells/backend/src/main/java/com/carbonx/demo/service/OpenLCAService.java
 package com.carbonx.demo.service;
 
 import java.util.HashMap;
@@ -65,12 +66,13 @@ ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(OPENLC
             throw new RuntimeException("LCA sync failed, check backend logs for details.", e);
         }
 
-        // Step 4: Save the processes to the database (same as before)
+        // Step 4: Save the processes to the database
         int count = 0;
         for (Map<String, Object> process : processList) {
             String uuid = (String) process.get("@id"); // Note: JSON-RPC uses "@id"
             String name = (String) process.get("name");
-            String desc = (String) process.get("description");
+            // --- MODIFICATION: Get location ---
+            String location = (String) process.get("location");
             
             if (uuid == null || name == null) {
                 System.err.println("Skipping process with missing id or name: " + process);
@@ -82,7 +84,8 @@ ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(OPENLC
             Product prod = new Product();
             prod.setOpenLcaProcessId(uuid);
             prod.setName(name);
-            prod.setDescription(desc);
+            // --- MODIFICATION: Set location ---
+            prod.setLocation(location);
             
             productRepo.save(prod);
             count++;
