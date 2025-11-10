@@ -4,14 +4,14 @@
   /* --- Colour Palette --- */
   --primary: 51, 71, 97;
   --secondary: 89, 165, 178;
-  --info:47, 128, 237;
+  --info: 47, 128, 237;
   --success: 39, 174, 96;
   --warning: 226, 185, 59;
   --danger: 235, 87, 87;
   --background: 248, 248, 248;
-  --black: 29, 29, 29;
-  --white: 255, 255, 255;
-  --grey: 130, 130, 130;
+  --blacks: 29, 29, 29;
+  --whites: 255, 255, 255;
+  --greys: 130, 130, 130;
 
   /* --- Typography --- */
   /* Font Weights */
@@ -39,7 +39,7 @@ body {
   font-family: 'Inter', sans-serif;
   font-size: var(--normal);
   background-color: rgba(var(--background), 1);
-  color: rgba(var(--black), 1);
+  color: rgba(var(--blacks), 1);
   font-weight: var(--regular);
 }
 
@@ -135,7 +135,7 @@ h6 {
   font-size: var(--small);
   font-weight: var(--regular);
   line-height: 1.225rem; /* 19.6px */
-  color: rgba(var(--black), 0.6);
+  color: rgba(var(--blacks), 0.6);
   letter-spacing: 0.3em; /* 30% */
   text-transform: uppercase;
 }
@@ -180,7 +180,7 @@ button {
 /* Nav Button Style */
 .nav {
   background-color: rgba(var(--background), 1);
-  color: rgba(var(--black), 1);
+  color: rgba(var(--blacks), 1);
   display: flex;
   align-items: center;
   gap: 1rem; /* 16px */
@@ -202,36 +202,36 @@ button {
 
 .outline:hover {
   background-color: rgba(var(--primary), 0.8);
-  color: rgba(var(--white), 1);
+  color: rgba(var(--whites), 1);
   outline: rgba(var(--primary), 1) solid 2px;
 }
 
 .outline:active {
-  background-color: rgba(var(--black), 0.8);
-  color: rgba(var(--white), 1);
-  outline: rgba(var(--black), 1) solid 2px;
+  background-color: rgba(var(--blacks), 0.8);
+  color: rgba(var(--whites), 1);
+  outline: rgba(var(--blacks), 1) solid 2px;
 }
 
 .outline:disabled {
-  background-color: rgba(var(--grey), 0.2);
-  outline: rgba(var(--grey), 0.4) solid 2px;
-  color: rgba(var(--white), 1);
+  background-color: rgba(var(--greys), 0.2);
+  outline: rgba(var(--greys), 0.4) solid 2px;
+  color: rgba(var(--whites), 1);
   cursor: not-allowed;
 }
 
 .nav:hover {
   background-color: rgba(var(--primary), 0.8);
-  color: rgba(var(--white), 1);
+  color: rgba(var(--whites), 1);
 }
 
 .nav:active {
   background-color: rgba(var(--primary), 1);
-  color: rgba(var(--white), 1);
+  color: rgba(var(--whites), 1);
 }
 
 .nav:disabled {
   background-color: rgba(var(--background), 1);
-  color: rgba(var(--black), 0.2);
+  color: rgba(var(--blacks), 0.2);
   cursor: not-allowed;
 }
 
@@ -300,7 +300,7 @@ select.input-base option {
   display: flex;
   align-items: center;
   gap: 1rem;
-  border: rgba(var(--grey), 0.6) solid 1px;
+  border: rgba(var(--greys), 0.6) solid 1px;
 }
 
 /* Shared Styles Across Multiple Pages */
