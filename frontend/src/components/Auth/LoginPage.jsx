@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
+import dashboard from '../../assets/dashboard.png'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ const LoginPage = () => {
   return (
     <div className="container">
       <div className="image-section">
-        <img src="src/assets/dashboard.png" alt="Dashboard Preview" className="login-image"/>
+        <img src = {dashboard} alt="Sign up visual" className="signup-image"/>
       </div>
       <div className="form-section">
         <div className = "logo-animation">
