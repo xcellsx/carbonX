@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
-import animationData from '../../lottie/logo.json'; // adjust the relative path as needed
+import animationData from '../../lottie/logo.json';
+import dashboard from 'src/assets/dashboard.png'
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
@@ -46,7 +47,7 @@ const SignupPage = () => {
   return (
     <div className = "container">
       <div className = "image-section">
-        <img src="src/assets/dashboard.png" alt="Sign up visual" className="signup-image"/>
+        <img src = {carbonxLogo} alt="Sign up visual" className="signup-image"/>
       </div>
       <div className = "form-section">
         <div className = "logo-animation">
