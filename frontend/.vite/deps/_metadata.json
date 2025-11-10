@@ -1,0 +1,60 @@
+{
+  "hash": "a170af97",
+  "configHash": "321ff917",
+  "lockfileHash": "08e66dc3",
+  "browserHash": "65517769",
+  "optimized": {
+    "d3": {
+      "src": "../../node_modules/d3/src/index.js",
+      "file": "d3.js",
+      "fileHash": "87e165c1",
+      "needsInterop": false
+    },
+    "lottie-react": {
+      "src": "../../node_modules/lottie-react/build/index.umd.js",
+      "file": "lottie-react.js",
+      "fileHash": "427a45fe",
+      "needsInterop": true
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "350b4fc8",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "96f36af1",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "a2d25706",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "4989f35f",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "1f69ab8f",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "react-BaqBjuxQ": {
+      "file": "react-BaqBjuxQ.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-Cndd9GYP": {
+      "file": "react-dom-Cndd9GYP.js",
+      "isDynamicEntry": false
+    }
+  }
+}

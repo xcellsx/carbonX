@@ -1,0 +1,96 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+.image-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  /* Gradient background setup */
+  background: linear-gradient(120deg,
+    rgb(var(--primary)) 0%,
+    rgb(var(--secondary)) 100%);
+  background-size: 200% 200%;
+  animation: gradientMove 5s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+img {
+  max-width: 100%;
+}
+
+.form-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: end;
+  padding: 4rem; /* 64px */
+  gap: 1rem; /* 16px */
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 2rem; /* 32px */
+  padding: 2rem; /* 32px */
+  height: 100%;
+  justify-content: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* 32px */
+  width: 100%;
+}
+
+.form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+}
+
+.prompt {
+  text-align: center;
+}
+
+.link {
+  color: rgb(var(--primary), 1);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.submit-error {
+  color: #EB5757
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+

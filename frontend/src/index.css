@@ -1,68 +1,277 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* --- Colour Palette --- */
+  --primary: 51, 71, 97;
+  --secondary: 89, 165, 178;
+  --info:47, 128, 237;
+  --success: 39, 174, 96;
+  --warning: 226, 185, 59;
+  --danger: 235, 87, 87;
+  --background: 248, 248, 248;
+  --black: 29, 29, 29;
+  --white: 255, 255, 255;
+  --grey: 130, 130, 130;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* --- Typography --- */
+  /* Font Weights */
+  --regular: 400;
+  --bold: 700;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  /* Font Sizes (based on 1rem = 16px) */
+  --small: 0.875rem; /* 14px */
+  --normal: 1rem; /* 16px (base) */
+  --medium: 1.125rem; /* 18px */
+  --large: 1.25rem; /* 20px */
+  
+  /* Text Styles */
+  --heading-1: 3.5rem; /* 56px */
+  --heading-2: 3rem; /* 48px */
+  --heading-3: 2.5rem; /* 40px */
+  --heading-4: 2rem; /* 32px */
+  --heading-5: 1.5rem; /* 24px */
+  --heading-6: 1.25rem; /* 20px */
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--normal);
+  background-color: var(--background);
+  color: rgba(var(--black), 1);
+  font-weight: var(--regular);
 }
 
+/* --- Text Styles --- */
+/* Headings */
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: var(--heading-1);
+  font-weight: var(--bold);
+  line-height: 3.85rem; /* 61.6px */
+  color: rgba(var(--primary), 1);
 }
+
+h2 {
+  font-size: var(--heading-2);
+  font-weight: var(--bold);
+  line-height: 3.3rem; /* 52.8px */
+}
+
+h3 {
+  font-size: var(--heading-3);
+  font-weight: var(--bold);
+  line-height: 2.75rem; /* 44px */
+}
+
+h4 {
+  font-size: var(--heading-4);
+  font-weight: var(--bold);
+  line-height: 2.2rem; /* 35.2px */
+}
+
+h5 {
+  font-size: var(--heading-5);
+  font-weight: var(--bold);
+  line-height: 1.65rem; /* 26.4px */
+}
+
+h6 {
+  font-size: var(--heading-6);
+  font-weight: var(--bold);
+  line-height: 1.375rem; /* 22px */
+}
+
+/* Body Texts */
+.small-bold {
+  font-size: var(--small);
+  font-weight: var(--bold);
+  line-height: 1.225rem; /* 19.6px */
+}
+
+.small-regular {
+  font-size: var(--small);
+  font-weight: var(--regular);
+  line-height: 1.225rem; /* 19.6px */
+}
+
+.normal-bold {
+  font-size: var(--normal);
+  font-weight: var(--bold);
+  line-height: 1.4rem; /* 22.4px */
+}
+
+.normal-regular {
+  font-size: var(--normal);
+  font-weight: var(--regular);
+  line-height: 1.4rem; /* 22.4px */
+}
+
+.medium-bold {
+  font-size: var(--medium);
+  font-weight: var(--bold);
+  line-height: 1.575rem; /* 25.2px */
+}
+
+.medium-regular {
+  font-size: var(--medium);
+  font-weight: var(--regular);
+  line-height: 1.575rem; /* 25.2px */
+}
+
+.large-bold {
+  font-size: var(--large);
+  font-weight: var(--bold);
+  line-height: 1.75rem; /* 28px */
+}
+
+.large-regular {
+  font-size: var(--large);
+  font-weight: var(--regular);
+  line-height: 1.75rem; /* 28px */
+}
+
+.descriptor {
+  font-size: var(--small);
+  font-weight: var(--regular);
+  line-height: 1.225rem; /* 19.6px */
+  color: rgba(var(--black), 0.6);
+  letter-spacing: 0.3em; /* 30% */
+  text-transform: uppercase;
+}
+
+/* --- Buttons --- */
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-weight: var(--bold);
+  line-height: 1.4rem; /* 22.4px */
+  padding: 1rem 2rem; /* 16px (H) 32px (W) */
+  border: none;
+  border-radius: 0.5rem; /* 8px */
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Default Button Style */
+.default {
+  background-color: rgba(var(--primary), 1);
+}
+
+/* Icon Button Style */
+/* !Please import icons as JSX from Lucide React */
+.icon {
+  background-color: rgba(var(--primary), 1);
+  border: none;
+  cursor: pointer;
+  padding: 1rem; /* 8px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outline Button Style */
+.outline {
+  background-color: rgba(var(--primary), 0);
+  color: rgba(var(--primary), 1);
+  outline: rgba(var(--primary), 1) solid 2px;
+}
+
+/* Nav Button Style */
+.nav {
+  background-color: rgba(var(--background), 1);
+  color: rgba(var(--black), 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+}
+
+/* Button States */
+.default:hover, .icon:hover {
+  background-color: rgba(var(--primary), 0.8);
+}
+
+.default:active, .icon:active {
+  background-color: #1D1D1D;
+}
+
+.default:disabled, .icon:disabled {
+  background-color: rgba(var(--grey), 0.2);
+  cursor: not-allowed;
+}
+
+.outline:hover {
+  background-color: rgba(var(--primary), 0.8);
+  color: rgba(var(--white), 1);
+  outline: rgba(var(--primary), 1) solid 2px;
+}
+
+.outline:active {
+  background-color: rgba(var(--black), 0.8);
+  color: rgba(var(--white), 1);
+  outline: rgba(var(--black), 1) solid 2px;
+}
+
+.outline:disabled {
+  background-color: rgba(var(--grey), 0.2);
+  outline: rgba(var(--grey), 0.4) solid 2px;
+  color: rgba(var(--white), 1);
+  cursor: not-allowed;
+}
+
+.nav:hover {
+  background-color: rgba(var(--primary), 0.8);
+  color: rgba(var(--white), 1);
+}
+
+.nav:active {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--white), 1);
+}
+
+.nav:disabled {
+  background-color: rgba(var(--background), 1);
+  color: rgba(var(--black), 0.2);
+  cursor: not-allowed;
+}
+
+/* --- Form Inputs --- */
+.input-base { /* Also for Input Fields */
+  line-height: 1.4rem; /* 22.4px */
+  padding: 1rem 1.5rem; /* 16px (H) 24px (W) */
+  border: #82828220 solid 1px;
+  border-radius: 0.25rem; /* 4px */
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  color: #1D1D1D;
+}
+
+/* Form Input Types */
+.dropdown {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+  border: rgba(var(--grey), 0.6) solid 1px;
+}
+
+/* Input Fields Type - Haven't validate style */
+.input-base:focus {
+  border: #1D1D1D60 solid 1px;
+  color: #1D1D1D;
+}
+
+.input-base::placeholder {
+  color: #82828260;
+}
+
+input.input-base:focus::placeholder {
+  color: #1D1D1D60;
 }

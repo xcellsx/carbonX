@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './SignupPage.css';
+import './Auth.css';
+import Lottie from 'lottie-react';
+import animationData from '../../lottie/logo.json'; // adjust the relative path as needed
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
@@ -8,68 +10,74 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!fullName || !email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!fullName || !email || !password) {
-    setError('Please fill in all fields');
-    return;
-  }
-
-  try {
-    const res = await fetch('http://localhost:8080/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, email, password })
-    });
-    if (res.ok) {
-      const result = await res.json(); // result object must contain "id"
-      if (result.id) {
-        localStorage.setItem('userId', result.id); // <-- This line is what you need!
-        setError('');
-        navigate('/company-info');
+    // Backend Error Handling
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password })
+      });
+      if (res.ok) {
+        const result = await res.json(); // result object must contain "id"
+        if (result.id) {
+          localStorage.setItem('userId', result.id); // <-- This line is what you need!
+          setError('');
+          navigate('/company-info');
+        } else {
+          setError('Signup succeeded but no user id returned.');
+        }
       } else {
-        setError('Signup succeeded but no user id returned.');
-      }
-    } else {
       const { message } = await res.json();
       setError(message || 'Sign up failed');
     }
   } catch (err) {
-    setError('Could not connect to server');
-  }
-};
-
+    setError('Could not connect to server');}
+  };
 
   return (
-    <div className="signup-layout">
-      <div className="signup-left-panel">
-        <div className="signup-form-container">
-          <div className="signup-logo">
-            {/* Use your logo here */}
-            <img src="src/assets/carbonx.png" alt="CarbonX Logo" className="signup-logo-image"/>
+    <div className = "container">
+      <div className = "image-section">
+        <img src="src/assets/dashboard.png" alt="Sign up visual" className="signup-image"/>
+      </div>
+      <div className = "form-section">
+        <div className = "logo-animation">
+          <Lottie animationData={animationData} style={{ height: 48, width: 48 }} />
+        </div>
+        <div className="form-container">
+          <div className="form-header">
+            <h1>Welcome.</h1>
+            <p className = "medium-regular">Sign up with your credentials.</p>
           </div>
-          <div className="signup-title">Welcome.</div>
-          <div className="signup-subtitle">Sign up with your credentials.</div>
-          <form className="signup-form" onSubmit={handleSubmit}>
-            <label className="signup-label" htmlFor="fullName">Full Name</label>
-            <input className="signup-input" type="text" id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} required autoFocus/>
-            <label className="signup-label" htmlFor="email">Email</label>
-            <input className="signup-input" type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required/>
-            <label className="signup-label" htmlFor="password">Password</label>
-            <input className="signup-input" type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required/>
-            {error && <div className="signup-error">{error}</div>}
-            <button className="signup-btn" type="submit">Sign up</button>
+          <form className="form" onSubmit={handleSubmit}>
+            <div className = "group">
+              <label className="normal-bold" htmlFor="fullName">Full Name</label>
+              <input className="input-base" type="text" id="fullName" value={fullName} placeholder="Full Name" onChange={e => setFullName(e.target.value)} autoFocus/>
+            </div>
+            <div className = "group">
+            <label className="normal-bold" htmlFor="email">Email</label>
+            <input className="input-base" type="email" id="email" value={email} placeholder="Email" onChange={e => setEmail(e.target.value)}/>
+            </div>
+            <div className = "group">
+            <label className="normal-bold" htmlFor="password">Password</label>
+            <input className="input-base" type="password" id="password" value={password} placeholder="Password" onChange={e => setPassword(e.target.value)}/>
+            </div>
+            {error && <div className = "submit-error">{error}</div>}
+            <button className="default" type="submit">Sign Up</button>
           </form>
-          <div className="signup-prompt">
-            Already have an account?
-            <Link className="signup-link" to="/login">Sign in here</Link>
+          <div className="prompt">
+            Already have an account? {' '}
+            <Link className="link" to="/login">Sign in here</Link>
           </div>
         </div>
-      </div>
-      <div className="signup-right-panel">
-        <img src="src/assets/dashboard.png" alt="Sign up visual" className="signup-image"/>
       </div>
     </div>
   );

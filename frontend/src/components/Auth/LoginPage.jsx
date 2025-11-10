@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './LoginPage.css';
+import './Auth.css';
+import Lottie from 'lottie-react';
+import animationData from '../../lottie/logo.json'; // adjust the relative path as needed
+
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,70 +19,70 @@ const LoginPage = () => {
       return;
     }
     
+    // Backend Error Handling
     try {
-      // This fetch call targets the backend for login validation
-      const res = await fetch('http://localhost:8080/api/auth/login', { // <-- Backend endpoint
+      const res = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }) // Sends email and password
+        body: JSON.stringify({ email, password })
       });
       
       if (res.ok) {
-        // --- FIX START ---
-        // If backend responds with OK (2xx status), get the user object
         const loggedInUser = await res.json(); 
         
         if (loggedInUser && loggedInUser.id) {
-          // Store the logged-in user's ID in localStorage
           localStorage.setItem('userId', loggedInUser.id);
           setError('');
-          navigate('/dashboard'); // Navigate to dashboard
+          navigate('/dashboard');
         } else {
-          // This case should not happen if the backend is correct
           setError('Login successful but no user ID was returned.');
         }
-        // --- FIX END ---
       } else {
-        // If backend responds with an error status, show an error
         setError('Incorrect email or password');
       }
     } catch (err) {
-      // Handle network errors (e.g., backend not running)
       setError('Could not connect to server');
     }
   };
 
   return (
-    <div className="login-layout">
-      <div className="login-left-panel">
-        <div className="login-form-container">
-          <div className="login-logo">
-            <img src="src/assets/carbonx.png" alt="CarbonX Logo" className="login-logo-image"/>
+    <div className="container">
+      <div className="image-section">
+        <img src="src/assets/dashboard.png" alt="Dashboard Preview" className="login-image"/>
+      </div>
+      <div className="form-section">
+        <div className = "logo-animation">
+          <Lottie animationData={animationData} style={{ height: 48, width: 48 }} />
+        </div>
+        <div className="form-container">
+          <div className="form-header">
+            <h1>Welcome Back.</h1>
+            <p className='medium-regular'>Sign in with your credentials.</p>
           </div>
-          <div className="login-title">Welcome Back.</div>
-          <div className="login-subtitle">Sign in with your credentials.</div>
-          <form className="login-form" onSubmit={handleSubmit}>
-            <label className="login-label" htmlFor="email">Email</label>
-            <input className="login-input" type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required/>
-            <label className="login-label" htmlFor="password">Password</label>
-            <input className="login-input" type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required/>
-            <div className="login-options-row">
+          <form className="form" onSubmit={handleSubmit}>
+            <div className= "group">
+              <label className="normal-bold" htmlFor="email">Email</label>
+              <input className="input-base" type="email" id="email" value={email} placeholder='Email' onChange={e => setEmail(e.target.value)} autoFocus/>
+            </div>
+            <div className= "group">
+            <label className="normal-bold" htmlFor="password">Password</label>
+            <input className="input-base" type="password" id="password" value={password} placeholder='Password' onChange={e => setPassword(e.target.value)}/>
+            </div>
+            <div className="options">
               <label className="login-checkbox">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
-                <span>Remember Me</span>
+                <span> Remember Me</span>
               </label>
-              <Link className="login-link" to="/forgot-password">Forget Password</Link>
+              <Link className="link" to="/forgot-password">Forget Password</Link>
             </div>
-            {error && <div className="login-error">{error}</div>}
-            <button className="login-btn" type="submit">Sign in</button>
+            {error && <div className="submit-error">{error}</div>}
+            <button className="default" type="submit">Sign In</button>
           </form>
-          <div className="login-prompt">
-            Don’t have an account?<Link to="/signup" className="login-link-signup">Sign up here</Link>
+          <div className="prompt">
+            Don’t have an account? {''}
+            <Link to="/signup" className="link">Sign up here</Link>
           </div>
         </div>
-      </div>
-      <div className="login-right-panel">
-        <img src="src/assets/dashboard.png" alt="Dashboard Preview" className="login-image"/>
       </div>
     </div>
   );
