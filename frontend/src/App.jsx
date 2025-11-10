@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Routes, Route } from 'react-router-dom';
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // <-- REMOVE Router
+import { Routes, Route } from 'react-router-dom'; // <-- KEEP THIS
 import SignupPage from './components/Auth/SignupPage';
 import LoginPage from './components/Auth/LoginPage';
 import CompanyInfoPage from './components/Company/CompanyInfoPage';
@@ -11,6 +12,7 @@ import NetworkPage from './components/Network/NetworkPage';
 
 function App() {
   return (
+    // <Router>  <-- MAKE SURE THIS TAG IS GONE
       <Routes>
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -22,6 +24,7 @@ function App() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/network" element={<NetworkPage />} />
       </Routes>
+    // </Router> <-- MAKE SURE THIS TAG IS GONE
   );
 }
 
