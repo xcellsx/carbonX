@@ -38,7 +38,7 @@ body {
   padding: 0;
   font-family: 'Inter', sans-serif;
   font-size: var(--normal);
-  background-color: var(--background);
+  background-color: rgba(var(--background), 1);
   color: rgba(var(--black), 1);
   font-weight: var(--regular);
 }
@@ -196,7 +196,7 @@ button {
 }
 
 .default:disabled, .icon:disabled {
-  background-color: rgba(var(--grey), 0.2);
+  background-color: #82828220;
   cursor: not-allowed;
 }
 
@@ -236,42 +236,90 @@ button {
 }
 
 /* --- Form Inputs --- */
-.input-base { /* Also for Input Fields */
-  line-height: 1.4rem; /* 22.4px */
-  padding: 1rem 1.5rem; /* 16px (H) 24px (W) */
+.input-base {
+  line-height: 1.4rem;
+  padding: 1rem 1.5rem;
   border: #82828220 solid 1px;
-  border-radius: 0.25rem; /* 4px */
+  border-radius: 0.25rem;
   outline: none;
   width: 100%;
   box-sizing: border-box;
   color: #1D1D1D;
+  background-color: rgba(var(--background), 1);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-/* Form Input Types */
-.dropdown {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
+/* Element-Specific Variants */
+
+/* custom arrow for <select> */
+select.input-base {
+  padding-right: 3.5rem;
+    cursor: pointer;
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 1rem; /* 16px */
-  border: rgba(var(--grey), 0.6) solid 1px;
-}
+/* Input States (Focus, Placeholder) */
 
-/* Input Fields Type - Haven't validate style */
 .input-base:focus {
   border: #1D1D1D60 solid 1px;
   color: #1D1D1D;
 }
 
 .input-base::placeholder {
-  color: #82828260;
+  color: #1D1D1D60;
 }
 
-input.input-base:focus::placeholder {
+select.input-base:invalid {
+  color: #1D1D1D60; /* Your placeholder color */
+}
+
+select.input-base option {
+  color: #1D1D1D;
+}
+
+/* Wrapper for Dropdown */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Custom dropdown arrow */
+.select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
   color: #1D1D1D60;
+  pointer-events: none; /* Lets you click "through" the icon */
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: rgba(var(--grey), 0.6) solid 1px;
+}
+
+/* Shared Styles Across Multiple Pages */
+.form-header { /* Use for all headings */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+  width: 100%
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 2rem /* 32px */
 }

@@ -10,7 +10,6 @@
   justify-content: center;
   align-items: center;
   padding: 4rem;
-  /* Gradient background setup */
   background: linear-gradient(120deg,
     rgb(var(--primary)) 0%,
     rgb(var(--secondary)) 100%);
@@ -29,7 +28,6 @@
     background-position: 0% 50%;
   }
 }
-
 
 img {
   max-width: 100%;
@@ -55,23 +53,11 @@ img {
   justify-content: center;
 }
 
-.form {
+.form-auth {
   display: flex;
   flex-direction: column;
   gap: 2rem; /* 32px */
   width: 100%;
-}
-
-.form-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem; /* 8px */
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem; /* 8px */
 }
 
 .prompt {

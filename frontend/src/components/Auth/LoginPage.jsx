@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
-import animationData from '../../lottie/logo.json'; // adjust the relative path as needed
-
+import animationData from '../../lottie/logo.json';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -59,7 +58,7 @@ const LoginPage = () => {
             <h1>Welcome Back.</h1>
             <p className='medium-regular'>Sign in with your credentials.</p>
           </div>
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form-auth" onSubmit={handleSubmit}>
             <div className= "group">
               <label className="normal-bold" htmlFor="email">Email</label>
               <input className="input-base" type="email" id="email" value={email} placeholder='Email' onChange={e => setEmail(e.target.value)} autoFocus/>
@@ -70,7 +69,7 @@ const LoginPage = () => {
             </div>
             <div className="options">
               <label className="login-checkbox">
-                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
+                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}/>
                 <span> Remember Me</span>
               </label>
               <Link className="link" to="/forgot-password">Forget Password</Link>

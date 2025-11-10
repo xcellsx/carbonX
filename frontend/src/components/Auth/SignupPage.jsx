@@ -57,7 +57,7 @@ const SignupPage = () => {
             <h1>Welcome.</h1>
             <p className = "medium-regular">Sign up with your credentials.</p>
           </div>
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form-auth" onSubmit={handleSubmit}>
             <div className = "group">
               <label className="normal-bold" htmlFor="fullName">Full Name</label>
               <input className="input-base" type="text" id="fullName" value={fullName} placeholder="Full Name" onChange={e => setFullName(e.target.value)} autoFocus/>
