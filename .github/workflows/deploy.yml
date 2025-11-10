@@ -1,0 +1,46 @@
+name: Deploy Frontend to GitHub Pages
+
+# Run on pushes to the main branch
+on:
+  push:
+    branches: [cells] # Or 'master', whatever your default branch is
+  workflow_dispatch:
+
+# Grant permissions for the workflow to deploy
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a current LTS version
+          cache: 'npm'
+          cache-dependency-path: 'xcellsx/carbonx/carbonX-cells/frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm install
+        # Set the working directory to your frontend folder
+        working-directory: xcellsx/carbonx/carbonX-cells/frontend
+
+      - name: Build project
+        run: npm run build
+        working-directory: xcellsx/carbonx/carbonX-cells/frontend
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Path to the build output (your 'dist' folder)
+          path: 'xcellsx/carbonx/carbonX-cells/frontend/dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
