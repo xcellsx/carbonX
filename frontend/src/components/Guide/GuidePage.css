@@ -183,3 +183,72 @@
   width: 1%;
   text-align: center;
 }
+
+/* This hides the actual file input */
+.file-input-hidden {
+  display: none;
+}
+
+/* Styles for the new drop zone */
+.file-drop-zone {
+  border: 2px dashed #D0D5DD; /* Figma's dashed line color */
+  border-radius: 8px;
+  padding: 16px 24px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #FFFFFF; /* White background */
+  transition: background-color 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px; /* Space from the label */
+}
+
+/* Style when dragging a file over the zone */
+.file-drop-zone.dragging {
+  background-color: #F9FAFB; /* Light grey on drag */
+  border-color: rgba(var(--primary)); /* Use your primary color */
+}
+
+.file-drop-zone-text {
+  margin: 0 0 16px 0;
+  color: #667085; /* Figma's text color */
+  font-size: 14px;
+}
+
+/* The "Browse Files" button inside the zone */
+.browse-files-btn {
+  background-color: #FFFFFF;
+  border: 1px solid #D0D5DD;
+  border-radius: 6px;
+  padding: 8px 14px; /* Figma's padding */
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: #344054; /* Figma's text color */
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.browse-files-btn:hover {
+  background-color: #F9FAFB;
+}
+
+/* The label above the drop zone */
+.form-group label[for="fileUpload"] {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+  color: #344054;
+}
+
+/* Make sure the main modal button uses 100% width */
+#addProductForm .create-dpp-btn {
+  width: 100%;
+  margin-top: 24px; /* Space above the button */
+}
+
+/* Original input, in case it's still visible */
+.file-input {
+  display: none;
+}

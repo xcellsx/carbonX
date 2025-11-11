@@ -144,13 +144,14 @@ h6 {
 
 button {
   font-weight: var(--bold);
-  line-height: 1.4rem; /* 22.4px */
+  line-height: 1.575rem; /* 22.4px */
   padding: 1rem 2rem; /* 16px (H) 32px (W) */
   border: none;
   border-radius: 0.5rem; /* 8px */
   cursor: pointer;
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
+  font-size: var(--normal);
 }
 
 /* Default Button Style */
@@ -224,6 +225,11 @@ button {
   color: rgba(var(--whites), 1);
 }
 
+.nav.active {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+}
+
 .nav:active {
   background-color: rgba(var(--primary), 1);
   color: rgba(var(--whites), 1);
@@ -249,6 +255,7 @@ button {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  font-size: var(--normal);
 }
 
 /* Element-Specific Variants */
@@ -276,6 +283,7 @@ select.input-base:invalid {
 
 select.input-base option {
   color: #1D1D1D;
+
 }
 
 /* Wrapper for Dropdown */
