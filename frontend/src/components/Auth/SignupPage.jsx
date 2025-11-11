@@ -3,45 +3,57 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
-import dashboard from '../../assets/dashboard.png'
+import dashboard from '../../assets/dashboard.png';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });  
   const navigate = useNavigate();
-  
-  const handleSubmit = async (e) => {
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     
+    // 1. Check for empty fields
     if (!fullName || !email || !password) {
-      setError('Please fill in all fields.');
+      setMessage({ type: 'error', text: 'Please fill in all fields.' });
       return;
     }
 
-    // Backend Error Handling
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password })
-      });
-      if (res.ok) {
-        const result = await res.json(); // result object must contain "id"
-        if (result.id) {
-          localStorage.setItem('userId', result.id); // <-- This line is what you need!
-          setError('');
-          navigate('/company-info');
-        } else {
-          setError('Signup succeeded but no user id returned.');
-        }
-      } else {
-      const { message } = await res.json();
-      setError(message || 'Sign up failed');
+    // 2. Add simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
     }
-  } catch (err) {
-    setError('Could not connect to server');}
+
+    const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+    
+    // Check if any user in the list has this email
+    const emailInUse = existingUsers.find(user => user.email === email);
+
+    if (emailInUse) {
+      setMessage({ type: 'warning', text: 'This email is already in use. Please sign in.' });      
+      return;
+    }
+
+    const userId = `user_${new Date().getTime()}`;
+    
+    const newUser = {
+      id: userId,
+      fullName: fullName,
+      email: email,
+    };
+
+    const updatedUsers = [...existingUsers, newUser];
+    
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    
+    localStorage.setItem('userId', userId);
+
+    setMessage('');
+    navigate('/company-info');
   };
 
   return (
@@ -58,7 +70,7 @@ const SignupPage = () => {
             <h1>Welcome.</h1>
             <p className = "medium-regular">Sign up with your credentials.</p>
           </div>
-          <form className="form-auth" onSubmit={handleSubmit}>
+          <form className="form-auth" onSubmit={handleSubmit} noValidate>
             <div className = "group">
               <label className="normal-bold" htmlFor="fullName">Full Name</label>
               <input className="input-base" type="text" id="fullName" value={fullName} placeholder="Full Name" onChange={e => setFullName(e.target.value)} autoFocus/>
@@ -71,7 +83,7 @@ const SignupPage = () => {
             <label className="normal-bold" htmlFor="password">Password</label>
             <input className="input-base" type="password" id="password" value={password} placeholder="Password" onChange={e => setPassword(e.target.value)}/>
             </div>
-            {error && <div className = "submit-error">{error}</div>}
+            <div className = {`submit-${message.type}`}>{message.text}</div>
             <button className="default" type="submit">Sign Up</button>
           </form>
           <div className="prompt">

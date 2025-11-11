@@ -71,7 +71,11 @@ img {
 }
 
 .submit-error {
-  color: #EB5757
+  color: rgba(var(--danger), 1)
+}
+
+.submit-warning {
+  color: rgba(var(--warning), 1)
 }
 
 .options {

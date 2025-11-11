@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Imported useEffect
 import { Link, useNavigate } from 'react-router-dom';
 import './CompanyInfoPage.css';
 import Lottie from 'lottie-react';
@@ -18,14 +18,27 @@ const CompanyInfoPage = () => {
   
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const currentUserId = localStorage.getItem('userId');
+    
+    if (currentUserId) {
+      const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
+      
+      const userCompanyData = allCompanyData[currentUserId];
+      
+      if (userCompanyData) {
+        setForm(userCompanyData);
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Check if any field is empty or only whitespace
   const isFormComplete = Object.values(form).every(val => val && val.trim().length > 0);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const userId = localStorage.getItem('userId');
@@ -35,25 +48,14 @@ const CompanyInfoPage = () => {
     }
 
     setError('');
+    
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
 
-    const payload = { ...form, userId };
+    allCompanyData[userId] = form;
 
-    try {
-      const res = await fetch('http://localhost:8080/api/company-info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+    localStorage.setItem('companyData', JSON.stringify(allCompanyData));
 
-      if (res.ok) {
-        navigate('/guide');
-      } else {
-        const msg = await res.text();
-        setError('Submission failed!\n' + msg);
-      }
-    } catch (err) {
-      setError('Error connecting to server');
-    }
+    navigate('/inventory');
   };
 
   return (
@@ -66,7 +68,8 @@ const CompanyInfoPage = () => {
             <h1>Let us understand you better.</h1>
             <p className="medium-regular">Tell us about your company so we can tailor our services to meet your needs.</p>
           </div>
-          <form className="form" onSubmit={handleSubmit}>
+          {/* 6. Added noValidate to let our 'isFormComplete' handle validation */}
+          <form className="form" onSubmit={handleSubmit} noValidate>
             <div className = "content">
               <div className="form-row">
                 <div className="group">
@@ -98,7 +101,6 @@ const CompanyInfoPage = () => {
                       <option value="Healthcare">Healthcare</option>
                       <option value="Retail">Retail</option>
                       <option value="Manufacturing">Manufacturing</option>
-                      /* Might need to avoid whitespace for backend storage */
                       <option value="Agricultural Products">Agricultural Products</option>
                     </select>
                     <ChevronDown className="select-arrow" />

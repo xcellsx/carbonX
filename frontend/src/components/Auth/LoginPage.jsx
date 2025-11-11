@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Import useEffect
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
-import dashboard from '../../assets/dashboard.png'
+import dashboard from '../../assets/dashboard.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,36 +12,36 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
-    
-    // Backend Error Handling
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (res.ok) {
-        const loggedInUser = await res.json(); 
-        
-        if (loggedInUser && loggedInUser.id) {
-          localStorage.setItem('userId', loggedInUser.id);
-          setError('');
-          navigate('/dashboard');
-        } else {
-          setError('Login successful but no user ID was returned.');
-        }
+
+    const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+    const foundUser = existingUsers.find(user => user.email === email);
+
+    if (foundUser) {
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
       } else {
-        setError('Incorrect email or password');
+        localStorage.removeItem('rememberedEmail');
       }
-    } catch (err) {
-      setError('Could not connect to server');
+
+      localStorage.setItem('userId', foundUser.id);
+      setError('');
+      navigate('/dashboard'); 
+    } else {
+      setError('Incorrect email or password.');
     }
   };
 
@@ -59,7 +59,7 @@ const LoginPage = () => {
             <h1>Welcome Back.</h1>
             <p className='medium-regular'>Sign in with your credentials.</p>
           </div>
-          <form className="form-auth" onSubmit={handleSubmit}>
+          <form className="form-auth" onSubmit={handleSubmit} noValidate>
             <div className= "group">
               <label className="normal-bold" htmlFor="email">Email</label>
               <input className="input-base" type="email" id="email" value={email} placeholder='Email' onChange={e => setEmail(e.target.value)} autoFocus/>
