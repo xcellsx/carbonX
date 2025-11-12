@@ -202,9 +202,13 @@ button {
   background-color: #1D1D1D;
 }
 
-.default:disabled, .icon:disabled {
+.default:disabled {
   background-color: #82828220;
   cursor: not-allowed;
+}
+
+.icon:disabled {
+  background-color: #82828220;
 }
 
 .outline:hover {
@@ -328,7 +332,8 @@ select.input-base option {
   display: flex;
   flex-direction: column;
   gap: 0.5rem; /* 8px */
-  width: 100%
+  width: 100%;
+  background-color:aqua;
 }
 
 .form-row {

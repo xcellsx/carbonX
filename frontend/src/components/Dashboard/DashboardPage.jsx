@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardPage.css';
-import logoPath from '../../assets/carbonx.png';
-import { useNavigate, useLocation } from 'react-router-dom'; // 👈 ADD THIS
+import logoPath from '../../assets/carbonx.png'; // Removed
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   ChevronDown, Plus, Search, Triangle, Trash2, X, 
   LayoutDashboard, Archive, ChartColumnBig, Network, 
-  FileText, Sprout, Settings, Sparkles
+  FileText, Sprout, Settings, Sparkles, CircleCheck,
+  Circle
 } from 'lucide-react';
 
 
 const DashboardPage = () => {
-  const [isProUser] = useState(false); // Manually toggle this for free/pro testing
-
-  // --- Static Dashboard Data ---
-  // Replaced backend fetch with static defaults
+  const [isProUser] = useState(false); 
   const [totalEmissions] = useState(12.5);
-  const navigate = useNavigate(); // 👈 ADD THIS
-  const location = useLocation(); // 👈 ADD THIS
+  const navigate = useNavigate();
+  const location = useLocation(); 
 
+  const [showProModal, setShowProModal] = useState(false);
 
   // --- Static Bar Chart Data ---
   const [contributors] = useState([
@@ -29,16 +28,14 @@ const DashboardPage = () => {
   const [yAxisMax] = useState(1.0);
 
   // --- Frontend-Only Pie Chart Logic ---
-  // This logic is kept as it's based on sessionStorage and local state
   const [efficiencyTarget, setEfficiencyTarget] = useState(0);
   const [piePercentage, setPiePercentage] = useState(0);
   const [pieAngle, setPieAngle] = useState(0);
   const [amountLeft, setAmountLeft] = useState(0);
 
-  // Effect to update Pie Chart when relevant data changes
   useEffect(() => {
     const storedTarget = parseFloat(sessionStorage.getItem('efficiencyTarget')) || 0;
-    setEfficiencyTarget(storedTarget); // Load target from session storage initially
+    setEfficiencyTarget(storedTarget);
 
     let percentage = 0;
     if (storedTarget > 0) {
@@ -50,21 +47,30 @@ const DashboardPage = () => {
     setPiePercentage(Math.round(percentage));
     setPieAngle(angle);
     setAmountLeft(left);
-  }, [totalEmissions, efficiencyTarget]); // Recalculate pie when totalEmissions or target changes
+  }, [totalEmissions, efficiencyTarget]);
 
-  // Handler for efficiency target input change (Frontend-Only)
   const handleTargetChange = (e) => {
     const newTargetValue = parseFloat(e.target.value) || 0;
-    sessionStorage.setItem('efficiencyTarget', newTargetValue); // Save to sessionStorage
-    setEfficiencyTarget(newTargetValue); // Update state to trigger pie chart recalculation
+    sessionStorage.setItem('efficiencyTarget', newTargetValue);
+    setEfficiencyTarget(newTargetValue);
+  };
+  
+  // --- NEW: Click handler for Sparkle button ---
+  const handleSparkleClick = () => {
+    if (isProUser) {
+      // Logic for Pro users (e.g., open AI feature)
+      alert("AI Feature placeholder!");
+    } else {
+      // Logic for Free users (open "Get Pro" modal)
+      setShowProModal(true);
+    }
   };
 
-  // --- Render Logic ---
-  // No more isLoading or error states
   return (
     <div className="container">
       <div className="sidebar">
         <div className="sidebar-top">
+          {/* Use placeholder logo */}
           <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
           <p className ="descriptor">Core Features</p>
           <div className="navbar">
@@ -104,16 +110,73 @@ const DashboardPage = () => {
             <h1>Dashboard</h1>
             <p className = "medium-regular">Overview of your industry metrics.</p>
           </div>
-          <div className = "table-header-content">
-            <p style = {{color: "rgba(var(--greys), 1)"}}>Showing 7 of 7 metrics</p>
+          <div className = "table-header-content-db">
+            <div class = "header-col">
+              <p className='descriptor-medium'>Key Metrics</p>
+              <p style = {{color: "rgba(var(--greys), 1)"}}>Showing 7 of 7 metrics</p>
+            </div>
             <div className = "button-container">
-              <button className = "icon" onClick={() => setShowAddProduct(true)} disabled><Sparkles /></button>
+              <button 
+                className = "icon" 
+                onClick={handleSparkleClick}
+
+                style={!isProUser ? { backgroundColor: 'rgba(var(--greys), 0.2)' } : {}}
+              >
+                <Sparkles />
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </div> // This closes .container
-  ); // This closes the return statement
+
+      {/* --- Pro Modal --- */}
+      {showProModal && (
+        <div className="modal-overlay active" onClick={() => setShowProModal(false)}>
+          <div className="modal-content pro-modal" onClick={e => e.stopPropagation()}>
+            <div className="closebtnheader">
+              <button className="close-modal-btn" onClick={() => setShowProModal(false)}><X /></button>
+            </div>
+              <div>
+                <Sparkles size={48} color="rgba(var(--secondary), 1)" />
+              </div>
+              
+              <p className='large-bold'>Get CarbonX Pro</p>
+              
+              <div className="group-pro-modal">
+                <p className="normal-regular">What you will get:</p>
+                
+                <ul className="pro-features-list">
+                  <li>
+                    <CircleCheck size={20} />
+                    <span>Cloud Hosting</span>
+                  </li>
+                  <li>
+                    <CircleCheck size={20} />
+                    <span>Access to Report Generator & AI Functionalities</span>
+                  </li>
+                  <li>
+                    <CircleCheck size={20} />
+                    <span>Limited access to Marketplace Community</span>
+                  </li>
+                  <li>
+                    <CircleCheck size={20} />
+                    <span>Increase your team size to 5</span>
+                  </li>
+                  <li>
+                    <CircleCheck size={20} />
+                    <span>IT Support</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <button type="button" className="default" style={{ width: '100%' }} onClick={() => alert('Redirecting to Pro page!')}>
+                Get CarbonX Pro
+              </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DashboardPage;
