@@ -1,139 +1,106 @@
-:root {
-  color-scheme: light dark;
-  --navy: #223f43;
-  --blue: #59A5B2;
-  --light-blue: #c5e4e7;
-  --cream: #f1e0ce;
-  --yellow: #fbcc58;
-  --black: #020202;
-  --white: #f4f4f4;
-  --grey: #eaeaea;
-  --dark-grey: #a9a9a9;
-  --body-bg: light-dark(var(--grey), var(--black));
-  --card-bg: light-dark(var(--white), var(--black));
-  --border-color: var(--dark-grey);
-  --text-dark: light-dark(var(--black), var(--white));
-}
+/* DashboardPage.css additions for the modal */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Force body and html to take full viewport */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* This is the new root layout container */
-.dashboard-layout {
-  font-family: 'Figtree', sans-serif;
-  background-color: var(--body-bg);
-  color: var(--text-dark);
+.pro-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Dark semi-transparent background */
   display: flex;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.sidebar {
-  width: 240px;
-  background-color: var(--card-bg);
-  padding: 30px 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-right: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.sidebar-top, .sidebar-bottom {
-  display: flex;
-  flex-direction: column;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 50px;
-  flex-shrink: 0;
-  height: 30px;
   justify-content: center;
-}
-
-.nav-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-item {
-  display: flex;
   align-items: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.pro-modal {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 450px; /* Adjust as needed */
+  position: relative;
+  text-align: center;
+  color: #333;
+}
+
+.pro-modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  font-weight: 500;
-  color: light-dark(var(--black), var(--white));
-  text-decoration: none;
-  white-space: nowrap;
-}
-/* react-router-dom uses .active by default for NavLink */
-.nav-item.active {
-  background-color: light-dark(var(--navy), var(--blue));
-  color: light-dark(var(--white), var(--black));
-}
-.nav-item:not(.active):hover {
-  background-color: var(--border-color);
-}
-.nav-item svg {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  margin-right: 18px;
-}
-.nav-item span {
-  opacity: 1;
+  color: #666;
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
-  margin-top: 20px;
-  text-decoration: none;
+.pro-modal-close-button:hover {
+  color: #333;
 }
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--dark-grey);
-  color: var(--white);
+
+.pro-modal-header {
+  margin-bottom: 20px;
+}
+
+.pro-modal-sparkles {
+  color: #007bff; /* Example color, adjust to your brand */
+}
+
+.pro-modal h2 {
+  font-size: 1.8em;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.pro-modal p {
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.pro-modal ul {
+  list-style: none; /* Remove default bullet points */
+  padding: 0;
+  margin-bottom: 30px;
+  text-align: left; /* Align list items left */
+  max-width: 300px; /* Constrain list width */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pro-modal ul li {
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  font-size: 1em;
+  color: #444;
+}
+
+.pro-modal ul li::before {
+  content: '✓'; /* Checkmark icon */
+  color: #28a745; /* Green checkmark */
+  margin-right: 10px;
   font-weight: bold;
-  flex-shrink: 0;
 }
-.user-info {
-  opacity: 1;
+
+.pro-modal-cta-button {
+  background-color: #007bff; /* Primary button color */
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
-.user-info .name {
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.user-info .company {
-  font-size: 12px;
-  color: var(--dark-grey);
+
+.pro-modal-cta-button:hover {
+  background-color: #0056b3;
 }
 
 .main-content {

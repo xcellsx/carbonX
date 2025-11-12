@@ -33,6 +33,12 @@
   --heading-6: 1.25rem; /* 20px */
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -312,10 +318,10 @@ select.input-base option {
 }
 
 /* Shared Styles Across Multiple Pages */
-.form-header { /* Use for all headings */
+.form-header { /* Use for all Page headings */
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* 8px */
+  gap: 1rem; /* 8px */
 }
 
 .group {

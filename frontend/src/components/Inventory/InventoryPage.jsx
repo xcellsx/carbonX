@@ -1,83 +1,122 @@
-import React, { useState, useEffect, useRef } from 'react'; // 1. Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
 import './InventoryPage.css';
 import logoPath from '../../assets/carbonx.png';
 import { 
   ChevronDown, Plus, Search, Triangle, Trash2, X, 
-  LayoutDashboard, Archive, ChartColumnBig, Network, FileText, Sprout, Settings 
+  LayoutDashboard, Archive, ChartColumnBig, Network, 
+  FileText, Sprout, Settings, FilePlus, CirclePlus 
 } from 'lucide-react';
 
-const DUMMY_PRODUCTS = [
-  {
-    productId: 'prod_1',
-    productName: 'Handheld Hammer Drill',
-    uploadedFile: 'drill_bom.csv',
-    lcaResult: 12.345,
-    dppData: JSON.stringify([
-      { component: "Plastic Casing", process: "Mock: Plastic injection", weightKg: 0.8, processId: 'mock-plastic', lcaValue: 0.8 * 0.3 },
-      { component: "Motor Assembly", process: "Mock: Steel production", weightKg: 1.2, processId: 'mock-steel', lcaValue: 1.2 * 0.4 },
-      { component: "Battery Pack", process: "Mock: Aluminum casting", weightKg: 0.5, processId: 'mock-aluminum', lcaValue: 0.5 * 0.2 }
-    ])
-  },
-  {
-    productId: 'prod_2',
-    productName: 'Industrial Fan',
-    uploadedFile: 'fan_assembly.csv',
-    lcaResult: 8.76,
-    dppData: JSON.stringify([
-      { component: "Fan Blades (Aluminum)", process: "Mock: Aluminum casting", weightKg: 2.5, processId: 'mock-aluminum', lcaValue: 2.5 * 0.2 },
-      { component: "Steel Frame", process: "Mock: Steel production", weightKg: 3.0, processId: 'mock-steel', lcaValue: 3.0 * 0.4 }
-    ])
-  },
-  {
-    productId: 'prod_3',
-    productName: 'Office Chair',
-    uploadedFile: 'chair_parts.csv',
-    lcaResult: 0.000,
-    dppData: JSON.stringify([
-      { component: "Nylon Base", process: "Mock: Plastic injection", weightKg: 1.5, processId: 'mock-plastic', lcaValue: null },
-      { component: "Mesh Backing", process: "", weightKg: 0.7, processId: null, lcaValue: null }
-    ])
-  }
-];
+const parseCsvFile = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      return reject(new Error("No file provided."));
+    }
 
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
-  if (!isOpen) {
-    return null;
-  }
-  return (
-    <div className="modal-overlay active" onClick={onClose}>
-      <div className="confirm-modal-content" onClick={e => e.stopPropagation()}>
-        <div className="confirm-modal-header">
-          <h2>{title}</h2>
-          <button className="close-modal-btn" onClick={onClose}>&times;</button>
-        </div>
-        <div className="confirm-modal-body">
-          {children}
-        </div>
-        <div className="confirm-modal-buttons">
-          <button className="confirm-btn-cancel" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="confirm-btn-danger" onClick={onConfirm}>
-            Delete
-          </button>
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 2) {
+          return reject(new Error("CSV must have a header and at least one data row."));
+        }
+
+        const headerLine = lines[0].trim();
+        const expectedHeader = "Component,Material,Weight (kg)";
+
+        const normalizeHeader = (header) => header.replace(/\s/g, '').toLowerCase();
+
+        if (normalizeHeader(headerLine) !== normalizeHeader(expectedHeader)) {
+           return reject(new Error(`Invalid CSV header. Expected: "${expectedHeader}" (Got: "${headerLine}")`));
+        }
+        
+        const data = lines.slice(1).map(line => {
+          const values = [];
+          let inQuote = false;
+          let currentField = '';
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
+              inQuote = !inQuote;
+            } else if (char === ',' && !inQuote) {
+              values.push(currentField.trim());
+              currentField = '';
+            } else {
+              currentField += char;
+            }
+          }
+          values.push(currentField.trim());
+
+          if (values.length !== 3) {
+             console.warn("Skipping malformed CSV line:", line);
+             return null;
+          }
+
+          const weight = parseFloat(values[2]);
+          return {
+            component: values[0].replace(/"/g, ''),
+            material: values[1].replace(/"/g, ''),
+            weightKg: isNaN(weight) ? 0 : weight,
+            materialId: null,
+            lcaValue: null,
+            emissionFactor: null
+          };
+        }).filter(item => item !== null);
+
+        resolve(data);
+      } catch (err) {
+        reject(new Error("An error occurred during parsing: " + err.message));
+      }
+    };
+    
+    reader.onerror = (e) => {
+      reject(new Error("Error reading file: " + e.target.error));
+    };
+
+    reader.readAsText(file);
+  });
+};
+
+
+  const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
+    if (!isOpen) {
+      return null;
+    }
+    return (
+      <div className="modal-overlay active" onClick={onClose}>
+        <div className="modal-content" onClick={e => e.stopPropagation()}>
+          
+          <div className="modal-header">
+            <p className="medium-bold">{title}</p>
+            <button className="close-modal-btn" onClick={onClose}><X /></button>
+          </div>
+          
+          <div className="normal-regular">
+            {children}
+          </div>
+          
+          <div className="confirm-modal-buttons button-modal">
+            <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onClose}>
+              Cancel
+            </button>
+            <button className="default" style={{ backgroundColor: 'rgba(var(--danger), 1)', padding: '0.5rem 1rem' }} onClick={onConfirm}>
+              Delete
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 const InventoryPage = () => {
   const [userId] = useState(localStorage.getItem('userId') || '');
   const navigate = useNavigate();
   const location = useLocation(); 
-  const [userName, setUserName] = useState('');
-  const [userInitials, setUserInitials] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [products, setProducts] = useState(DUMMY_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -89,51 +128,17 @@ const InventoryPage = () => {
   const [expandedRows, setExpandedRows] = useState({});
   const [subProductWeights, setSubProductWeights] = useState({});
   const [calculating, setCalculating] = useState({});
-  const [editableProcesses, setEditableProcesses] = useState({});
+  const [editableMaterials, setEditableMaterials] = useState({});
   const [suggestions, setSuggestions] = useState({});
   const [activeSuggestionBox, setActiveSuggestionBox] = useState(null);
   const [editableComponents, setEditableComponents] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState({isOpen: false, title: '', message: '', onConfirm: () => {},});
 
-  // 2. Added isDragging state and fileInputRef from GuidePage
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   
-  // --- All functions from InventoryPage (fetchUserProfile, etc.) ---
+  const [isProUser, setIsProUser] = useState(false);
   
-  const fetchUserProfile = () => {
-    if (!userId) {
-      setError('User ID not found. Please log in again.');
-      setLoadingProfile(false);
-      return;
-    }
-    setLoadingProfile(true);
-    try {
-      const allUsers = JSON.parse(localStorage.getItem('users')) || [];
-      const currentUser = allUsers.find(user => user.id === userId);
-      
-      if (currentUser) {
-        setUserName(currentUser.fullName || 'User');
-        setCompanyName(currentUser.companyName || 'Company');
-        let initials = 'U';
-        if (currentUser.fullName) {
-          const nameParts = currentUser.fullName.split(' ');
-          initials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '')).toUpperCase();
-        }
-        setUserInitials(initials);
-      } else {
-        throw new Error("Current user not found in localStorage.");
-      }
-    } catch (err) {
-      console.error("Error fetching user profile from localStorage:", err);
-      setUserName('Mock User');
-      setCompanyName('Mock Company');
-      setUserInitials('MU');
-    } finally {
-      setLoadingProfile(false);
-    }
-  };
-
   const fetchProducts = () => {
     if (!userId) {
       setError('No user session found. Please log in.');
@@ -156,38 +161,60 @@ const InventoryPage = () => {
   };
 
   useEffect(() => {
-    fetchUserProfile();
-    // fetchProducts();
+    fetchProducts();
   }, [userId]);
   
-  const autoSaveProduct = (productId, newDppData) => {
+  const autoSaveProduct = (productId, newDppData, newTotalLca = null) => {
     setProducts(currentProducts =>
-      currentProducts.map(prod =>
-        prod.productId === productId ? { ...prod, dppData: newDppData } : prod
-      )
+      currentProducts.map(prod => {
+        if (prod.productId === productId) {
+          const updatedLcaResult = newTotalLca !== null ? newTotalLca : prod.lcaResult;
+          return { ...prod, dppData: newDppData, lcaResult: updatedLcaResult };
+        }
+        return prod;
+      })
     );
     try {
       const allProductData = JSON.parse(localStorage.getItem('productData')) || {};
       const userProducts = allProductData[userId] || [];
-      const updatedUserProducts = userProducts.map(prod =>
-        prod.productId === productId ? { ...prod, dppData: newDppData } : prod
-      );
+      
+      const updatedUserProducts = userProducts.map(prod => {
+        if (prod.productId === productId) {
+          const updatedLcaResult = newTotalLca !== null ? newTotalLca : prod.lcaResult;
+          return { ...prod, dppData: newDppData, lcaResult: updatedLcaResult };
+        }
+        return prod;
+      });
+
       allProductData[userId] = updatedUserProducts;
       localStorage.setItem('productData', JSON.stringify(allProductData));
-      fetchProducts();
     } catch (err) {
       console.error("Auto-save to localStorage Error:", err);
       alert("Error saving changes.");
     }
   };
 
-  // 3. Replaced handleAddProduct with the one from GuidePage
-  const handleAddProduct = (e) => {
+  const handleAddProduct = async (e) => {
     e.preventDefault();
-    setUploading(true); // Simulate upload start
-    const currentUserId = localStorage.getItem('userId');
-    if (!currentUserId) {
+    setUploading(true);
+
+    if (!userId) {
       alert("Error: No user is logged in.");
+      setUploading(false);
+      return;
+    }
+
+    let parsedDppData = [];
+    try {
+      parsedDppData = await parseCsvFile(productFile);
+      if (parsedDppData.length === 0) {
+        alert("Error: The CSV file was empty or contained no valid data rows.");
+        setUploading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Error parsing CSV:", err);
+      alert(`Error parsing file: ${err.message}`);
       setUploading(false);
       return;
     }
@@ -196,19 +223,16 @@ const InventoryPage = () => {
       productId: new Date().getTime(),
       productName: productName,
       uploadedFile: productFile ? productFile.name : 'No file',
-      dppData: JSON.stringify([ // Creates mock DPP data
-        { component: "Mock Component 1", process: "", weightKg: 10, processId: null, lcaValue: null },
-        { component: "Mock Component 2", process: "", weightKg: 5, processId: null, lcaValue: null }
-      ]),
-      lcaResult: 0 // Default LCA
+      dppData: JSON.stringify(parsedDppData),
+      lcaResult: 0
     };
 
     try {
       const allProductData = JSON.parse(localStorage.getItem('productData')) || {};
-      const userProducts = allProductData[currentUserId] || [];
+      const userProducts = allProductData[userId] || [];
       const updatedUserProducts = [...userProducts, newProduct];
       
-      allProductData[currentUserId] = updatedUserProducts;
+      allProductData[userId] = updatedUserProducts;
       localStorage.setItem('productData', JSON.stringify(allProductData));
 
       setProducts(updatedUserProducts);
@@ -222,7 +246,6 @@ const InventoryPage = () => {
     setUploading(false);
   };
   
-  // Kept InventoryPage's delete logic (it uses the modal)
   const performActualDeleteProduct = (productId) => {
     try {
       const allProductData = JSON.parse(localStorage.getItem('productData')) || {};
@@ -248,18 +271,19 @@ const InventoryPage = () => {
     });
   };
 
-  // Kept all other InventoryPage handlers (handleProcessChange, etc.)
-  const handleProcessChange = (e, p, idx) => {
+  const handleMaterialChange = (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
     const query = e.target.value;
-    setEditableProcesses(prev => ({ ...prev, [key]: query }));
+    setEditableMaterials(prev => ({ ...prev, [key]: query }));
     setActiveSuggestionBox(key);
     setProducts(currentProducts => {
       return currentProducts.map(prod => {
         if (prod.productId === p.productId) {
           let dpp = JSON.parse(prod.dppData);
-          dpp[idx].process = query;
-          dpp[idx].processId = null;
+          dpp[idx].material = query;
+          dpp[idx].materialId = null;
+          dpp[idx].lcaValue = null;
+          dpp[idx].emissionFactor = null;
           return { ...prod, dppData: JSON.stringify(dpp) };
         }
         return prod;
@@ -270,17 +294,19 @@ const InventoryPage = () => {
       return;
     }
     const mockSuggestions = [
-      { name: "Mock: Steel production", openLcaProcessId: 'mock-steel' },
-      { name: "Mock: Aluminum casting", openLcaProcessId: 'mock-aluminum' },
-      { name: "Mock: Plastic injection", openLcaProcessId: 'mock-plastic' }
+      { name: "Steel", openLcaMaterialId: 'mock-steel' },
+      { name: "Stainless Steel", openLcaMaterialId: 'mock-stainless-steel' },
+      { name: "Aluminum", openLcaMaterialId: 'mock-aluminum' },
+      { name: "Copper", openLcaMaterialId: 'mock-copper' },
+      { name: "Glass", openLcaMaterialId: 'mock-glass' },
+      { name: "PLA", openLcaMaterialId: 'mock-pla' },
+      { name: "ABS Plastic", openLcaMaterialId: 'mock-abs' },
+      { name: "Polycarbonate", openLcaMaterialId: 'mock-polycarbonate' },
+      { name: "Nylon 6", openLcaMaterialId: 'mock-nylon' },
+      { name: "Polyester Mesh", openLcaMaterialId: 'mock-polyester' },
+      { name: "Rubber", openLcaMaterialId: 'mock-rubber' },
     ].filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
     setSuggestions(prev => ({ ...prev, [key]: mockSuggestions }));
-  };
-
-  const handleComponentChange = (e, p, idx) => {
-    const key = `${p.productId}_${idx}`;
-    const newName = e.target.value;
-    setEditableComponents(prev => ({ ...prev, [key]: newName }));
   };
   
   const performActualDeleteSubcomponent = (productId, indexToDelete) => {
@@ -288,22 +314,33 @@ const InventoryPage = () => {
     if (!product) return;
     let dpp = JSON.parse(product.dppData);
     dpp.splice(indexToDelete, 1);
-    autoSaveProduct(productId, JSON.stringify(dpp));
+    
+    const totalLca = dpp.reduce((sum, item) => {
+      return sum + (item.lcaValue || 0);
+    }, 0);
+    
+    autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
   };
 
   const handleDeleteSubcomponent = (productId, indexToDelete) => {
     const product = products.find(p => p.productId === productId);
-    let componentName = 'this subcomponent';
+
+    let materialName = 'this material'; 
     if(product) {
       try {
         const dpp = JSON.parse(product.dppData);
-        componentName = dpp[indexToDelete]?.component || componentName;
+        materialName = dpp[indexToDelete]?.material || materialName;
+        
+        if (materialName.trim() === "") {
+          materialName = 'this material';
+        }
       } catch (e) {}
     }
+
     setDeleteConfirm({
       isOpen: true,
-      title: 'Delete Subcomponent',
-      message: `Are you sure you want to delete "${componentName}"?`,
+      title: 'Delete Material',
+      message: `Are you sure you want to delete "${materialName}"?`,
       onConfirm: () => performActualDeleteSubcomponent(productId, indexToDelete)
     });
   };
@@ -319,33 +356,111 @@ const InventoryPage = () => {
     }
     let dpp = JSON.parse(product.dppData);
     const item = dpp[subcomponentIndex];
-    const processIdentifier = item.processId || item.process;
-    if (!processIdentifier) {
-      alert("Error: Cannot calculate without a process.");
+    const materialIdentifier = item.materialId || item.material;
+    if (!materialIdentifier) {
+      alert("Error: Cannot calculate without a material.");
       setCalculating(prev => ({ ...prev, [key]: false }));
       return;
     }
-    console.log(`Mock calculating LCA for ${processIdentifier} with weight ${weightToUse}`);
+
+    let emissionFactor = item.emissionFactor;
+    if (emissionFactor === null || emissionFactor === undefined) {
+      emissionFactor = Math.random() * (5.0 - 0.5) + 0.5;
+      dpp[subcomponentIndex].emissionFactor = emissionFactor;
+    }
+
+    const calculatedLcaValue = weightToUse * emissionFactor;
+    dpp[subcomponentIndex].lcaValue = calculatedLcaValue;
+    dpp[subcomponentIndex].weightKg = weightToUse;
+
+    const totalLca = dpp.reduce((sum, item) => {
+      return sum + (item.lcaValue || 0);
+    }, 0);
+
+    autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
+    setCalculating(prev => ({ ...prev, [key]: false }));
+  };
+
+  const runFullLcaCalculation = (productId) => {
+    const product = products.find(p => p.productId === productId);
+    if (!product) return;
+
+    let dpp;
+    try {
+      dpp = JSON.parse(product.dppData);
+    } catch (e) { return; }
+
+    if (!Array.isArray(dpp)) return;
+
+    const needsCalculation = dpp.some(item => 
+      (item.materialId || item.material) &&
+      (item.lcaValue === null || item.lcaValue === undefined ||
+       item.emissionFactor === null || item.emissionFactor === undefined)
+    );
+
+    if (!needsCalculation) {
+      return;
+    }
+
+    const newCalculatingState = {};
+    dpp.forEach((item, idx) => {
+      const key = `${productId}_${idx}`;
+      newCalculatingState[key] = true;
+    });
+    setCalculating(prev => ({ ...prev, ...newCalculatingState }));
+
     setTimeout(() => {
-      const mockLcaValue = weightToUse * (Math.random() * 0.5 + 0.1);
-      dpp[subcomponentIndex].lcaValue = mockLcaValue;
-      dpp[subcomponentIndex].weightKg = weightToUse;
-      autoSaveProduct(productId, JSON.stringify(dpp));
-      setCalculating(prev => ({ ...prev, [key]: false }));
-      console.log(`Mock calculation complete. Result: ${mockLcaValue}`);
+      const updatedDpp = dpp.map((item, idx) => {
+        const materialIdentifier = item.materialId || item.material;
+        if (!materialIdentifier) {
+          return item;
+        }
+        
+        const weightToUse = item.weightKg;
+
+        let emissionFactor = item.emissionFactor;
+        if (emissionFactor === null || emissionFactor === undefined) {
+          emissionFactor = Math.random() * (5.0 - 0.5) + 0.5;
+        }
+        
+        const calculatedLcaValue = weightToUse * emissionFactor;
+
+        return {
+          ...item,
+          lcaValue: calculatedLcaValue,
+          emissionFactor: emissionFactor,
+        };
+      });
+
+      const totalLca = updatedDpp.reduce((sum, item) => {
+        return sum + (item.lcaValue || 0);
+      }, 0);
+
+      autoSaveProduct(productId, JSON.stringify(updatedDpp), totalLca);
+
+      const finishedCalculatingState = {};
+      dpp.forEach((item, idx) => {
+        const key = `${productId}_${idx}`;
+        finishedCalculatingState[key] = false;
+      });
+      setCalculating(prev => ({ ...prev, ...finishedCalculatingState }));
+
     }, 1000);
   };
 
   const handleSuggestionClick = (p, idx, suggestion) => {
     const key = `${p.productId}_${idx}`;
     let newDppData;
+    let weightToUse;
     setProducts(currentProducts => {
       const newProducts = currentProducts.map(prod => {
         if (prod.productId === p.productId) {
           let dpp = JSON.parse(prod.dppData);
-          dpp[idx].process = suggestion.name;
-          dpp[idx].processId = suggestion.openLcaProcessId;
+          dpp[idx].material = suggestion.name;
+          dpp[idx].materialId = suggestion.openLcaMaterialId;
           dpp[idx].lcaValue = null;
+          dpp[idx].emissionFactor = null;
+          weightToUse = dpp[idx].weightKg;
           newDppData = JSON.stringify(dpp);
           return { ...prod, dppData: newDppData };
         }
@@ -353,34 +468,12 @@ const InventoryPage = () => {
       });
       return newProducts;
     });
-    setEditableProcesses(prev => ({ ...prev, [key]: undefined }));
+    setEditableMaterials(prev => ({ ...prev, [key]: undefined }));
     setSuggestions(prev => ({ ...prev, [key]: [] }));
     setActiveSuggestionBox(null);
     if (newDppData) {
       autoSaveProduct(p.productId, newDppData);
-    }
-  };
-
-  const handleComponentBlur = (p, idx) => {
-    const key = `${p.productId}_${idx}`;
-    const newName = editableComponents[key];
-    if (newName === undefined) return;
-    let newDppData;
-    setProducts(currentProducts => {
-      const newProducts = currentProducts.map(prod => {
-        if (prod.productId === p.productId) {
-          let dpp = JSON.parse(prod.dppData);
-          dpp[idx].component = newName;
-          newDppData = JSON.stringify(dpp);
-          return { ...prod, dppData: newDppData };
-        }
-        return prod;
-      });
-      return newProducts;
-    });
-    setEditableComponents(prev => ({ ...prev, [key]: undefined }));
-    if (newDppData) {
-      autoSaveProduct(p.productId, newDppData);
+      runLcaCalculation(p.productId, idx, weightToUse);
     }
   };
 
@@ -393,10 +486,11 @@ const InventoryPage = () => {
     }
     dpp.push({ 
       component: `Component ${dpp.length + 1}`, 
-      process: "", 
+      material: "",
       weightKg: 0, 
       lcaValue: null,
-      processId: null 
+      materialId: null,
+      emissionFactor: null
     });
     autoSaveProduct(productId, JSON.stringify(dpp));
   };
@@ -409,7 +503,8 @@ const InventoryPage = () => {
     if (!product) return;
     let dpp = JSON.parse(product.dppData);
     const item = dpp[idx];
-    if (item.lcaValue !== null && item.lcaValue !== undefined) {
+    
+    if (item.materialId || item.material) {
       runLcaCalculation(p.productId, idx, newWeight);
     } else {
       item.weightKg = newWeight;
@@ -426,16 +521,18 @@ const InventoryPage = () => {
     });
   };
 
-  // 4. Added new file handler functions from GuidePage
   const handleFileSelect = (file) => {
-    if (file) {
-      // You can add file type validation here if needed
-      if (!file.name.endsWith('.csv')) {
-         alert("Please upload a .csv file.");
-         return;
-      }
-      setProductFile(file);
+    if (!file) {
+      setProductFile(null);
+      return;
     }
+
+    if (!file.name.endsWith('.csv')) {
+      alert("Please upload a .csv file.");
+      return;
+    }
+    
+    setProductFile(file);
   };
 
   const handleDragOver = (e) => {
@@ -458,11 +555,6 @@ const InventoryPage = () => {
     handleFileSelect(file);
   };
 
-  const handleBrowseClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // --- FORMATTING & FILTERING ---
   const formatDpp = (dppData) => {
     if (!dppData || dppData === '[No DPP stored]') return '[No DPP stored]';
     try {
@@ -472,9 +564,10 @@ const InventoryPage = () => {
       }
       const displayData = data.map(item => ({
         component: item.component,
-        process: item.process,
+        material: item.material,
         weightKg: item.weightKg,
-        lcaValue: item.lcaValue
+        lcaValue: item.lcaValue,
+        emissionFactor: item.emissionFactor
       }));
       return JSON.stringify(displayData, null, 2); 
     } catch (e) {
@@ -493,10 +586,8 @@ const InventoryPage = () => {
     product.productName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- RENDER ---
   return (
     <div className="container">
-      {/* Sidebar is unchanged and correct */}
       <div className="sidebar">
         <div className="sidebar-top">
           <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
@@ -514,23 +605,19 @@ const InventoryPage = () => {
           </div>
           <p className ="descriptor">Plugins</p>
           <div className = "navbar">
-            <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')}>
+            <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')} disabled={!isProUser}>
               <Network /><span>Network</span>
             </button>
-            <button type="button" className={`nav ${location.pathname === '/report' ? 'active' : ''}`} onClick={() => navigate('/report')}>
+            <button type="button" className={`nav ${location.pathname === '/report' ? 'active' : ''}`} onClick={() => navigate('/report')} disabled={!isProUser}>
               <FileText /><span>Report</span>
             </button>
-            <button type="button" className={`nav ${location.pathname === '/chat' ? 'active' : ''}`} onClick={() => navigate('/chat')}>
+            <button type="button" className={`nav ${location.pathname === '/chat' ? 'active' : ''}`} onClick={() => navigate('/chat')} disabled={!isProUser}>
               <Sprout /><span>Sprout AI</span>
             </button>
           </div>
         </div>
         <div className="sidebar-bottom">
-          <button 
-            type="button" 
-            className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} 
-            onClick={() => navigate("/settings")}
-          >
+          <button type="button" className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} onClick={() => navigate("/settings")}>
             <Settings /><span>Settings</span>
           </button>
         </div>
@@ -546,19 +633,14 @@ const InventoryPage = () => {
             <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} products</p>
             <div className = "button-container">
               <div className = "input-base search-bar"><Search />
-                <input 
-                  type="text" 
-                  placeholder="Search" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
               <button className = "icon" onClick={() => setShowAddProduct(true)}><Plus /></button>
             </div>
           </div>
           <div className="inventory-table-container">
             <table className="inventory-table">
-              <thead>
+              <thead className = "normal-bold">
                 <tr>
                   <th></th>
                   <th>Product Name</th>
@@ -570,76 +652,96 @@ const InventoryPage = () => {
                 </tr>
               </thead>
               <tbody>
+                {loading && (
+                  <tr>
+                    <td colSpan={7} className="no-products-message">Loading products...</td>
+                  </tr>
+                )}
+                
+                {!loading && error && (
+                  <tr>
+                    <td colSpan={7} className="no-products-message" style={{ color: 'rgba(var(--danger), 1)' }}>
+                      {error}
+                    </td>
+                  </tr>
+                )}
+                
+                {!loading && !error && products.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="no-products-message">
+                      No products found. Click the <Plus size={16} style={{ display: 'inline-block', verticalAlign: 'middle', margin: '0 4px' }} /> button to add your first product.
+                    </td>
+                  </tr>
+                )}
+                
+                {!loading && !error && products.length > 0 && filteredProducts.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="no-products-message">
+                      No products match your search query.
+                    </td>
+                  </tr>
+                )}
+
                 {!loading && !error && filteredProducts.map(p => {
                   const dpp = p.dppData &&
                     (typeof p.dppData === 'string' ? JSON.parse(p.dppData) : p.dppData);
 
                   return (
                     <React.Fragment key={p.productId}>
-                      {/* Main Row */}
                       <tr>
                         <td>
-                          <button className="icon" onClick={() => setExpandedRows(prev => ({
-                            ...prev, [p.productId]: !prev[p.productId]
-                          }))}>
-                            <Triangle size={16} style={{ transform: expandedRows[p.productId] ? 'rotate(0deg)' : 'rotate(90deg)' }} />
+                          <button 
+                            className="icon" 
+                            onClick={() => {
+                              const isOpening = !expandedRows[p.productId];
+                              setExpandedRows(prev => ({ ...prev, [p.productId]: !prev[p.productId] }));
+                              
+                              if (isOpening) {
+                                runFullLcaCalculation(p.productId);
+                              }
+                            }}
+                          >
+                            <Triangle size={16} style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
                           </button>
                         </td>
                         <td>{p.productName}</td>
                         <td>{p.uploadedFile}</td>
                         <td>
                           {p.uploadedFile ? (
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                alert(`This would show the file: ${p.uploadedFile}`);
-                              }}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="link normal-bold"
-                            >BoM File</a>
+                            <a href="#" onClick={(e) => { e.preventDefault(); alert(`This would show the file: ${p.uploadedFile}`); }} target="_blank" rel="noopener noreferrer" className="link normal-bold">
+                              BoM File
+                            </a>
                           ) : (
                             <span style={{ color: '#828282' }}>[No File]</span>
                           )}
                         </td>
                         <td>
-<a
-                    href="#"
-                    className="link normal-bold" 
-                    onClick={(e) => {
-                      e.preventDefault(); 
-                      setShowDppModal(true);
-                      setCurrentDpp(p.dppData || '[No DPP stored]');
-                    }}
-                  >
-                    View DPP
-                  </a>
+                          <a href="#" className="link normal-bold" onClick={(e) => { e.preventDefault(); setShowDppModal(true); setCurrentDpp(p.dppData || '[No DPP stored]'); }}>
+                            View DPP
+                          </a>
                         </td>
                         <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
                         <td>
-                          <button 
-                            className="icon" style = {{background: "rgba(var(--danger))"}}
-                            title = "Delete product" 
-                            onClick={() => handleDelete(p.productId)}>
-                            <Trash2 />
-                          </button>
+                          <div className='button-container'>
+                            <button className="icon" onClick={() => handleAddSubcomponent(p.productId)}><CirclePlus /></button>
+                            <button className="icon" style = {{background: "rgba(var(--danger))"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
+                              <Trash2 />
+                            </button>
+                          </div>
                         </td>
                       </tr>
 
-                      {/* Expanded Row (unchanged) */}
                       {expandedRows[p.productId] && dpp && Array.isArray(dpp) && (
                         <tr className="sub-table-row">
                           <td colSpan={7}>
                             <div className="sub-table-container">
                               <table className="sub-inventory-table">
-                                <thead>
+                                <thead className = " normal-bold">
                                   <tr>
-                                    <th>Subcomponent</th>
-                                    <th>Process</th>
-                                    <th>Weight (kg)</th>
-                                    <th>LCA Output</th>
-                                    <th>Calculate</th>
+                                    <th>No.</th>
+                                    <th>Material</th>
+                                    <th>Weight</th>
+                                    <th>LCA (kgCO2e)</th>
                                     <th>Actions</th>
                                   </tr>
                                 </thead>
@@ -649,51 +751,33 @@ const InventoryPage = () => {
                                     const lcaValue = item.lcaValue;
                                     return (
                                       <tr key={idx}>
+                                        <td>{idx + 1}</td>
                                         <td>
-                                          <input
-                                            type="text"
-                                            className="suggestion-input"
-                                            value={editableComponents[key] ?? item.component}
-                                            onChange={(e) => handleComponentChange(e, p, idx)}
-                                            onBlur={() => handleComponentBlur(p, idx)}
-                                            placeholder="Component name"
-                                          />
-                                        </td>
-                                        <td>
-                                          <div className="suggestion-box">
-                                            <input
-                                              type="text"
-                                              className="suggestion-input"
-                                              value={editableProcesses[key] ?? item.process}
-                                              onChange={(e) => handleProcessChange(e, p, idx)}
-                                              onBlur={() => {
+                                          <div>
+                                            <input type="text" className="input-base" value={editableMaterials[key] ?? item.material} onChange={(e) => handleMaterialChange(e, p, idx)} onBlur={() => {
                                                 setTimeout(() => setActiveSuggestionBox(null), 150);
-                                                const typedValue = editableProcesses[key];
-                                                if (typedValue !== undefined && typedValue !== item.process) {
-                                                    let dpp = JSON.parse(p.dppData);
-                                                    dpp[idx].process = typedValue;
-                                                    dpp[idx].processId = null; 
-                                                    dpp[idx].lcaValue = null;
-                                                    autoSaveProduct(p.productId, JSON.stringify(dpp));
+                                                const typedValue = editableMaterials[key];
+                                                if (typedValue !== undefined && typedValue !== item.material) {
+                                                  let dpp = JSON.parse(p.dppData);
+                                                  dpp[idx].material = typedValue;
+                                                  dpp[idx].materialId = null;
+                                                  dpp[idx].lcaValue = null;
+                                                  dpp[idx].emissionFactor = null;
+                                                  autoSaveProduct(p.productId, JSON.stringify(dpp));
+                                                  runLcaCalculation(p.productId, idx, dpp[idx].weightKg);
                                                 }
-                                                setEditableProcesses(prev => ({...prev, [key]: undefined}));
-                                              }}
-                                              onFocus={() => {
+                                                setEditableMaterials(prev => ({...prev, [key]: undefined}));
+                                              }} onFocus={() => {
                                                 setActiveSuggestionBox(key);
-                                                if (!item.process) {
-                                                    handleProcessChange({ target: { value: '' }}, p, idx);
+                                                if (!item.material) {
+                                                  handleMaterialChange({ target: { value: '' }}, p, idx);
                                                 }
-                                              }}
-                                              placeholder="Type to search process..."
+                                              }} placeholder="Search Materials"
                                             />
                                             {activeSuggestionBox === key && suggestions[key] && suggestions[key].length > 0 && (
                                               <div className="suggestion-dropdown">
                                                 {suggestions[key].map((sug, sugIdx) => (
-                                                  <div
-                                                    key={sug.openLcaProcessId || sugIdx}
-                                                    className="suggestion-item"
-                                                    onMouseDown={() => handleSuggestionClick(p, idx, sug)}
-                                                  >
+                                                  <div key={sug.openLcaMaterialId || sugIdx} className="suggestion-item" onMouseDown={() => handleSuggestionClick(p, idx, sug)}>
                                                     {sug.name}
                                                   </div>
                                                 ))}
@@ -702,23 +786,16 @@ const InventoryPage = () => {
                                           </div>
                                         </td>
                                         <td>
-                                          <input
-                                            type="number"
-                                            className="weight-input"
-                                            value={subProductWeights[key] ?? item.weightKg}
-                                            min={0}
-                                            step={0.01}
-                                            onChange={e => setSubProductWeights(prev => ({
+                                          <input type="number" className="input-base" value={subProductWeights[key] ?? item.weightKg} min={0} step={0.01} onChange={e => setSubProductWeights(prev => ({
                                               ...prev,
                                               [key]: e.target.value
-                                            }))}
-                                            onBlur={(e) => handleWeightBlur(e, p, idx)}
+                                            }))} onBlur={(e) => handleWeightBlur(e, p, idx)}
                                           />
                                         </td>
                                         <td>
                                           <strong>
                                             {calculating[key] ? (
-                                              <span style={{ color: '#888', fontStyle: 'italic' }}>Calculating...</span>
+                                              <span style={{ color: 'rgba(var(--black), 0.8)'}}>Calculating...</span>
                                             ) : (
                                               (() => {
                                                   if (lcaValue === undefined || lcaValue === null) {
@@ -732,29 +809,8 @@ const InventoryPage = () => {
                                             )}
                                           </strong>
                                         </td>
-                                        <td>
-                                          {(!calculating[key] && (lcaValue === undefined || lcaValue === null)) && (
-                                            <button
-                                              className="calculate-lca-btn"
-                                              disabled={!(item.processId || item.process)}
-                                              onClick={() => {
-                                                const newWeightString = subProductWeights[key];
-                                                const weightToSend = (newWeightString !== undefined && newWeightString !== null && newWeightString !== "")
-                                                  ? Number(newWeightString)
-                                                  : item.weightKg;
-                                                runLcaCalculation(p.productId, idx, weightToSend);
-                                              }}
-                                            >
-                                              Calculate LCA
-                                            </button>
-                                          )}
-                                        </td>
-                                        <td>
-                                          <button
-                                            className="icon icon-small" style = {{background: "rgba(var(--danger))"}}
-                                            title="Delete subcomponent"
-                                            onClick={() => handleDeleteSubcomponent(p.productId, idx)}
-                                          >
+                                        <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                          <button className="icon" style = {{background: "rgba(var(--danger))"}} title="Delete subcomponent" onClick={() => handleDeleteSubcomponent(p.productId, idx)}>
                                             <Trash2 />
                                           </button>
                                         </td>
@@ -762,15 +818,6 @@ const InventoryPage = () => {
                                     )})}
                                 </tbody>
                               </table>
-                              
-                              <div className="subcomponent-buttons-container">
-                                <button
-                                  className="add-subcomponent-yellow-btn"
-                                  onClick={() => handleAddSubcomponent(p.productId)}
-                                >
-                                  + Add Subcomponent
-                                </button>
-                              </div>
                             </div>
                           </td>
                         </tr>
@@ -783,8 +830,6 @@ const InventoryPage = () => {
           </div>
         </div>
       </div>
-  
-      {/* 5. REPLACED the 'Add Product' modal with the new one from GuidePage */}
       {showAddProduct && (
         <div className="modal-overlay active">
           <div className="modal-content">
@@ -793,71 +838,57 @@ const InventoryPage = () => {
               <button className="close-modal-btn" onClick={() => setShowAddProduct(false)}><X /></button>
             </div>
             <form id="addProductForm" onSubmit={handleAddProduct}>
-              <div className="form-group">
-                <label htmlFor="productName">Product Name *</label>
-                <input 
-                  type="text" 
-                  id="productName" 
-                  placeholder="Product Name"
-                  value={productName} 
-                  onChange={(e) => setProductName(e.target.value)} 
-                  required 
-                />
+              <div className = "add-product-form">
+              <div className="group">
+                <label className = "normal-bold" htmlFor="productName">Product Name <span className='submit-error'>*</span></label>
+                <input className='input-base'type="text" id="productName" placeholder="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} required />
               </div>
               
-              <div className="form-group">
-                <label htmlFor="fileUpload">
-                  {productFile 
-                    ? `File Uploaded: ${productFile.name}` 
-                    : "Upload File"}
+              <div className="group">
+                <label className="normal-bold">
+                  Upload File <span className='submit-error'>*</span>
                 </label>
-                
-                <div 
-                  className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
+
+                {productFile && (
+                    <div className = "modal-header">
+                      <p className='small-regular' style = {{color: `rgba(var(--blacks), 0.8)`}}>File Uploaded: <strong>{productFile.name}</strong></p>
+                      <button type="button" className="remove-file-btn" onClick={() => handleFileSelect(null)}>
+                        <X size = {14}/>
+                      </button>
+                    </div>
+                )}
+
+                <label htmlFor="fileUpload" className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}onDragOver={handleDragOver}onDragLeave={handleDragLeave}onDrop={handleDrop}>
+                  <FilePlus />
+                  <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your file here</p>
+                  <span className="outline-browse">
+                    Or Browse Files
+                  </span>
                   <input 
                     type="file" 
                     id="fileUpload"
-                    ref={fileInputRef}
-                    className="file-input-hidden"
+                    className="file-input-hidden" 
                     accept=".csv"
                     onChange={(e) => handleFileSelect(e.target.files[0])}
                   />
-                  
-                  <p className="file-drop-zone-text">Drag and drop your file here</p>
-                  
-                  <button 
-                    type="button" 
-                    className="browse-files-btn" 
-                    onClick={handleBrowseClick}
-                  >
-                    Browse Files
-                  </button>
-                </div>
+                </label>
               </div>
               
-              <button 
-                type="submit" 
-                className="create-dpp-btn" 
-                disabled={uploading || !productName || !productFile}
-              >
+              <button type="submit" className="default" disabled={uploading || !productName || !productFile}>
                 {uploading ? "Uploading..." : "Add Product"}
               </button>
+              </div>
             </form>
           </div>
         </div>
       )}
   
-      {/* DPP Modal (unchanged) */}
       {showDppModal && (
         <div className="modal-overlay active" onClick={() => setShowDppModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '600px', maxWidth: '90%' }}>
             <div className="modal-header">
-              <h2>DPP Data</h2>
-              <button className="close-modal-btn" onClick={() => setShowDppModal(false)}>&times;</button>
+              <p className="medium-bold">DPP Data</p>
+              <button className="close-modal-btn" onClick={() => setShowDppModal(false)}><X /></button>
             </div>
             <pre className="dpp-modal-pre">
               {formatDpp(currentDpp)}
@@ -866,7 +897,6 @@ const InventoryPage = () => {
         </div>
       )}
   
-      {/* Confirmation Modal (unchanged) */}
       <ConfirmationModal
         isOpen={deleteConfirm.isOpen}
         title={deleteConfirm.title}
