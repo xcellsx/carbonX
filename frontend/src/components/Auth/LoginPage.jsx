@@ -80,7 +80,7 @@ const LoginPage = () => {
           </form>
           <div className="prompt">
             Don’t have an account? {''}
-            <Link to="/signup" className="link">Sign up here</Link>
+            <Link to="/signup" className="link normal-bold">Sign up here</Link>
           </div>
         </div>
       </div>

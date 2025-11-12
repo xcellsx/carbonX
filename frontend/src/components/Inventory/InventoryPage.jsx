@@ -7,6 +7,40 @@ import {
   LayoutDashboard, Archive, ChartColumnBig, Network, FileText, Sprout, Settings 
 } from 'lucide-react';
 
+const DUMMY_PRODUCTS = [
+  {
+    productId: 'prod_1',
+    productName: 'Handheld Hammer Drill',
+    uploadedFile: 'drill_bom.csv',
+    lcaResult: 12.345,
+    dppData: JSON.stringify([
+      { component: "Plastic Casing", process: "Mock: Plastic injection", weightKg: 0.8, processId: 'mock-plastic', lcaValue: 0.8 * 0.3 },
+      { component: "Motor Assembly", process: "Mock: Steel production", weightKg: 1.2, processId: 'mock-steel', lcaValue: 1.2 * 0.4 },
+      { component: "Battery Pack", process: "Mock: Aluminum casting", weightKg: 0.5, processId: 'mock-aluminum', lcaValue: 0.5 * 0.2 }
+    ])
+  },
+  {
+    productId: 'prod_2',
+    productName: 'Industrial Fan',
+    uploadedFile: 'fan_assembly.csv',
+    lcaResult: 8.76,
+    dppData: JSON.stringify([
+      { component: "Fan Blades (Aluminum)", process: "Mock: Aluminum casting", weightKg: 2.5, processId: 'mock-aluminum', lcaValue: 2.5 * 0.2 },
+      { component: "Steel Frame", process: "Mock: Steel production", weightKg: 3.0, processId: 'mock-steel', lcaValue: 3.0 * 0.4 }
+    ])
+  },
+  {
+    productId: 'prod_3',
+    productName: 'Office Chair',
+    uploadedFile: 'chair_parts.csv',
+    lcaResult: 0.000,
+    dppData: JSON.stringify([
+      { component: "Nylon Base", process: "Mock: Plastic injection", weightKg: 1.5, processId: 'mock-plastic', lcaValue: null },
+      { component: "Mesh Backing", process: "", weightKg: 0.7, processId: null, lcaValue: null }
+    ])
+  }
+];
+
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
   if (!isOpen) {
     return null;
@@ -42,8 +76,8 @@ const InventoryPage = () => {
   const [userInitials, setUserInitials] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(DUMMY_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -59,12 +93,7 @@ const InventoryPage = () => {
   const [suggestions, setSuggestions] = useState({});
   const [activeSuggestionBox, setActiveSuggestionBox] = useState(null);
   const [editableComponents, setEditableComponents] = useState({});
-  const [deleteConfirm, setDeleteConfirm] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
+  const [deleteConfirm, setDeleteConfirm] = useState({isOpen: false, title: '', message: '', onConfirm: () => {},});
 
   // 2. Added isDragging state and fileInputRef from GuidePage
   const [isDragging, setIsDragging] = useState(false);
@@ -128,7 +157,7 @@ const InventoryPage = () => {
 
   useEffect(() => {
     fetchUserProfile();
-    fetchProducts();
+    // fetchProducts();
   }, [userId]);
   
   const autoSaveProduct = (productId, newDppData) => {
@@ -534,8 +563,8 @@ const InventoryPage = () => {
                   <th></th>
                   <th>Product Name</th>
                   <th>Uploaded File</th>
-                  <th>View BoM</th>
-                  <th>View DPP</th>
+                  <th>BoM</th>
+                  <th>DPP</th>
                   <th>Total LCA Result</th>
                   <th>Actions</th>
                 </tr>
@@ -568,19 +597,24 @@ const InventoryPage = () => {
                               }}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="dpp-link"
-                            >View BoM</a>
+                              className="link normal-bold"
+                            >BoM File</a>
                           ) : (
                             <span style={{ color: '#828282' }}>[No File]</span>
                           )}
                         </td>
                         <td>
-                          <button className="dpp-link" onClick={() => {
-                            setShowDppModal(true);
-                            setCurrentDpp(p.dppData || '[No DPP stored]');
-                          }}>
-                            View DPP
-                          </button>
+<a
+                    href="#"
+                    className="link normal-bold" 
+                    onClick={(e) => {
+                      e.preventDefault(); 
+                      setShowDppModal(true);
+                      setCurrentDpp(p.dppData || '[No DPP stored]');
+                    }}
+                  >
+                    View DPP
+                  </a>
                         </td>
                         <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
                         <td>

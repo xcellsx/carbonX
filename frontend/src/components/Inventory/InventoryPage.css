@@ -112,29 +112,6 @@
   font-size: 16px;
 }
 
-.expand-btn {
-  background: var(--main-bg);
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.dpp-link {
-  background: none;
-  border: none;
-  color: var(--navy);
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  font-size: 16px;
-  font-family: 'Figtree', sans-serif;
-}
-.dpp-link:hover {
-  color: #1a2533;
-}
-
 .view-file-btn {
   background: none;
   border: none;
@@ -171,13 +148,10 @@
 
 .sub-table-row td {
   padding: 0;
-  border-bottom: 1px solid var(--main-bg);
 }
 
 .sub-table-container {
-  padding: 20px;
-  background: #fcfcfc;
-  border-top: 2px solid var(--main-bg);
+  background: rgba(var(--greys), 0.6);
 }
 
 .sub-inventory-table {
@@ -189,14 +163,13 @@
 .sub-inventory-table td {
   padding: 10px 14px;
   text-align: left;
-  border-bottom: 1px solid #eee;
 }
 
 .sub-inventory-table th {
   font-size: 14px;
   font-weight: 600;
-  color: #555;
-  background: #f9f9f9;
+  color: rgba(var(--whites));
+  background: rgba(var(--primary), 0.6);
 }
 
 .sub-inventory-table td {
@@ -300,14 +273,7 @@
   font-weight: 600;
   transition: background-color 0.2s ease;
 }
-.save-navy-btn:hover {
-  background-color: #000066;
-}
-.save-navy-btn:disabled {
-  background: var(--text-grey);
-  border-color: var(--text-grey);
-  cursor: not-allowed;
-}
+
 
 .modal-overlay.active {
   position: fixed;

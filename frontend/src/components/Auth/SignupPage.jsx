@@ -88,7 +88,7 @@ const SignupPage = () => {
           </form>
           <div className="prompt">
             Already have an account? {' '}
-            <Link className="link" to="/login">Sign in here</Link>
+            <Link className="link normal-bold" to="/login">Sign in here</Link>
           </div>
         </div>
       </div>
