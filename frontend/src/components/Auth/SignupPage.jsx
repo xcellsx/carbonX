@@ -59,27 +59,27 @@ const SignupPage = () => {
   return (
     <div className = "container">
       <div className = "image-section">
-        <img src = {dashboard} alt="Sign up visual" className="signup-image"/>
+        <img src = {dashboard} alt="Sign up visual" className="image-section-img"/>
       </div>
-      <div className = "form-section">
+      <div className = "content-section">
         <div className = "logo-animation">
           <Lottie animationData={animationData} style={{ height: 48, width: 48 }} />
         </div>
-        <div className="form-container">
-          <div className="form-header">
+        <div className="content-container">
+          <div className="header-group">
             <h1>Welcome.</h1>
             <p className = "medium-regular">Sign up with your credentials.</p>
           </div>
-          <form className="form-auth" onSubmit={handleSubmit} noValidate>
-            <div className = "group">
+          <form className="form" onSubmit={handleSubmit} noValidate>
+            <div className = "input-group-col">
               <label className="normal-bold" htmlFor="fullName">Full Name</label>
               <input className="input-base" type="text" id="fullName" value={fullName} placeholder="Full Name" onChange={e => setFullName(e.target.value)} autoFocus/>
             </div>
-            <div className = "group">
+            <div className = "input-group-col">
             <label className="normal-bold" htmlFor="email">Email</label>
             <input className="input-base" type="email" id="email" value={email} placeholder="Email" onChange={e => setEmail(e.target.value)}/>
             </div>
-            <div className = "group">
+            <div className = "input-group-col">
             <label className="normal-bold" htmlFor="password">Password</label>
             <input className="input-base" type="password" id="password" value={password} placeholder="Password" onChange={e => setPassword(e.target.value)}/>
             </div>

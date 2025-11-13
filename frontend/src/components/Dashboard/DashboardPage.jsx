@@ -3,7 +3,7 @@ import './DashboardPage.css';
 import logoPath from '../../assets/carbonx.png'; // Removed
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  ChevronDown, Plus, Search, Triangle, Trash2, X, 
+  ChevronDown, Leaf, Search, ArrowRight, Trash2, X, 
   LayoutDashboard, Archive, ChartColumnBig, Network, 
   FileText, Sprout, Settings, Sparkles, CircleCheck,
   Circle
@@ -98,19 +98,21 @@ const DashboardPage = () => {
           </div>
         </div>
         <div className="sidebar-bottom">
+          <div className = "navbar">
           <button type="button" className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} onClick={() => navigate("/settings")}>
             <Settings /><span>Settings</span>
           </button>
+          </div>
         </div>
       </div>
 
-      <div className="content-body">
-        <div className="content"> 
-          <div className="form-header">
+      <div className="content-section-main">
+        <div className="content-container-main"> 
+          <div className="header-group">
             <h1>Dashboard</h1>
             <p className = "medium-regular">Overview of your industry metrics.</p>
           </div>
-          <div className = "table-header-content-db">
+          <div className = "sub-header" style={{ display: 'flex', alignItems: 'stretch' }}>
             <div class = "header-col">
               <p className='descriptor-medium'>Key Metrics</p>
               <p style = {{color: "rgba(var(--greys), 1)"}}>Showing 7 of 7 metrics</p>
@@ -126,6 +128,36 @@ const DashboardPage = () => {
               </button>
             </div>
           </div>
+          <div className = "metrics-container">
+            <div className = "metrics-card">
+            <div className = "metrics-card-header">
+              <Leaf />
+              <p className='medium-bold' style = {{color: 'rgba(var(--primary) ,1)'}}>Greenhouse Gas Emissions</p>
+            </div>
+            <div className = "metrics-content">
+              <p className = "medium-bold">1.604 kgCO2e</p>
+              <div className = "progress-bar-metrics small-regular" style = {{color: 'rgba(var(--greys) ,1)'}}>
+                <p>2.000 kgCO2e</p>
+                <p>80.2%</p>
+              </div>
+              <div className="progress-bar">
+                {/* This is the inner "fill" bar */}
+                <div 
+                  className="progress-bar-fill" 
+                  style={{ width: `80%` }}
+                  role="progressbar"
+                  aria-valuenow={80}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                </div>
+              </div>
+            </div>
+            <div className='logo-animation'>
+              <button className = "icon"><ArrowRight /></button>
+            </div>
+          </div>
+          </div>
         </div>
       </div>
 
@@ -133,9 +165,7 @@ const DashboardPage = () => {
       {showProModal && (
         <div className="modal-overlay active" onClick={() => setShowProModal(false)}>
           <div className="modal-content pro-modal" onClick={e => e.stopPropagation()}>
-            <div className="closebtnheader">
-              <button className="close-modal-btn" onClick={() => setShowProModal(false)}><X /></button>
-            </div>
+            <button className="close-modal-btn" style={{ width: '100%', textAlign: 'right' }} onClick={() => setShowProModal(false)}><X /></button>
               <div>
                 <Sparkles size={48} color="rgba(var(--secondary), 1)" />
               </div>

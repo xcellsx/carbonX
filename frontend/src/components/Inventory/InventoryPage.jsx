@@ -623,15 +623,15 @@ const InventoryPage = () => {
         </div>
       </div>
 
-      <div className="content-body">
-        <div className="content"> 
-          <div className="form-header">
+      <div className="content-section-main">
+        <div className="content-container-main"> 
+          <div className="header-group">
             <h1>Inventory</h1>
             <p className = "medium-regular">Overview of your products.</p>
           </div>
-          <div className = "table-header-content">
+          <div className = "sub-header">
             <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} products</p>
-            <div className = "button-container">
+            <div className = "two-row-component-container">
               <div className = "input-base search-bar"><Search />
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
@@ -691,7 +691,7 @@ const InventoryPage = () => {
                       <tr>
                         <td>
                           <button 
-                            className="icon" 
+                            className="icon icon-small" 
                             onClick={() => {
                               const isOpening = !expandedRows[p.productId];
                               setExpandedRows(prev => ({ ...prev, [p.productId]: !prev[p.productId] }));
@@ -701,7 +701,7 @@ const InventoryPage = () => {
                               }
                             }}
                           >
-                            <Triangle size={16} style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
+                            <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
                           </button>
                         </td>
                         <td>{p.productName}</td>
@@ -722,7 +722,7 @@ const InventoryPage = () => {
                         </td>
                         <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
                         <td>
-                          <div className='button-container'>
+                          <div className='two-row-component-container'>
                             <button className="icon" onClick={() => handleAddSubcomponent(p.productId)}><CirclePlus /></button>
                             <button className="icon" style = {{background: "rgba(var(--danger))"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
                               <Trash2 />
@@ -811,7 +811,7 @@ const InventoryPage = () => {
                                         </td>
                                         <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                           <button className="icon" style = {{background: "rgba(var(--danger))"}} title="Delete subcomponent" onClick={() => handleDeleteSubcomponent(p.productId, idx)}>
-                                            <Trash2 />
+                                            <Trash2 size = {16} />
                                           </button>
                                         </td>
                                       </tr>
@@ -839,12 +839,12 @@ const InventoryPage = () => {
             </div>
             <form id="addProductForm" onSubmit={handleAddProduct}>
               <div className = "add-product-form">
-              <div className="group">
+              <div className="input-group-col">
                 <label className = "normal-bold" htmlFor="productName">Product Name <span className='submit-error'>*</span></label>
                 <input className='input-base'type="text" id="productName" placeholder="Product Name" value={productName} onChange={(e) => setProductName(e.target.value)} required />
               </div>
               
-              <div className="group">
+              <div className="input-group-col">
                 <label className="normal-bold">
                   Upload File <span className='submit-error'>*</span>
                 </label>

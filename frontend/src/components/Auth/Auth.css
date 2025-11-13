@@ -1,10 +1,4 @@
-.container {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  /* overflow: scroll; */
-}
-
+/* For both Signup.jsx & Login.jsx */
 .image-section {
   flex: 1;
   display: flex;
@@ -30,58 +24,6 @@
   }
 }
 
-img {
+.image-section-img {
   max-width: 100%;
 }
-
-.form-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: end;
-  padding: 4rem; /* 64px */
-  gap: 1rem; /* 16px */
-}
-
-.form-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 2rem; /* 32px */
-  padding: 2rem; /* 32px */
-  height: 100%;
-  justify-content: center;
-}
-
-.form-auth {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem; /* 32px */
-  width: 100%;
-}
-
-.prompt {
-  text-align: center;
-}
-
-.link {
-  color: rgb(var(--primary), 1);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.submit-error {
-  color: rgba(var(--danger), 1)
-}
-
-.submit-warning {
-  color: rgba(var(--warning), 1)
-}
-
-.options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
