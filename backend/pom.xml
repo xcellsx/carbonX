@@ -26,23 +26,16 @@
 		<tag/>
 		<url/>
 	</scm>
+
 	<properties>
 		<java.version>25</java.version>
 	</properties>
 
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.openlca/olca-core -->
 		<dependency>
-				<groupId>org.openlca</groupId>
-				<artifactId>olca-core</artifactId>
-				<version>2.5.0</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/org.openlca/olca-io -->
-		<dependency>
-				<groupId>org.openlca</groupId>
-				<artifactId>olca-io</artifactId>
-				<version>2.5.0</version>
+    	<groupId>com.arangodb</groupId>
+			<artifactId>arangodb-spring-boot-starter</artifactId>
+			<version>3.4-0</version>
 		</dependency>
 		
 		<dependency>
