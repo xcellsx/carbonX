@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX;
+package com.ecapybara.CarbonX.service;
 
 public class StripePaymentService implements PaymentService{
     public void processPayment(double amount){
