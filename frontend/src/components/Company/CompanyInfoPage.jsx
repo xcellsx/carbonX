@@ -1,9 +1,30 @@
-import React, { useState, useEffect } from 'react'; // 1. Imported useEffect
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CompanyInfoPage.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import { ChevronDown } from 'lucide-react';
+
+// --- NEW: 1. METRIC CONFIGURATION "DATABASE" ---
+const METRIC_CONFIG = {
+  'Food & Beverages': {
+    'Agricultural Products': ['ghg', 'energy', 'water', 'food', 'safety', 'impact', 'sourcing'],
+    'Manufacturing': ['ghg', 'energy', 'water', 'food', 'safety'], 
+    'Retail': ['ghg', 'energy', 'food', 'safety'] 
+  },
+  'Agriculture': {
+    'Agricultural Products': ['ghg', 'water', 'sourcing', 'impact'],
+  },
+  'Technology': {
+    'Technology': ['ghg', 'energy', 'impact', 'safety'],
+  },
+  'Manufacturing': {
+    'Manufacturing': ['ghg', 'energy', 'water', 'safety', 'impact'],
+  }
+};
+// A fallback list if the user's selection isn't in the config
+const DEFAULT_METRICS = ['ghg', 'energy', 'water'];
+
 
 const CompanyInfoPage = () => {
   const [form, setForm] = useState({
@@ -50,6 +71,7 @@ const CompanyInfoPage = () => {
 
   const isFormComplete = Object.values(form).every(val => val && val.trim().length > 0);
 
+  // --- UPDATED: handleSubmit ---
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -61,13 +83,35 @@ const CompanyInfoPage = () => {
 
     setError('');
     
+    // --- Part 1: Save Company Info (Existing) ---
     const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-
     allCompanyData[userId] = form;
-
     localStorage.setItem('companyData', JSON.stringify(allCompanyData));
 
-    navigate('/inventory');
+    // --- Part 2: Determine and Save Metric List (UPDATED) ---
+    
+    const userSector = form.sector;
+    const userIndustry = form.industry;
+    let userMetricList = DEFAULT_METRICS; // Use fallback
+
+    if (METRIC_CONFIG[userSector] && METRIC_CONFIG[userSector][userIndustry]) {
+      userMetricList = METRIC_CONFIG[userSector][userIndustry];
+    }
+
+    // --- FIX: Load from 'metricsData_v2' ---
+    const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};
+    
+    const userMetrics = allMetricsData[userId] || {}; 
+    
+    userMetrics.metricList = userMetricList; 
+    
+    allMetricsData[userId] = userMetrics;
+    
+    // --- FIX: Save to 'metricsData_v2' ---
+    localStorage.setItem('metricsData_v2', JSON.stringify(allMetricsData));
+
+    // --- Part 3: Navigate to Inventory ---
+    navigate('/inventory'); // Navigates to inventory as requested
   };
 
   return (
@@ -142,10 +186,10 @@ const CompanyInfoPage = () => {
                 </div>
               </div>
             {error && <div className="submit-error">{error}</div>}
-          <button className="default" type="submit" disabled={!isFormComplete}>
-            Continue
-          </button>
-          </div>
+            <button className="default" type="submit" disabled={!isFormComplete}>
+              Continue
+            </button>
+            </div>
           </form>
         </div>
       </div>

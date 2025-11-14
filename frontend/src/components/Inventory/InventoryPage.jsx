@@ -590,7 +590,14 @@ const InventoryPage = () => {
     <div className="container">
       <div className="sidebar">
         <div className="sidebar-top">
-          <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+          <button 
+            type="button" 
+            onClick={() => navigate('/dashboard')}
+            className="logo-button" 
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+          </button>
           <p className ="descriptor">Core Features</p>
           <div className="navbar">
             <button type="button" onClick={() => navigate('/dashboard')} className={`nav ${location.pathname === '/dashboard' ? 'active' : ''}`}>

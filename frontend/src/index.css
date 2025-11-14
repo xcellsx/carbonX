@@ -206,6 +206,11 @@ button {
   background-color: #82828220;
 }
 
+.icon.active {
+  background-color: #1D1D1D;
+
+}
+
 .outline:hover {
   background-color: rgba(var(--primary), 0.8);
   color: rgba(var(--whites), 1);
@@ -358,6 +363,7 @@ select.input-base option {
   display: flex;
   width: 100%;
   justify-content: end;
+  margin-top: auto;
 }
 
 .content-container {
