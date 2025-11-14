@@ -1,166 +1,187 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap'); /* */
+/* ---
+Note: This file assumes you have the global styles
+for .container, .sidebar, .content-section-main, 
+.content-container-main, .header-group, .sub-header,
+.input-base, .select-wrapper, etc.
+--- */
 
-:root {
-  --white-ish: #F4F4F4;
-  --main-bg: #EAEAEA;
-  --navy: #334761;
-  --text-dark: #020202;
-  --text-grey: #A9A9A9;
-  --accent-yellow: #FBCC58;
-  --accent-light-blue: #C5E4E7;
-  --accent-red: #e74c3c;
-  --save-navy: #000080;
-} /* */
+/* --- Product Selector --- */
+.sub-header .header-col {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
 
-/* --- Page Layout --- */
-/* These styles are assumed to be loaded from your other CSS files (InventoryPage.css, etc.) */
-/* .dashboard-layout, .sidebar, .main-content, .dashboard-header { ... } */
-
-/* --- New Styles for Analytics Page --- */
-
-.product-selector-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-  margin-bottom: 24px;
+.sub-header .select-wrapper {
   width: 100%;
+  max-width: 400px;
 }
 
-.product-selector-container label {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-dark);
+/* --- Product Analysis Card --- */
+.product-analysis-card {
+  position: relative; /* For the blur overlay */
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem;
+  background-color: #fff;
+  overflow: hidden; /* To keep blur contained */
 }
 
-.product-selector-container select {
-  font-family: 'Figtree', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-dark);
-  background: var(--white-ish);
-  border: 1px solid var(--text-grey);
-  border-radius: 8px;
-  padding: 10px 14px;
-  min-width: 300px;
-  cursor: pointer;
+.product-analysis-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  transition: filter 0.2s ease-in-out;
 }
 
-.product-selector-container select:disabled {
-  background: var(--main-bg);
-  color: var(--text-grey);
-  cursor: not-allowed;
+.product-analysis-content.blurred {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
 }
 
-.analytics-grid {
-  width: 100%;
+.analysis-column .medium-bold {
+  margin-bottom: 1rem;
+}
+
+.analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0.75rem;
 }
 
-.analytics-card {
+.analysis-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9375rem; /* 15px */
+}
+
+.analysis-list.simple li {
+  justify-content: flex-start;
+}
+
+/* --- Blur Overlay --- */
+.blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  background: var(--white-ish); /* */
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* */
-  overflow: hidden;
-}
-
-.analytics-card h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--navy);
-  padding: 20px 20px 0 20px;
-  margin-bottom: 16px;
-}
-
-.analytics-table-container {
-  width: 100%;
-  overflow: hidden; /* No horizontal scroll needed for these tables */
-}
-
-/* --- Table Styles (Copied from InventoryPage.css) --- */
-.analytics-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-} /* */
-
-.analytics-table th, 
-.analytics-table td {
-  padding: 16px 20px;
-  text-align: left;
-  border-bottom: 1px solid var(--main-bg);
-  vertical-align: middle;
-} /* */
-
-.analytics-table th {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-grey);
-  background: var(--white-ish);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-} /* */
-
-.analytics-table td {
-  font-size: 16px;
-  color: var(--text-dark);
-  font-weight: 500;
-} /* */
-
-.analytics-table tr:last-child td {
-  border-bottom: none;
-} /* */
-
-.no-data-message {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  color: rgba(var(--primary), 1);
   text-align: center;
-  color: var(--text-grey);
-  padding: 24px;
-  font-style: italic;
-  font-size: 16px;
-} /* */
-
-.loading-message {
-  font-size: 18px;
-  color: var(--text-grey);
-  padding: 40px;
-  text-align: center;
+  gap: 0.5rem;
+}
+.blur-overlay:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+.blur-overlay .normal-regular {
+  color: rgba(var(--blacks), 0.8);
 }
 
-/* ... (keep all your existing styles from the previous turn) ... */
 
-/* --- NEW STYLES FOR COMPONENT TABS --- */
-
+/* --- Component Tabs (Product components) --- */
 .component-tabs {
   display: flex;
-  align-items: center;
-  gap: 24px; /* Space between tabs */
-  margin-bottom: 24px;
-  border-bottom: 1px solid #D1D1D1; /* Light grey border */
+  flex-wrap: wrap; 
+  gap: 0.5rem;
+  border-bottom: 2px solid #e2e8f0; 
+  margin-bottom: 1.5rem;
 }
 
 .component-tab-btn {
-  font-family: 'Figtree', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-grey); /* Inactive tabs are grey */
-  background: none;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  color: #64748b; 
+  background-color: transparent;
   border: none;
-  padding: 12px 4px; /* Padding for the bottom border */
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transform: translateY(1px); /* Aligns with the main border */
-  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -2px; /* Pulls tab down to overlap border */
+  transition: all 0.2s ease;
+}
+
+.component-tab-btn:hover {
+  background-color: rgba(var(--greys), 0.2); /* --- UPDATED: 50% grey (20% alpha) --- */
+  color: #334155;
 }
 
 .component-tab-btn.active {
-  font-weight: 700;
-  color: var(--text-dark); /* Active tab is dark */
-  border-bottom-color: var(--navy); /* Active tab has navy underline */
+  color: rgba(var(--primary), 1);
+  border-bottom-color: rgba(var(--primary), 1);
 }
 
-.component-tab-btn:hover:not(.active) {
-  color: var(--text-dark); /* Hover on inactive tab */
+/* --- Component Analysis (Inputs, Outputs, Impacts) --- */
+.component-analysis-container {
+  /* --- UPDATED: Border removed --- */
+  border: none; 
+  border-radius: 0.5rem;
+  overflow: hidden;
+  flex-grow: 0; /* This stops the container from stretching vertically */
+}
+
+.component-analysis-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
+  background-color: transparent;
+}
+
+.component-analysis-tabs button:hover {
+  background-color: #e2e8f0;
+}
+
+.component-analysis-tabs button.active {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+}
+
+
+/* --- Analytics Table (Replaces old grid) --- */
+.loading-message,
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+  font-size: 0.9375rem;
+}
+
+.analytics-table-container {
+  overflow-x: auto; /* Allow horizontal scroll if table is too wide */
+  width: 100%;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* This forces columns to divide width equally */
+}
+
+.analytics-table th,
+.analytics-table td {
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  font-size: 0.875rem; /* 14px */
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
+  white-space: nowrap; /* Prevent ugly wrapping */
+}
+
+.analytics-table thead th {
+  font-weight: 600;
+  color: #fff; /* White header text */
+  background-color: rgba(var(--primary), 0.9); /* Dark header */
+}
+
+.analytics-table tbody tr:last-child td {
+  border-bottom: none;
 }

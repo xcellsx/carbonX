@@ -1,77 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './CompanyInfoPage.css';
+import './CompanyInfoPage.css'; // Make sure you have this CSS file
 import Lottie from 'lottie-react';
-import animationData from '../../lottie/logo.json';
+import animationData from '../../lottie/logo.json'; // Make sure this path is correct
 import { ChevronDown } from 'lucide-react';
+import { useCompanyForm } from '../../hooks/useCompanyForm'; // Assuming this hook exists
+import CompanyForm from '../../components/Company/CompanyForm'; // Make sure this path is correct
 
-// --- NEW: 1. METRIC CONFIGURATION "DATABASE" ---
+// --- 1. UPDATED METRIC CONFIGURATION "DATABASE" ---
 const METRIC_CONFIG = {
   'Food & Beverages': {
-    'Agricultural Products': ['ghg', 'energy', 'water', 'food', 'safety', 'impact', 'sourcing'],
-    'Manufacturing': ['ghg', 'energy', 'water', 'food', 'safety'], 
-    'Retail': ['ghg', 'energy', 'food', 'safety'] 
-  },
-  'Agriculture': {
+    'Food Retailers & Distributors': [
+      'fleet-fuel-management',
+      'energy-management',
+      'food-waste-management',
+      'data-security',
+      'food-safety',
+      'product-health-nutrition',
+      'product-labelling-marketing',
+      'labour-practices',
+      'supply-chain-impacts',
+      'gmo' // Pro metric
+    ],
+    // --- Other F&B industries (using old metrics as placeholders) ---
     'Agricultural Products': ['ghg', 'water', 'sourcing', 'impact'],
+    'Alcoholic Beverages': ['ghg', 'water', 'sourcing', 'impact'],
+    '(Meat, Poultry & Dairy)': ['ghg', 'water', 'sourcing', 'impact'],
+    'Non-alcoholic Beverages': ['ghg', 'water', 'sourcing', 'impact'],
+    'Processed Foods': ['ghg', 'water', 'sourcing', 'impact'],
+    'Restaurants': ['ghg', 'water', 'sourcing', 'impact'],
+    'Tobacco': ['ghg', 'water', 'sourcing', 'impact'],
   },
-  'Technology': {
-    'Technology': ['ghg', 'energy', 'impact', 'safety'],
-  },
-  'Manufacturing': {
-    'Manufacturing': ['ghg', 'energy', 'water', 'safety', 'impact'],
-  }
 };
 // A fallback list if the user's selection isn't in the config
 const DEFAULT_METRICS = ['ghg', 'energy', 'water'];
 
 
 const CompanyInfoPage = () => {
-  const [form, setForm] = useState({
-    companyName: '',
-    sector: '',
-    industry: '',
-    companysize: '',
-    reportingYear: ''
-  });
-
-  const [error, setError] = useState('');
+  // Use the reusable hook to manage form state and loading
+  const { form, handleChange } = useCompanyForm();
   
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const currentUserId = localStorage.getItem('userId');
-    
-    if (currentUserId) {
-      const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-      
-      const userCompanyData = allCompanyData[currentUserId];
-      
-      if (userCompanyData) {
-        setForm(userCompanyData);
-      }
-    }
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === 'reportingYear') {
-      let formattedValue = value.replace(/[^\d]/g, '');
-
-      if (formattedValue.length > 2) {
-        formattedValue = `${formattedValue.slice(0, 2)}/${formattedValue.slice(2, 4)}`;
-      }
-
-      setForm({ ...form, [name]: formattedValue });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-  };
-
+  // Check if form is complete
   const isFormComplete = Object.values(form).every(val => val && val.trim().length > 0);
 
-  // --- UPDATED: handleSubmit ---
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -83,13 +57,12 @@ const CompanyInfoPage = () => {
 
     setError('');
     
-    // --- Part 1: Save Company Info (Existing) ---
+    // --- Part 1: Save Company Info ---
     const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
     allCompanyData[userId] = form;
     localStorage.setItem('companyData', JSON.stringify(allCompanyData));
 
-    // --- Part 2: Determine and Save Metric List (UPDATED) ---
-    
+    // --- Part 2: Determine and Save Metric List ---
     const userSector = form.sector;
     const userIndustry = form.industry;
     let userMetricList = DEFAULT_METRICS; // Use fallback
@@ -98,7 +71,6 @@ const CompanyInfoPage = () => {
       userMetricList = METRIC_CONFIG[userSector][userIndustry];
     }
 
-    // --- FIX: Load from 'metricsData_v2' ---
     const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};
     
     const userMetrics = allMetricsData[userId] || {}; 
@@ -107,11 +79,11 @@ const CompanyInfoPage = () => {
     
     allMetricsData[userId] = userMetrics;
     
-    // --- FIX: Save to 'metricsData_v2' ---
     localStorage.setItem('metricsData_v2', JSON.stringify(allMetricsData));
 
-    // --- Part 3: Navigate to Inventory ---
-    navigate('/inventory'); // Navigates to inventory as requested
+    // --- Part 3: Navigate to Inventory (or Dashboard) ---
+    // We navigate to Dashboard now, as Inventory might be empty
+    navigate('/inventory'); 
   };
 
   return (
@@ -128,63 +100,11 @@ const CompanyInfoPage = () => {
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'column', gap: '2rem'}}>
             <div className = "form-content">
-              <div className="input-group-row">
-                <div className="input-group-col">
-                  <label className = "normal-bold">Company Name <span className='submit-error'>*</span></label>
-                  <input className="input-base" name="companyName" value={form.companyName} placeholder = "Company Name" onChange={handleChange}/>
-                </div>
-                <div className="input-group-col">
-                  <label className="normal-bold">Sector <span className='submit-error'>*</span></label>
-                  <div className="select-wrapper">
-                    <select className="input-base" name="sector" id="sector" value={form.sector} onChange={handleChange} required >
-                      <option value="">Select Sector</option>
-                      <option value="Agriculture">Agriculture</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Food & Beverages">Food & Beverages</option>
-                    </select>
-                    <ChevronDown className="select-arrow" />
-                  </div>
-                </div>
-              </div>
-              <div className="input-group-row">
-                <div className="input-group-col">
-                  <label className='normal-bold' htmlFor="industry">Industry <span className='submit-error'>*</span></label>
-                  <div className="select-wrapper">
-                    <select className="input-base" name="industry" id="industry" value={form.industry} onChange={handleChange}required>
-                      <option value="">Select industry</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Healthcare">Healthcare</option>
-                      <option value="Retail">Retail</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Agricultural Products">Agricultural Products</option>
-                    </select>
-                    <ChevronDown className="select-arrow" />
-                  </div>
-                </div>
-                <div className="input-group-col">
-                  <label className="normal-bold" htmlFor="companysize">Company Size <span className='submit-error'>*</span></label>
-                  <div className="select-wrapper">
-                    <select className="input-base" name="companysize" id="companysize" value={form.companysize} onChange={handleChange}required >
-                      <option value="">Select company size</option>
-                      <option value="USA">0-50</option>
-                      <option value="Singapore">51-100</option>
-                      <option value="United Kingdom">101-500</option>
-                      <option value="Germany">501-1000</option>
-                      <option value="Japan">More than 1000</option>
-                    </select>
-                    <ChevronDown className="select-arrow" />
-                  </div>
-                </div>
-              </div>
-                <div className="input-group-col">
-                  <label className = "normal-bold">Reporting Year <span className='submit-error'>*</span></label>
-                  <span className = "small-regular">Carbon emissions are reported yearly. It’s best practice to align your reporting year with your organization’s financial accounting period.</span>
-                  <input className = "input-base" name="reportingYear" value={form.reportingYear} placeholder = "MM/DD (Eg. 01/01)" onChange={handleChange} maxLength="5" />
-                  <span className = "small-regular" style = {{color: "#82828280"}}>If you indicated 01/01, your calculation end date will be 31/12.</span>
-                </div>
-              </div>
+              
+              {/* --- Render the reusable form component --- */}
+              <CompanyForm form={form} handleChange={handleChange} />
+
+            </div>
             {error && <div className="submit-error">{error}</div>}
             <button className="default" type="submit" disabled={!isFormComplete}>
               Continue

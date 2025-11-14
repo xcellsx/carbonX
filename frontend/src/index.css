@@ -158,6 +158,7 @@ button {
 /* Default Button Style */
 .default {
   background-color: rgba(var(--primary), 1);
+  width: 100%;
 }
 
 /* Icon Button Style */
@@ -418,6 +419,10 @@ select.input-base option {
 
 .submit-warning {
   color: rgba(var(--warning), 1)
+}
+
+.submit-success {
+  color: rgba(var(--success), 1)
 }
 
 .options {

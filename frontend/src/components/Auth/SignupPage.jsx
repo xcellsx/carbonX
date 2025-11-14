@@ -9,7 +9,7 @@ const SignupPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState({ type: '', text: '' });  
+  const [message, setMessage] = useState({ type: '', text: '' }); 
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -34,9 +34,15 @@ const SignupPage = () => {
     const emailInUse = existingUsers.find(user => user.email === email);
 
     if (emailInUse) {
-      setMessage({ type: 'warning', text: 'This email is already in use. Please sign in.' });      
+      setMessage({ type: 'warning', text: 'This email is already in use. Please sign in.' });       
       return;
     }
+
+    // --- THIS IS THE ADDED CODE ---
+    // Clear all old session data before creating a new user
+    localStorage.removeItem('isProUser');
+    localStorage.removeItem('settingsTab');
+    // --- END OF ADDED CODE ---
 
     const userId = `user_${new Date().getTime()}`;
     

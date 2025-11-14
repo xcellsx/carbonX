@@ -1,0 +1,225 @@
+/* --- Plan Cards --- */
+.subscription-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+  gap: 1rem; /* Space between cards */
+}
+
+.plan-card {
+  border: 1px solid rgba(var(--blacks), 0.2);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease-in-out;
+  gap: 1rem;
+}
+
+.plan-card.current-plan {
+  border: 1px solid rgba(var(--blacks), 0.6); /* Highlight *selected* plan */
+}
+
+.plan-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.plan-amounts {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  gap: 0.25rem;
+}
+
+.plan-save-info {
+  color: rgba(var(--secondary), 1); /* Green for savings */
+}
+
+/* This is a new class for the other subtext (Free Plan, Quotations based) */
+.plan-subtext-default {
+  color: #64748b; /* Example: a muted gray color */
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.plan-card .plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1; /* Pushes button to bottom */
+}
+
+.plan-card .plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plan-card .plan-feature-icon {
+  color: rgba(var(--success), 1); /* Green checkmark */
+  flex-shrink: 0;
+}
+
+/* --- Plan Card Button Styles --- */
+/* This is the base style for plan buttons (SECONDARY/GRAY) */
+/* --- UPDATED: This is the ACTIVE style (BLACK) --- */
+.plan-card .default.active {
+  background-color: rgba(var(--blacks), 1);
+  color: rgba(var(--whites), 1);
+  border-color: rgba(var(--blacks), 1);
+}
+
+/* Disabled state (uses base gray bg + opacity) */
+.default:disabled,
+.save-changes-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* --- Billing Information --- */
+.billing-layout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: stretch; /* Makes columns equal height */
+}
+
+.billing-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%; /* Make form fill the column height */
+}
+
+/* --- Payment Summary Card --- */
+.payment-summary-card {
+  border: 1px solid rgba(var(--blacks), 0.2);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  height: fit-content; /* Removed height: 100% as requested */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* This creates the gap you asked for */
+}
+
+.payment-toggle-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(var(--blacks), 0.2);
+}
+
+.payment-toggle-group .normal-regular {
+  color: rgba(var(--primary), 1); /* Your requested color */
+}
+
+.payment-summary-details {
+  padding-top: 1rem;
+  flex-grow: 1; /* Pushes footer to the bottom */
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-summary-price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 1.5rem 0;
+}
+
+.payment-summary-price .normal-regular {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #64748b;
+  margin-left: 0.25rem;
+}
+
+.payment-summary-footer {
+  color: #64748b;
+  line-height: 1.5;
+  margin-top: auto; /* Pushes to the bottom */
+}
+
+/* --- Toggle Switch Styles --- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(var(--primary), 1);
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: rgba(var(--whites), 1);
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: rgba(var(--primary), 1);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px rgba(var(--primary), 1);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 1.5rem;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 992px) {
+  .billing-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .payment-summary-col {
+    order: -1;
+  }
+
+  /* Make summary card auto-height on mobile */
+  .payment-summary-card {
+    height: fit-content;
+  }
+}
+
+/* --- Placeholder color --- */
+.input-base::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}

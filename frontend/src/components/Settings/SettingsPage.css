@@ -1,0 +1,33 @@
+.chip-group {
+    display: flex;
+    flex-direction: row;
+    gap:1rem;
+}
+
+.chip {
+    background-color: rgba(var(--whites), 1);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: inherit;  /* Inherits size from .small-regular parent */
+    font-weight: normal; /* Overrides the global bold */
+    color: rgba(var(--blacks), 1)
+}
+
+.chip.active {
+    background-color: rgba(var(--primary), 1);
+    color: rgba(var(--whites), 1)
+}
+
+.settings-action-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end; /* Pushes buttons to the right */
+  gap: 1rem; /* Space between buttons */
+  margin-top: 1rem; /* Replaces the button's individual margin-top */
+}
+
+/* Make buttons in this container auto-width, not 100% */
+.settings-action-buttons .default {
+  width: auto;
+  margin-top: 0; /* Container handles spacing */
+}
