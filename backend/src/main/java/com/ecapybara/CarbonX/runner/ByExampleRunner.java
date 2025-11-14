@@ -5,8 +5,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.Example;
 
+import com.ecapybara.CarbonX.entity.Character;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
-import com.ecapybara.CarbonX.entities.Character;
 
 import java.util.Optional;
 
@@ -18,7 +18,7 @@ public class ByExampleRunner implements CommandLineRunner {
   @Override
   public void run(final String... args) throws Exception {
     // Single entity query by example
-    System.out.println("# Query by example");
+    System.out.println("------------- # Query by example # -------------");
     final Character nedStark = new Character("Ned", "Stark", false, 41);
     System.out.println(String.format("## Find character which exactly match %s",nedStark));
     Optional<Character> foundNedStark = repository.findOne(Example.of(nedStark));

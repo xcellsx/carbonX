@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;  
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.CarbonX.entities.Character;
+import com.ecapybara.CarbonX.entity.Character;
 
 // Stores data pertaining to 'Character' objects
 public interface CharacterRepository extends ArangoRepository<Character, String> {

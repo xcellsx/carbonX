@@ -1,7 +1,7 @@
 package com.ecapybara.CarbonX.runner;
 
-import com.ecapybara.CarbonX.entities.Character;
-import com.ecapybara.CarbonX.entities.ChildOf;
+import com.ecapybara.CarbonX.entity.Character;
+import com.ecapybara.CarbonX.entity.ChildOf;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
 import com.ecapybara.CarbonX.repository.ChildOfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class RelationsRunner implements CommandLineRunner {
 
   @Override
   public void run(final String... args) throws Exception {
-    System.out.println("# Relations");
+    System.out.println("------------- # Relational Queries # -------------");
     characterRepo.saveAll(CrudRunner.createCharacters());
 
     // Creates some relations for the Starks and Lannisters

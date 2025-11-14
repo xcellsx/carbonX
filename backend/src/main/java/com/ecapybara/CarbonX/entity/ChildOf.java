@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.entities;
+package com.ecapybara.CarbonX.entity;
 
 import com.arangodb.springframework.annotation.Edge;
 import com.arangodb.springframework.annotation.From;

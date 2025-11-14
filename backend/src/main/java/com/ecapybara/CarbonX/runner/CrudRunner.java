@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 import com.arangodb.springframework.core.ArangoOperations;
+import com.ecapybara.CarbonX.entity.Character;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
-import com.ecapybara.CarbonX.entities.Character;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -29,11 +29,13 @@ public class CrudRunner implements CommandLineRunner {
     final Character nedStark = new Character("Ned", "Stark", true, 41);
     repository.save(nedStark);
     // the generated id from the database is set in the original entity
+    System.out.println("------------- # Database created with entry # -------------");
     System.out.println(String.format("Ned Stark saved in the database with id: '%s'", nedStark.getId()));
 
     // let us take a look whether we can find Ned Stark in the database
     final Optional<Character> foundNed = repository.findById(nedStark.getId());
     assert foundNed.isPresent();
+    System.out.println("------------- # Simple database search function # -------------");
     System.out.println(String.format("Found %s", foundNed.get()));
     
     // Update the entity Ned Stark
@@ -41,10 +43,12 @@ public class CrudRunner implements CommandLineRunner {
     repository.save(nedStark);
     final Optional<Character> deadNed = repository.findById(nedStark.getId());
     assert deadNed.isPresent();
+    System.out.println("------------- # Simple database update function # -------------");
     System.out.println(String.format("The 'alive' flag of the persisted Ned Stark is now '%s'",deadNed.get().isAlive()));
 
     // Save and read multiple entities
     Collection<Character> createCharacters = createCharacters();
+    System.out.println("------------- # Save and read multiple entries # -------------");
     System.out.println(String.format("Save %s additional characters",createCharacters.size()));
     repository.saveAll(createCharacters);
 

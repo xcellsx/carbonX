@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.ecapybara.CarbonX.entities.Character;
+import com.ecapybara.CarbonX.entity.Character;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
 
 // To find the complete list of part types for derived queries, refer to the link below:
@@ -21,7 +21,7 @@ public class DerivedQueryRunner implements CommandLineRunner{
 
   @Override
   public void run(final String... args) throws Exception {
-    System.out.println("# Derived queries");
+    System.out.println("------------- # Derived Queries # -------------");
 
     // Simple findBySurname method
     System.out.println("## Find all characters with surname 'Lannister'");
