@@ -37,4 +37,4 @@ This list seeks to align the development process for the backend application. Th
 
 ## Hilman
 - Create backend dashboard using Spring-Actuator library
-- Map out Celine's `UserController.java` endpoints to our backend implementation
+- Map out Celine's `ProductController.java` endpoints to our backend implementation
