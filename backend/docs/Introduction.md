@@ -13,6 +13,28 @@ The full list of the dependencies and their properties can be viewed under the `
 - Spring Starter Dev Tools
 - Spring Starter Actuator
 
-**openLCA Modules:**
-- openLCA Core
-- openLCA IO
+**ArangoDB**
+- arangodb-spring-boot-starter (ver. 3.4-0)
+
+---
+
+# To-Do
+This list seeks to align the development process for the backend application. The current focus is to map out the required backend API endpoints that is used by the frontend controllers:
+- [ ] `AnalyticsController.java`
+- [ ] `AuthController.java`
+- [ ] `CompanyInfoController.java`
+- [ ] `DashboardController.java`
+- [ ] `HealthController.java`
+- [ ] `LcaCalculationController.java`
+- [ ] `NetworkController.java`
+- [ ] `OpenLCAController.java`
+- [ ] `ProductController.java`
+- [ ] `ProductInventoryController.java`
+- [ ] `UserController.java`
+
+## Luvyn
+- Map out Celine's `UserController.java` endpoints to our backend implementation
+
+## Hilman
+- Create backend dashboard using Spring-Actuator library
+- Map out Celine's `UserController.java` endpoints to our backend implementation
