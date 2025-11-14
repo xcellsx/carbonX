@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import * as d3 from 'd3';
 import './NetworkPage.css';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:8081/api';
 
 // --- GeoJSON for the world map (simplified) ---
 const worldGeoJson = {

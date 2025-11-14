@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './GuidePage.css';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:8081/api';
 
 function GuidePage() {
   const navigate = useNavigate();

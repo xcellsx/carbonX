@@ -9,6 +9,8 @@ import DashboardPage from './components/Dashboard/DashboardPage';
 import InventoryPage from './components/Inventory/InventoryPage';
 import AnalyticsPage from './components/Analytics/AnalyticsPage';
 import NetworkPage from './components/Network/NetworkPage';
+import ReportPage from './components/Report/ReportPage';
+import ChatPage from './components/Chat/ChatPage';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/network" element={<NetworkPage />} />
+        <Route path="/report" element={<ReportPage />} />
+        <Route path="/chat" element={<ChatPage />} />
       </Routes>
     // </Router> <-- MAKE SURE THIS TAG IS GONE
   );

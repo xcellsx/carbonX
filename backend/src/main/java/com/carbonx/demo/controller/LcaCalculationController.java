@@ -107,7 +107,7 @@ public class LcaCalculationController {
 
     // Calls the OpenLCA server using the multi-step JSON-RPC flow
     private double callOpenLcaApi(String processId, Double weight) {
-        String JSONRPC_ENDPOINT = "http://localhost:8081/";
+        String JSONRPC_ENDPOINT = "http://localhost:8080/";
         RestTemplate restTemplate = new RestTemplate();
         String resultId = null;
 

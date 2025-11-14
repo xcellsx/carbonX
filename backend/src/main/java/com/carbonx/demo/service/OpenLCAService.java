@@ -23,7 +23,7 @@ public class OpenLCAService {
     @Autowired
     private ProductRepository productRepo;
     
-    private static final String OPENLCA_RPC_ENDPOINT = "http://localhost:8081/";
+    private static final String OPENLCA_RPC_ENDPOINT = "http://localhost:8080/";
 
     // Fetch all OpenLCA processes and store in Product table
     public int syncProcessesFromOpenLCA() {

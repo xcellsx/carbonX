@@ -33,7 +33,7 @@ public class AnalyticsController {
 
     private ObjectMapper objectMapper = new ObjectMapper(); // <-- ADDED
 
-    private static final String JSONRPC_ENDPOINT = "http://localhost:8081/";
+    private static final String JSONRPC_ENDPOINT = "http://localhost:8080/";
     private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
     
     // This is the default "ReCiPe 2016 Midpoint (H)" method ID

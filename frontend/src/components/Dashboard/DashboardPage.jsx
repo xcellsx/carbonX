@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'; // Added useCal
 import { NavLink } from 'react-router-dom';
 import './DashboardPage.css';
 
-const API_BASE = 'http://localhost:8080/api'; // Define API base URL
+const API_BASE = 'http://localhost:8081/api'; // Define API base URL
 
 const DashboardPage = () => {
   // State for user data - Initialize with defaults or null

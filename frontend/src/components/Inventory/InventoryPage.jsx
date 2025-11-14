@@ -5,7 +5,7 @@ import './InventoryPage.css';
 // Assuming trash.svg is in src/assets/
 import trashIconPath from '../../assets/trash.svg'; 
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:8081/api';
 
 // Confirmation Modal Component
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
