@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.service;
+package com.ecapybara.carbonx.service;
 
 public class OrderService {  
     private PaymentService paymentService;

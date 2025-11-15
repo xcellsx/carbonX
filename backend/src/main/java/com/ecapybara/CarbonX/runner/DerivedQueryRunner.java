@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.runner;
+package com.ecapybara.carbonx.runner;
 
 import java.util.Collection;
 import java.util.List;
@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.ecapybara.CarbonX.entity.Character;
-import com.ecapybara.CarbonX.repository.CharacterRepository;
+import com.ecapybara.carbonx.entity.Character;
+import com.ecapybara.carbonx.repository.CharacterRepository;
 
 // To find the complete list of part types for derived queries, refer to the link below:
 // https://docs.arango.ai/ecosystem/integrations/spring-data-arangodb/reference-version-4/repositories/queries/derived-queries/

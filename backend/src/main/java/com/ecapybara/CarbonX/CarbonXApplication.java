@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX;
+package com.ecapybara.carbonx;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

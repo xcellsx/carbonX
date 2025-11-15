@@ -1,11 +1,11 @@
-package com.ecapybara.CarbonX.repository;
+package com.ecapybara.carbonx.repository;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;  
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.CarbonX.entity.Character;
+import com.ecapybara.carbonx.entity.Character;
 
 // Stores data pertaining to 'Character' objects
 public interface CharacterRepository extends ArangoRepository<Character, String> {

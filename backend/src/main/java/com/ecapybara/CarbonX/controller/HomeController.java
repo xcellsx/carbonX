@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.controller;
+package com.ecapybara.carbonx.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -14,8 +14,12 @@ public class HomeController {
     @RequestMapping("/")
     public String index(Model model) {
 
-       // model.addAttribute("fileText", "Hector");
-       // return "index";
+       model.addAttribute("fileText", "This is supposed to be the homepage ...");
+       return "index";
+    }
+
+    @RequestMapping("/dev")
+    public String dev(Model model) {
 
        model.addAttribute("btn1Text", "Feature 1");
        model.addAttribute("btn2Text", "Feature 2");

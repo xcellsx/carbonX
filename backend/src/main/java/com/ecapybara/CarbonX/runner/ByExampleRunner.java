@@ -1,12 +1,12 @@
-package com.ecapybara.CarbonX.runner;
+package com.ecapybara.carbonx.runner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.Example;
 
-import com.ecapybara.CarbonX.entity.Character;
-import com.ecapybara.CarbonX.repository.CharacterRepository;
+import com.ecapybara.carbonx.entity.Character;
+import com.ecapybara.carbonx.repository.CharacterRepository;
 
 import java.util.Optional;
 
