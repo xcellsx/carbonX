@@ -26,6 +26,7 @@ public class Character {
     @Relations(edges = ChildOf.class, lazy = true)
     private Collection<Character> children;
 
+    // constructors
     public Character() {
         super();
     }
