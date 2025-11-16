@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
-import './SproutAiPage.css';
+import './SproutAIPage.css';
 import logoPath from '../../assets/carbonx.png';
 import { 
   LayoutDashboard, Archive, ChartColumnBig, Network, 
