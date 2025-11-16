@@ -1,127 +1,11 @@
-/* --- Imports and Variables --- */
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap');
-
-:root {
-  --white-ish: #F4F4F4;
-  --main-bg: #EAEAEA;
-  --navy: #334761;
-  --text-dark: #020202;
-  --text-grey: #A9A9A9;
-  --accent-yellow: #FBCC58;
-  --accent-light-blue: #C5E4E7;
-  --accent-red: #e74c3c;
-  --save-navy: #000080;
-}
-
-/* --- Page-Specific Styles --- */
-
-.product-selector-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-  margin-bottom: 24px;
-  width: 100%;
-}
-
-.product-selector-container label {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.product-selector-container select {
-  font-family: 'Figtree', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-dark);
-  background: var(--white-ish);
-  border: 1px solid var(--text-grey);
-  border-radius: 8px;
-  padding: 10px 14px;
-  min-width: 300px;
-  cursor: pointer;
-}
-
-.product-selector-container select:disabled {
-  background: var(--main-bg);
-  color: var(--text-grey);
-  cursor: not-allowed;
-}
-
-.analytics-card {
-  width: 100%;
-  background: var(--white-ish);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  overflow: hidden;
-}
-
-.network-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 20px 0 20px;
-  margin-bottom: 16px;
-}
-
-.network-card-header h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--navy);
-  margin: 0;
-}
-
-/* --- ADDED: View Toggle Styles --- */
-.view-toggle {
-  display: flex;
-  background-color: var(--main-bg);
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.view-toggle-btn {
-  font-family: 'Figtree', sans-serif;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-grey);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-toggle-btn.active {
-  background: var(--white-ish);
-  color: var(--navy);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-/* --- End of View Toggle Styles --- */
-
-.analytics-table-container {
-  width: 100%;
-  overflow: hidden;
-  min-height: 600px; /* Give space for the graph */
-}
-
-.no-data-message, .loading-message {
-  text-align: center;
-  color: var(--text-grey);
-  padding: 40px;
-  font-style: italic;
-  font-size: 16px;
-}
-
-/* --- D3 Graph Styles --- */
-
+/* --- Main Graph Container --- */
 .network-graph-container {
   position: relative; 
   width: 100%;
-  height: 600px;
-  background: #fdfdfd;
+  height: 600px; /* Fixed height for D3 */
+  background: #fdfdfd; /* A very light background for the SVG */
   border-radius: 6px;
+  overflow: hidden; /* Ensures SVG corners are rounded */
 }
 
 .network-graph-container svg {
@@ -129,6 +13,21 @@
   height: 100%;
 }
 
+/* --- Loading/Empty Messages --- */
+/* These styles are used inside the .analytics-table-container */
+.no-data-message, .loading-message {
+  text-align: center;
+  color: rgba(var(--greys), 1);
+  padding: 40px;
+  font-style: italic;
+  font-size: var(--normal);
+  min-height: 600px; /* Match graph height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- D3 Graph Styles --- */
 .node {
   cursor: pointer;
 }
@@ -140,7 +39,7 @@
 
 .node text {
   font-size: 11px;
-  font-family: 'Figtree', sans-serif;
+  font-family: 'Inter', sans-serif; /* Use global font */
   pointer-events: none;
   text-anchor: start; 
 }
@@ -151,77 +50,30 @@
   stroke-width: 1.5px;
 }
 
-/* --- Tooltip (Positioned by Legend) --- */
-.graph-tooltip {
-  position: absolute;
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: 'Figtree', sans-serif;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  max-width: 300px;
-  z-index: 9; /* Below legend */
-  top: 15px;  /* Align with legend */
-  left: 230px; /* Position to the right of the legend (200px + 15px margin + 15px padding) */
-}
-
-.graph-tooltip hr {
-  border: 0;
-  border-top: 1px solid #555;
-  margin: 4px 0;
-}
-
-/* --- Tooltip for Map (floating) --- */
-.graph-tooltip-map {
-  position: absolute;
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: 'Figtree', sans-serif;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  max-width: 300px;
-  z-index: 1000;
-  /* Position is set by D3 */
-}
-
-.graph-tooltip-map hr {
-  border: 0;
-  border-top: 1px solid #555;
-  margin: 4px 0;
-}
-
 /* --- Legend (Top-Left) --- */
 .graph-legend {
   position: absolute;
   top: 15px;
-  left: 15px; /* <-- Positioned top-left */
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  left: 15px; /* Positioned top-left */
+  background: rgba(var(--whites), 0.9);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem; /* Match global style */
   padding: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(var(--blacks), 0.1);
   z-index: 10;
-  font-family: 'Figtree', sans-serif;
-  font-size: 12px;
-  width: 200px; /* Fixed width for tooltip alignment */
+  font-family: 'Inter', sans-serif;
+  font-size: var(--small);
+  width: 200px; /* Fixed width */
 }
 
 .graph-legend strong {
   display: block;
-  font-weight: 700;
+  font-weight: var(--bold);
   font-size: 13px;
-  color: var(--navy);
+  color: rgba(var(--primary), 1);
   margin-bottom: 8px;
   padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
 }
 
 .graph-legend ul {
@@ -236,7 +88,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 6px;
-  color: #333;
+  color: rgba(var(--blacks), 1);
 }
 
 .legend-color-swatch {
@@ -246,34 +98,27 @@
   border-radius: 50%;
   margin-right: 8px;
   flex-shrink: 0;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(var(--blacks), 0.1);
 }
 
-/* --- ADDED: Map Styles --- */
-.map-country {
-  fill: var(--main-bg);
-  stroke: #ccc;
-  stroke-width: 0.5px;
+/* --- Node Info Box (replaces tooltip) --- */
+.graph-info {
+  position: absolute;
+  top: 150px; /* Position it below the legend */
+  left: 15px;  /* Align with legend */
+  width: 200px; /* Match legend width */
+  background-color: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: var(--small);
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(var(--blacks), 0.1);
+  z-index: 10;
+  pointer-events: none; /* So it doesn't block mouse events on the SVG */
 }
 
-.map-link {
-  fill: none;
-  stroke: var(--navy);
-  stroke-width: 1.5px;
-  stroke-opacity: 0.6;
+.graph-info p {
+  margin: 0;
+  padding: 0;
 }
-
-.map-node-circle {
-  /* Fill is set by D3 */
-  stroke: #fff;
-  stroke-width: 1.5px;
-  fill-opacity: 0.8;
-}
-
-.map-home-node circle {
-  fill: var(--navy);
-  stroke: #fff;
-  stroke-width: 2px;
-}
-/* --- End of Map Styles --- */
-

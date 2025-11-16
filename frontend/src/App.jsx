@@ -9,8 +9,9 @@ import DashboardPage from './components/Dashboard/DashboardPage';
 import InventoryPage from './components/Inventory/InventoryPage';
 import AnalyticsPage from './components/Analytics/AnalyticsPage';
 import NetworkPage from './components/Network/NetworkPage';
-import SettingsPage from './components/Settings/SettingsPage'; // Import SettingsPage
-
+import SettingsPage from './components/Settings/SettingsPage';
+import ReportPage from './components/Report/ReportPage';
+import SproutAiPage from './components/SproutAI/SproutAIPage';
 
 function App() {
   return (
@@ -25,7 +26,10 @@ function App() {
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/network" element={<NetworkPage />} />
-        <Route path="/settings" element={<SettingsPage />} /> {/* Add Settings Route */}
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/report" element ={<ReportPage />} />
+        <Route path="/chat" element ={<SproutAiPage />} />
+
       </Routes>
     // </Router> <-- MAKE SURE THIS TAG IS GONE
   );

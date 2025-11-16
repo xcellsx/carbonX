@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Info, X } from 'lucide-react'; // --- NEW: Added X ---
+import { Check, Info, X } from 'lucide-react';
 import './BillingSubscriptions.css'; 
 
 const
   isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 
-// --- NEW: Reusable Confirmation Modal ---
+// --- Reusable Confirmation Modal ---
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
-// ... (modal component is unchanged) ...
   if (!isOpen) return null;
 
   return (
@@ -24,7 +23,12 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
           <button className="default secondary-btn" onClick={onClose}>
             Cancel
           </button>
-          <button className="default" onClick={onConfirm}>
+          {/* --- UPDATED: Added inline style for secondary color --- */}
+          <button 
+            className="default" 
+            onClick={onConfirm}
+            style={{ backgroundColor: 'rgba(var(--secondary), 1)' }}
+          >
             Switch Plan
           </button>
         </div>
@@ -36,7 +40,6 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
 
 const BillingSubscriptions = ({ onPlanSave }) => {
   // --- Mock Data ---
-// ... (state setup is unchanged) ...
   const userId = localStorage.getItem('userId') || 'guest';
   const initialUserBillingData = JSON.parse(localStorage.getItem(`billing_${userId}`)) || {
     plan: 'basic',
@@ -56,16 +59,13 @@ const BillingSubscriptions = ({ onPlanSave }) => {
   const [savedPlan, setSavedPlan] = useState(initialUserBillingData.plan);
   const [isAnnual, setIsAnnual] = useState(false);
 
-  // --- NEW: State for modal and payment info ---
   const [hasPaymentInfo, setHasPaymentInfo] = useState(
     initialUserBillingData.nameOnCard.trim() !== ''
   );
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [targetPlan, setTargetPlan] = useState(null); // Which plan to switch to
+  const [targetPlan, setTargetPlan] = useState(null); 
 
   const plans = [
-    // ... (plans array is unchanged) ...
-// ... (plan data is unchanged) ...
     {
       id: 'basic',
       name: 'CarbonX Basic',
@@ -121,59 +121,54 @@ const BillingSubscriptions = ({ onPlanSave }) => {
   const selectedPlanDetails = plans.find(p => p.id === billingInfo.plan);
 
   const handleBillingInfoChange = (e) => {
-// ... (function is unchanged) ...
     if (saveMessage) setSaveMessage('');
     if (formError) setFormError('');
     const { name, value } = e.target;
     setBillingInfo(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- UPDATED: handleSelectPlan now shows modal ---
   const handleSelectPlan = (planId) => {
-// ... (function is unchanged) ...
-    if (planId === savedPlan) return; // Clicked current plan
+    if (planId === savedPlan) return; 
 
     if (planId === 'enterprise') {
       window.location.href = 'mailto:sales@carbonx.com?subject=CarbonX Enterprise Inquiry';
       return;
     }
     
-    // If user has payment info, show modal. Otherwise, switch immediately.
     if (hasPaymentInfo) {
-      setTargetPlan(planId); // Store which plan they want to switch to
+      setTargetPlan(planId); 
       setShowConfirmModal(true);
     } else {
-      // First-time user selecting a plan
       setBillingInfo(prev => ({ ...prev, plan: planId }));
       if (planId === 'pro') setIsAnnual(true);
     }
   };
 
-  // --- NEW: Function to handle the modal confirmation ---
   const handleConfirmPlanSwitch = () => {
-// ... (function is unchanged) ...
     const planId = targetPlan;
     if (!planId) return;
 
     setBillingInfo(prev => ({ ...prev, plan: planId }));
     if (planId === 'pro') setIsAnnual(true);
     
-    // This makes the OLD "Current Plan" button disappear
-    // and enables the "Save" button
     setSavedPlan(null); 
     
     setShowConfirmModal(false);
     setTargetPlan(null);
   };
 
+  // --- UPDATED: handleSaveBillingInfo ---
   const handleSaveBillingInfo = (e) => {
-// ... (function is unchanged) ...
     e.preventDefault();
     setSaveMessage('');
     setFormError('');
 
+    // --- Check *before* states are updated ---
+    const isPlanSwitch = savedPlan !== billingInfo.plan;
+    const isNewCardAdd = !hasPaymentInfo && billingInfo.nameOnCard.trim() !== '';
+
     // --- (Validation logic is unchanged) ---
-    if (billingInfo.plan === 'pro' && !hasPaymentInfo) { // Only validate if new pro
+    if (billingInfo.plan === 'pro' && !hasPaymentInfo) {
       const requiredFields = [
         'nameOnCard', 'cardNumber', 'cvv', 'cardExpiry', 
         'billingAddress', 'postalCode', 'country'
@@ -212,8 +207,17 @@ const BillingSubscriptions = ({ onPlanSave }) => {
 
     setInitialBillingInfo(billingInfo);
     setSavedPlan(billingInfo.plan);
-    setHasPaymentInfo(true); // --- NEW: Mark user as having payment info ---
-    setSaveMessage('Billing information saved successfully!');
+    setHasPaymentInfo(true); 
+
+    // --- UPDATED: Set the correct message ---
+    if (isPlanSwitch) {
+      setSaveMessage('Plan switch successfully.');
+    } else if (isNewCardAdd) {
+      setSaveMessage('Your card is added successfully.');
+    } else {
+      // This is just an update to existing billing info
+      setSaveMessage('Billing information saved successfully!'); 
+    }
   };
 
   return (
@@ -229,7 +233,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
         {plans.map((plan) => (
           <div key={plan.id} className={`plan-card ${billingInfo.plan === plan.id ? 'current-plan' : ''}`}>
             <div className="plan-header">
-              {/* ... (header content unchanged) ... */}
               <span className="normal-bold">{plan.name}</span>
               <div className="plan-amounts">
                 {plan.price === 'Custom' ? (
@@ -248,7 +251,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
             </div>
             
             <ul className="plan-features">
-              {/* ... (features list unchanged) ... */}
               {plan.features.map((feature, index) => (
                 <li key={index}>
                   <Check size={16} className="plan-feature-icon" />
@@ -257,7 +259,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
               ))}
             </ul>
             
-            {/* --- UPDATED: Button Rendering Logic --- */}
             <div className="plan-actions">
               {savedPlan === plan.id ? (
                 // 1. SAVED PLAN
@@ -275,7 +276,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
                   className={`default ${billingInfo.plan === plan.id ? 'active' : ''}`}
                   onClick={() => handleSelectPlan(plan.id)}
                 >
-                  {/* --- FIXED: This text is no longer dynamic --- */}
                   {plan.buttonText}
                 </button>
               )}
@@ -341,14 +341,12 @@ const BillingSubscriptions = ({ onPlanSave }) => {
               {saveMessage}
             </div>
           )}
-          {/* --- THIS IS THE UPDATED BUTTON --- */}
           <button
             type="submit"
             className="default" 
             style={{ marginTop: '1rem', width: '100%' }}
             disabled={!isBillingInfoDirty && savedPlan === billingInfo.plan}
           >
-            {/* If plan has changed, show "Change Plan", otherwise "Save" */}
             {savedPlan !== billingInfo.plan
               ? "Change Plan"
               : "Save Billing Information"
@@ -356,9 +354,8 @@ const BillingSubscriptions = ({ onPlanSave }) => {
           </button>
         </form>
 
-        {/* --- PAYMENT SUMMARY: (Unchanged) --- */}
+        {/* --- PAYMENT SUMMARY --- */}
         {billingInfo.plan === 'pro' && savedPlan !== 'pro' && (
-// ... (rest of JSX is unchanged) ...
           <div className="payment-summary-col">
             <div className="payment-summary-card">
               <div className="payment-toggle-group">
@@ -403,7 +400,7 @@ const BillingSubscriptions = ({ onPlanSave }) => {
         )}
       </div>
 
-      {/* --- NEW: Render the Confirmation Modal --- */}
+      {/* --- Render the Confirmation Modal --- */}
       <ConfirmationModal
         isOpen={showConfirmModal}
         title="Confirm Plan Switch"
@@ -412,7 +409,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
       >
         Are you sure you want to switch to the 
         <strong style={{ color: 'rgba(var(--primary), 1)' }}>
-          {/* Find the name of the plan they're switching to */}
           &nbsp;{plans.find(p => p.id === targetPlan)?.name}&nbsp;
         </strong>
         plan?

@@ -4,11 +4,73 @@ import './AnalyticsPage.css';
 import logoPath from '../../assets/carbonx.png';
 import { 
   LayoutDashboard, Archive, ChartColumnBig, Network, 
-  FileText, Sprout, Settings, ChevronDown, Sparkles, Lock
+  FileText, Sprout, Settings, ChevronDown, Sparkles, Lock,
+  X, CircleCheck
 } from 'lucide-react';
 
-// --- Mock Analytics Data ---
+// --- UPDATED: Mock Analytics Data ---
 const MOCK_ANALYTICS_DATA = {
+  // --- NEW MOCK DATA FOR YOUR COMPONENTS ---
+  'mock-plastic-pouch': {
+    inputs: [
+      { flowName: 'Polyethylene resin', category: 'Chemicals', amount: '1.02', unit: 'kg', location: 'Global' },
+      { flowName: 'Electricity', category: 'From grid', amount: '0.15', unit: 'kWh', location: 'Regional Grid' },
+    ],
+    outputs: [
+      { flowName: 'Plastic pouch (1kg)', category: 'Product', amount: '1.00', unit: 'kg', location: 'Factory' },
+      { flowName: 'Waste plastic', category: 'Waste', amount: '0.02', unit: 'kg', location: 'On-site' },
+    ],
+    impacts: [
+      { category: 'Global Warming (GWP 100a)', amount: '2.50', unit: 'kg CO2-eq', location: 'Global' },
+      { category: 'Fossil fuel depletion', amount: '2.10', unit: 'MJ', location: 'Global' },
+    ]
+  },
+  'mock-sesame': {
+    inputs: [
+      { flowName: 'Sesame seeds (at farm)', category: 'Agriculture', amount: '1.05', unit: 'kg', location: 'India' },
+      { flowName: 'Water (irrigation)', category: 'Resources', amount: '0.80', unit: 'm3', location: 'Regional' },
+      { flowName: 'Fertilizer', category: 'Chemicals', amount: '0.05', unit: 'kg', location: 'Regional' },
+    ],
+    outputs: [
+      { flowName: 'Sesame (processed)', category: 'Product', amount: '1.00', unit: 'kg', location: 'Factory' },
+      { flowName: 'Organic waste', category: 'Waste', amount: '0.05', unit: 'kg', location: 'Compost' },
+    ],
+    impacts: [
+      { category: 'Global Warming (GWP 100a)', amount: '1.20', unit: 'kg CO2-eq', location: 'Global' },
+      { category: 'Land Use', amount: '1.50', unit: 'm2*a', location: 'Regional' },
+      { category: 'Eutrophication', amount: '0.02', unit: 'kg P-eq', location: 'Regional' },
+    ]
+  },
+  'mock-transport-road': {
+    inputs: [
+      { flowName: 'Diesel', category: 'Fuel', amount: '0.05', unit: 'L', location: 'Regional' },
+      { flowName: 'Truck operation', category: 'Infrastructure', amount: '1.00', unit: 'tkm', location: 'Regional' },
+    ],
+    outputs: [
+      { flowName: 'Transport service', category: 'Service', amount: '1.00', unit: 'tkm', location: 'Regional' },
+      { flowName: 'Carbon dioxide', category: 'Emissions to air', amount: '0.15', unit: 'kg', location: 'Global' },
+    ],
+    impacts: [
+      { category: 'Global Warming (GWP 100a)', amount: '0.15', unit: 'kg CO2-eq / tkm', location: 'Global' },
+      { category: 'Particulate Matter', amount: '0.001', unit: 'kg PM2.5-eq / tkm', location: 'Global' },
+    ]
+  },
+  'mock-transport-sea': {
+    inputs: [
+      { flowName: 'Heavy fuel oil', category: 'Fuel', amount: '0.02', unit: 'L', location: 'Global' },
+      { flowName: 'Container ship operation', category: 'Infrastructure', amount: '1.00', unit: 'tkm', location: 'Global' },
+    ],
+    outputs: [
+      { flowName: 'Transport service', category: 'Service', amount: '1.00', unit: 'tkm', location: 'Global' },
+      { flowName: 'Carbon dioxide', category: 'Emissions to air', amount: '0.01', unit: 'kg', location: 'Global' },
+    ],
+    impacts: [
+      { category: 'Global Warming (GWP 100a)', amount: '0.01', unit: 'kg CO2-eq / tkm', location: 'Global' },
+      { category: 'Acidification', amount: '0.002', unit: 'kg SO2-eq / tkm', location: 'Global' },
+    ]
+  },
+
+  // --- Original Mock Data ---
   'mock-steel': {
     inputs: [
       { flowName: 'Iron ore', category: 'Resources, in ground', amount: '1.20', unit: 't', location: 'Brazil' },
@@ -113,7 +175,7 @@ const MOCK_ANALYTICS_DATA = {
   }
 };
 
-// --- Mock Data for Pro Analysis Card ---
+// --- Mock Data for Pro Analysis Card (Unchanged) ---
 const MOCK_PRODUCT_ANALYSIS = {
   topContributors: [
     { name: 'Component 1 (Steel)', amount: '1500 kgCO2e' },
@@ -128,26 +190,53 @@ const MOCK_PRODUCT_ANALYSIS = {
   ]
 };
 
-// --- Material Name-to-ID Lookup ---
+// --- UPDATED: Material Name-to-ID Lookup ---
 const mockMaterialSuggestions = [
-  { name: "Steel", openLcaMaterialId: 'mock-steel' },
-  { name: "Stainless Steel", openLcaMaterialId: 'mock-stainless-steel' },
-  { name: "Aluminum", openLcaMaterialId: 'mock-aluminum' },
-  { name: "Copper", openLcaMaterialId: 'mock-copper' },
-  { name: "Glass", openLcaMaterialId: 'mock-glass' },
-  { name: "PLA", openLcaMaterialId: 'mock-pla' },
-  { name: "ABS Plastic", openLcaMaterialId: 'mock-abs' },
-  { name: "Polycarbonate", openLcaMaterialId: 'mock-polycarbonate' },
-  { name: "Nylon 6", openLcaMaterialId: 'mock-nylon' },
-  { name: "Nylon", openLcaMaterialId: 'mock-nylon' },
-  { name: "Polyester Mesh", openLcaMaterialId: 'mock-polyester' },
-  { name: "Rubber", openLcaMaterialId: 'mock-rubber' },
+  { name: "Plastic pouch", openLcaMaterialId: 'mock-plastic-pouch' },
+  { name: "Dried White Sesame", openLcaMaterialId: 'mock-sesame' }, // <--- This is the problem
+  { name: "Transport (Road)", openLcaMaterialId: 'mock-transport-road' },
+  { name: "Transport (Sea)", openLcaMaterialId: 'mock-transport-sea' },
 ];
 
 const materialNameToId = mockMaterialSuggestions.reduce((acc, cur) => {
   acc[cur.name.toLowerCase()] = cur.openLcaMaterialId;
   return acc;
 }, {});
+
+// --- Pro Modal Component (Unchanged) ---
+const ProModal = ({ isOpen, onClose, onGoToSettings }) => {
+  if (!isOpen) {
+    return null;
+  }
+  return (
+    <div className="modal-overlay active" onClick={onClose}>
+      <div className="modal-content pro-modal" onClick={e => e.stopPropagation()}>
+        <button className="close-modal-btn" style={{ width: '100%', textAlign: 'right' }} onClick={onClose}><X /></button>
+        <div>
+          <Sparkles size={48} color="rgba(var(--secondary), 1)" />
+        </div>
+        
+        <p className='large-bold'>Get CarbonX Pro</p>
+        
+        <div className="group-pro-modal">
+          <p className="normal-regular">What you will get:</p>
+          
+          <ul className="pro-features-list">
+            <li><CircleCheck size={20} /><span>Cloud Hosting</span></li>
+            <li><CircleCheck size={20} /><span>Access to Report Generator & AI Functionalities</span></li>
+            <li><CircleCheck size={20} /><span>Limited access to Marketplace Community</span></li>
+            <li><CircleCheck size={20} /><span>Increase your team size to 5</span></li>
+            <li><CircleCheck size={20} /><span>IT Support</span></li>
+          </ul>
+        </div>
+        
+        <button type="button" className="default" style={{ width: '100%' }} onClick={onGoToSettings}>
+          Get CarbonX Pro
+        </button>
+      </div>
+    </div>
+  );
+};
 
 
 const AnalyticsPage = () => {
@@ -162,7 +251,9 @@ const AnalyticsPage = () => {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [error, setError] = useState('');
   const [activeAnalysisTab, setActiveAnalysisTab] = useState('inputs');
+  const [showProModal, setShowProModal] = useState(false);
 
+  // --- All functions (fetchProducts, etc.) are unchanged ---
   const fetchProducts = useCallback(() => {
     if (!userId) {
       setError('User ID not found. Please log in again.');
@@ -212,18 +303,18 @@ const AnalyticsPage = () => {
       return;
     }
     
-    // Use 'ingredient' field (which is the component name)
     const materialName = selectedComponent.ingredient ? selectedComponent.ingredient.toLowerCase() : null;
     const materialId = selectedComponent.materialId || 
-                       (materialName ? materialNameToId[materialName] : null);
+                     (materialName ? materialNameToId[materialName] : null);
 
     setTimeout(() => {
-      setError(''); // Clear old errors
+      setError(''); 
 
       if (materialId && MOCK_ANALYTICS_DATA[materialId]) {
         setAnalyticsData(MOCK_ANALYTICS_DATA[materialId]);
       } else if (selectedComponent.ingredient) {
         setAnalyticsData(MOCK_ANALYTICS_DATA['mock-default']);
+        // The error message now correctly handles "Dried white sesame"
         setError(`Showing sample data. No specific analytics for material: ${selectedComponent.ingredient}`);
       } else {
         setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
@@ -318,6 +409,7 @@ const AnalyticsPage = () => {
   return (
     <div className="container">
       <div className="sidebar">
+        {/* ... Sidebar (Unchanged) ... */}
         <div className="sidebar-top">
           <button 
             type="button" 
@@ -388,7 +480,18 @@ const AnalyticsPage = () => {
               </div>
             </div>
             <div className = "button-container">
-              <button className = "icon">
+              <button 
+                className = "icon"
+                title={isProUser ? "Get AI Suggestions" : "Unlock CarbonX Pro for AI Suggestions"}
+                style={!isProUser ? { backgroundColor: 'rgba(var(--greys), 0.2)' } : {}}
+                onClick={() => {
+                  if (isProUser) {
+                    alert('AI suggestions activated!');
+                  } else {
+                    setShowProModal(true);
+                  }
+                }}
+              >
                 <Sparkles />
               </button>
             </div>
@@ -404,7 +507,7 @@ const AnalyticsPage = () => {
           
           <div className="product-analysis-card">
             {!isProUser && (
-              <div className="blur-overlay" onClick={() => navigate('/settings')}>
+              <div className="blur-overlay" onClick={() => setShowProModal(true)}>
                 <Lock />
                 <p className="medium-bold">Unlock CarbonX Pro</p>
                 <p className="normal-regular">to see your product-level analysis.</p>
@@ -447,7 +550,6 @@ const AnalyticsPage = () => {
                   className={`component-tab-btn ${index === selectedComponentIndex ? 'active' : ''}`}
                   onClick={() => handleComponentSelect(index)}
                 >
-                  {/* --- UPDATED: Use 'ingredient' for tab name --- */}
                   {component.ingredient || `Component ${index + 1}`}
                 </button>
               ))}
@@ -460,26 +562,26 @@ const AnalyticsPage = () => {
 
           {selectedProductId && components.length > 0 && (
             <div className="component-analysis-container">
-              <nav className="component-analysis-tabs">
+              <div className="chip-group" style={{ marginBottom: '1rem'}}>
                 <button 
-                  className={activeAnalysisTab === 'inputs' ? 'active' : ''}
+                  className={`chip ${activeAnalysisTab === 'inputs' ? 'active' : ''}`}
                   onClick={() => setActiveAnalysisTab('inputs')}
                 >
                   Inputs
                 </button>
                 <button 
-                  className={activeAnalysisTab === 'outputs' ? 'active' : ''}
+                  className={`chip ${activeAnalysisTab === 'outputs' ? 'active' : ''}`}
                   onClick={() => setActiveAnalysisTab('outputs')}
                 >
                   Outputs
                 </button>
                 <button 
-                  className={activeAnalysisTab === 'impacts' ? 'active' : ''}
+                  className={`chip ${activeAnalysisTab === 'impacts' ? 'active' : ''}`}
                   onClick={() => setActiveAnalysisTab('impacts')}
                 >
                   Impact Categories
                 </button>
-              </nav>
+              </div>
 
               {loadingAnalytics ? (
                 <div className="loading-message">Loading analytics data...</div>
@@ -490,6 +592,15 @@ const AnalyticsPage = () => {
           )}
         </div>
       </div>
+      
+      <ProModal 
+        isOpen={showProModal} 
+        onClose={() => setShowProModal(false)}
+        onGoToSettings={() => {
+          setShowProModal(false);
+          navigate('/settings');
+        }}
+      />
     </div>
   );
 };
