@@ -15,23 +15,25 @@ import com.carbonx.demo.model.CompanyInfo;
 import com.carbonx.demo.repository.CompanyInfoRepository;
 import com.carbonx.demo.service.CompanyService;
 
+import com.carbonx.demo.model.CompanyInfo; // Import the model
+
 @RestController
 @RequestMapping("/api/company-info")
 public class CompanyInfoController {
 
     @Autowired
-    private CompanyService companyService; // Use Service instead of Repo for saving
+    private CompanyService companyService;
 
     @Autowired
-    private CompanyInfoRepository companyInfoRepository; // Keep this for the GET request
+    private CompanyInfoRepository companyInfoRepository;
 
     @PostMapping
     public ResponseEntity<?> createOrUpdateCompanyInfo(@RequestBody CompanyInfoRequest request) {
-        // 1. Send the DTO to the service
-        // The Service handles: finding the user, saving info, and CALCULATING METRICS
-        companyService.processCompanyInfo(request);
+        // 1. Call the service and get the saved object back
+        CompanyInfo savedInfo = companyService.processCompanyInfo(request);
 
-        return ResponseEntity.ok().body("{\"message\": \"Saved successfully\"}");
+        // 2. Return the full object (which contains the calculated activeMetrics)
+        return ResponseEntity.ok().body(savedInfo);
     }
 
     @GetMapping

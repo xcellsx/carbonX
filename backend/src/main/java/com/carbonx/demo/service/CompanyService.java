@@ -16,12 +16,11 @@ public class CompanyService {
     @Autowired
     private CompanyInfoRepository companyInfoRepository;
 
-    // Fallback defaults
     private static final List<String> DEFAULT_METRICS = Arrays.asList("ghg", "energy", "water");
 
-    public void processCompanyInfo(CompanyInfoRequest request) {
+    // CHANGE 1: Return CompanyInfo instead of void
+    public CompanyInfo processCompanyInfo(CompanyInfoRequest request) {
         
-        // 1. Create the Entity
         CompanyInfo companyInfo = new CompanyInfo();
         companyInfo.setUserId(request.getUserId());
         companyInfo.setCompanyName(request.getCompanyName());
@@ -30,17 +29,16 @@ public class CompanyService {
         companyInfo.setHeadquarters(request.getHeadquarters());
         companyInfo.setReportingYear(request.getReportingYear());
 
-        // 2. Calculate Metrics based on the Sector/Industry from request
         List<String> calculatedMetrics = determineMetrics(request.getSector(), request.getIndustry());
-        
-        // 3. Set the metrics directly on the company object
         companyInfo.setActiveMetrics(calculatedMetrics);
 
-        // 4. Save everything at once
-        companyInfoRepository.save(companyInfo);
+        // CHANGE 2: Return the result of the save operation
+        return companyInfoRepository.save(companyInfo);
     }
 
-    private List<String> determineMetrics(String sector, String industry) {
+    // ... keep determineMetrics logic exactly the same ...
+     private List<String> determineMetrics(String sector, String industry) {
+        // ... (Your existing logic)
         if (sector == null || industry == null) return DEFAULT_METRICS;
 
         if ("Food & Beverages".equals(sector)) {
@@ -52,8 +50,8 @@ public class CompanyService {
                     "supply-chain-impacts", "gmo"
                 );
             }
-            
-            List<String> standardFbIndustries = Arrays.asList(
+            // ... other logic ...
+             List<String> standardFbIndustries = Arrays.asList(
                 "Agricultural Products", "Alcoholic Beverages", "(Meat, Poultry & Dairy)", 
                 "Non-alcoholic Beverages", "Processed Foods", "Restaurants", "Tobacco"
             );
@@ -62,7 +60,6 @@ public class CompanyService {
                 return Arrays.asList("ghg", "water", "sourcing", "impact");
             }
         }
-        
         return DEFAULT_METRICS;
     }
 }
