@@ -1,0 +1,80 @@
+/* --- Billing History Table --- */
+.billing-history-table {
+  width: 100%;
+  border: 1px solid rgba(var(--primary), 1); /* Use primary color for border */
+  border-radius: 0.5rem;
+  overflow: hidden; /* Clips the corners */
+  margin-top: 1rem;
+}
+
+.history-table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 1fr 1fr;
+  background-color: rgba(var(--primary), 1); /* Use primary color for header */
+  font-weight: 600;
+  font-size: 0.9375rem; /* 15px */
+  /* Text color is now set on the cells below */
+}
+
+.history-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 1fr 1fr;
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
+  background-color: #fff; /* Ensure rows are white */
+}
+.history-table-row:last-child {
+  border-bottom: none;
+}
+
+/* This rule applies to ALL cells (header and body) */
+.history-table-cell {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  color: rgba(var(--blacks), 1); /* Default text color (for body) */
+  font-size: 0.9375rem; /* 15px */
+}
+
+/* --- THIS IS THE FIX --- */
+/* This more specific rule targets ONLY the header's cells */
+.history-table-header .history-table-cell {
+  color: rgba(var(--whites), 1); /* White text */
+}
+
+.history-table-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b; /* Gray text */
+  background-color: #fff; /* Ensure empty state is white */
+}
+
+/* --- Responsive Styles for Table (Kept for mobile) --- */
+@media (max-width: 768px) {
+  .history-table-header {
+    display: none; /* Hide header on mobile */
+  }
+
+  .history-table-row {
+    grid-template-columns: 1fr; /* Stack cells */
+    padding: 1rem;
+  }
+
+  .history-table-cell {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+  }
+  
+  /* On mobile, all cell text (except data labels) should be black */
+  .history-table-row .history-table-cell {
+      color: rgba(var(--blacks), 1);
+  }
+
+  /* Add data labels for context */
+  .history-table-cell::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #334155;
+    padding-right: 1rem;
+  }
+}
