@@ -32,7 +32,7 @@ public class UserController {
         User user = userOpt.get();
 
         // Find associated company info
-        Optional<CompanyInfo> companyInfoOpt = companyInfoRepository.findByUserId(userId);
+        Optional<CompanyInfo> companyInfoOpt = companyInfoRepository.findByUserId(String.valueOf(userId));        
         String companyName = companyInfoOpt.map(CompanyInfo::getCompanyName).orElse("Company Name"); // Default if not found
 
         // Create response map
