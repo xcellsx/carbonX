@@ -1,0 +1,203 @@
+/* --- Welcome Message --- */
+.chat-welcome-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-bottom: 2rem; /* Give space above suggestion cards */
+  gap: 0.5rem;
+}
+
+/* --- Main Chat Layout --- */
+.chat-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2rem 2rem 2rem;
+  overflow: hidden;
+  gap: 1rem;
+}
+
+.chat-history-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background-color: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-footer {
+  flex-shrink: 0;
+}
+
+/* --- Chat Messages --- */
+.chat-message {
+  display: flex;
+  max-width: 80%;
+}
+.chat-message.user {
+  justify-content: flex-end;
+  align-self: flex-end;
+}
+.chat-message.assistant {
+  justify-content: flex-start;
+  align-self: flex-start;
+}
+.message-content {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  line-height: 1.5;
+  font-size: var(--normal);
+}
+.chat-message.user .message-content {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+  border-bottom-right-radius: 0;
+}
+.chat-message.assistant .message-content {
+  background-color: rgba(var(--greys), 0.1);
+  color: rgba(var(--blacks), 1);
+  border-bottom-left-radius: 0;
+}
+
+/* --- NEW: Suggestion Cards (replaces prompts) --- */
+.suggestion-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.suggestion-card {
+  background: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.suggestion-card:hover {
+  border-color: rgba(var(--primary), 1);
+  box-shadow: 0 4px 12px rgba(var(--blacks), 0.05);
+  transform: translateY(-2px);
+}
+
+.suggestion-card p {
+  font-size: var(--normal);
+  font-weight: var(--bold);
+  color: rgba(var(--blacks), 1);
+  line-height: 1.4;
+}
+
+.suggestion-card svg {
+  color: rgba(var(--primary), 1);
+}
+
+/* --- Chat Input (Unchanged) --- */
+.chat-input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 1px solid rgba(var(--blacks), 0.2);
+  border-radius: 0.5rem;
+  background-color: rgba(var(--whites), 1);
+  padding: 0.25rem 0.25rem 0.25rem 1rem;
+}
+.chat-input {
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--normal);
+  color: rgba(var(--blacks), 1);
+  padding: 0.75rem 0;
+}
+.chat-input::placeholder {
+  color: rgba(var(--greys), 1);
+}
+.send-button {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+  border: none;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.send-button:hover {
+  background-color: rgba(var(--primary), 0.8);
+}
+.send-button:disabled {
+  background-color: rgba(var(--greys), 0.2);
+  cursor: not-allowed;
+}
+
+/* --- Typing Indicator (Unchanged) --- */
+.typing-indicator span {
+  height: 8px;
+  width: 8px;
+  background-color: rgba(var(--greys), 0.6);
+  border-radius: 50%;
+  display: inline-block;
+  animation: bounce 1.3s infinite;
+  margin: 0 2px;
+}
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+/* --- NEW: Archive Tab Styles --- */
+.archive-container {
+  flex-grow: 1;
+  padding: 0 2rem 2rem 2rem; /* Match chat container */
+  overflow-y: auto;
+}
+
+.archive-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.archive-item:hover {
+  background-color: rgba(var(--greys), 0.1);
+}
+
+.archive-item-icon {
+  color: rgba(var(--primary), 1);
+  flex-shrink: 0;
+}
+
+.archive-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
