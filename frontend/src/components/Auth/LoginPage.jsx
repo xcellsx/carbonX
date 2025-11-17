@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
-import dashboard from '../../assets/dashboard.png'
+import dashboard from '../../assets/dashboard.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +12,15 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // --- NEW: Load remembered email on component mount ---
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -19,7 +28,7 @@ const LoginPage = () => {
       return;
     }
     
-    // Backend Error Handling
+    // Backend validation (from original code)
     try {
       const res = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
@@ -31,6 +40,14 @@ const LoginPage = () => {
         const loggedInUser = await res.json(); 
         
         if (loggedInUser && loggedInUser.id) {
+          // --- NEW: Handle "Remember Me" logic on successful login ---
+          if (rememberMe) {
+            localStorage.setItem('rememberedEmail', email);
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
+          
+          // --- Original Logic ---
           localStorage.setItem('userId', loggedInUser.id);
           setError('');
           navigate('/dashboard');
@@ -48,23 +65,23 @@ const LoginPage = () => {
   return (
     <div className="container">
       <div className="image-section">
-        <img src = {dashboard} alt="Sign up visual" className="signup-image"/>
+        <img src = {dashboard} alt="Sign up visual" className="image-section-img"/>
       </div>
-      <div className="form-section">
+      <div className="content-section">
         <div className = "logo-animation">
           <Lottie animationData={animationData} style={{ height: 48, width: 48 }} />
         </div>
-        <div className="form-container">
-          <div className="form-header">
+        <div className="content-container">
+          <div className="header-group">
             <h1>Welcome Back.</h1>
             <p className='medium-regular'>Sign in with your credentials.</p>
           </div>
-          <form className="form-auth" onSubmit={handleSubmit}>
-            <div className= "group">
+          <form className="form" onSubmit={handleSubmit} noValidate>
+            <div className= "input-group-col">
               <label className="normal-bold" htmlFor="email">Email</label>
               <input className="input-base" type="email" id="email" value={email} placeholder='Email' onChange={e => setEmail(e.target.value)} autoFocus/>
             </div>
-            <div className= "group">
+            <div className= "input-group-col">
             <label className="normal-bold" htmlFor="password">Password</label>
             <input className="input-base" type="password" id="password" value={password} placeholder='Password' onChange={e => setPassword(e.target.value)}/>
             </div>
@@ -80,7 +97,7 @@ const LoginPage = () => {
           </form>
           <div className="prompt">
             Don’t have an account? {''}
-            <Link to="/signup" className="link">Sign up here</Link>
+            <Link to="/signup" className="link normal-bold">Sign up here</Link>
           </div>
         </div>
       </div>

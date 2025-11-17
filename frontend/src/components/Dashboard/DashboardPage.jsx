@@ -1,344 +1,828 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
-import { NavLink } from 'react-router-dom';
-import './DashboardPage.css';
+import React, { useState, useEffect } from 'react';
+import "../Dashboard/DashboardPage.css"
+// ... (all your other imports are correct)
+import { 
+  Utensils, Leaf, Droplet, ArrowRight, Zap, X, 
+  LayoutDashboard, Archive, ChartColumnBig, Network, 
+  FileText, Sprout, Settings, Sparkles, CircleCheck,
+  ShieldUser, Wheat, Earth, Dna, Plus,
+  Database, 
+  Car, 
+  Recycle, 
+  ShieldAlert, 
+  HeartPulse, 
+  Tags, 
+  Users, 
+  Globe, 
+  Lock
+} from 'lucide-react';
+import logoPath from '../../assets/carbonx.png';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const API_BASE = 'http://localhost:8080/api'; // Define API base URL
+// --- (all your const definitions: allMetricDefinitions, ALL_METRIC_DATA_DEFINITIONS, METRIC_BREAKDOWN_DATA, generateInitialMetrics... remain exactly the same) ---
+// ... (all const definitions) ...
+// --- 1. UPDATED: Metric cards are now based on TOPICS ---
+const allMetricDefinitions = [
+  { id: 'total-ghg-emissions', name: 'Total GHG Emissions', icon: Leaf, isPro: false }, // --- NEW ---
+  { id: 'fleet-fuel-management', name: 'Fleet Fuel Management', icon: Car },
+  { id: 'energy-management', name: 'Energy Management', icon: Zap },
+  { id: 'food-waste-management', name: 'Food Waste Management', icon: Recycle },
+  { id: 'data-security', name: 'Data Security', icon: ShieldAlert },
+  { id: 'food-safety', name: 'Food Safety', icon: Utensils },
+  { id: 'product-health-nutrition', name: 'Product Health & Nutrition', icon: HeartPulse },
+  { id: 'product-labelling-marketing', name: 'Product Labelling & Marketing', icon: Tags },
+  { id: 'labour-practices', name: 'Labour Practices', icon: Users },
+  { id: 'supply-chain-impacts', name: 'Management of Env. & Social Impacts in the Supply Chain', icon: Globe },
+  // --- Pro Metric ---
+  { id: 'gmo', name: 'GMO Management', icon: Dna, isPro: true },
+];
 
+// --- 2. MASTER LIST OF ALL DATA (Based on SASB codes) ---
+const ALL_METRIC_DATA_DEFINITIONS = {
+  // --- NEW ---
+  'TOTAL_GHG': { defaultMax: 100000, decimals: 3, unit: 'kgCO2e' },
+  'CALC_TRANSPORT_GHG': { defaultMax: 50000, decimals: 3, unit: 'kgCO2e' },
+  
+  'FB-FR-110a.1': { defaultMax: 10000.0, decimals: 2, unit: 'Gigajoules (GJ)' },
+  'FB-FR-130a.1': { defaultMax: 50000.0, decimals: 2, unit: 'Gigajoules (GJ)' },
+  'FB-FR-250a.1': { defaultMax: 1000.0, decimals: 2, unit: 'Metric tonnes (t)' },
+  'FB-FR-230a.1': { defaultMax: 5, decimals: 0, unit: 'Number' },
+  'FB-FR-230a.2': { defaultMax: 0, decimals: 0, unit: 'Number' },
+  'FB-FR-230a.3': { staticValue: '(require input from company)', unit: '' },
+  'FB-FR-250b.1': { defaultMax: 10, decimals: 0, unit: 'Rate' },
+  'FB-FR-250b.2': { defaultMax: 5, decimals: 0, unit: 'Number' },
+  'FB-FR-250b.3': { defaultMax: 100, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-260a.1': { staticValue: '(require input from company)', unit: '' },
+  'FB-FR-260a.2': { defaultMax: 0, decimals: 0, unit: 'Number' },
+  'FB-FR-270a.1': { defaultMax: 0, decimals: 0, unit: 'Number' },
+  'FB-FR-270a.2': { defaultMax: 0, decimals: 2, unit: 'Presentation Currency' },
+  'FB-FR-330a.1': { defaultMax: 100, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-330a.2': { defaultMax: 30.0, decimals: 2, unit: 'Presentation Currency' },
+  'FB-FR-330a.3': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-330a.4': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-330a.5': { defaultMax: 0, decimals: 0, unit: 'Number' },
+  'FB-FR-330a.6': { defaultMax: 0, decimals: 2, unit: 'Presentation Currency' },
+  'FB-FR-430a.1': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-430a.2': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-430a.3': { staticValue: '(require input from company)', unit: '' },
+  'FB-FR-430a.4': { staticValue: '(require input from company)', unit: '' },
+  'FB-FR-430b.1': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+};
+const METRIC_BREAKDOWN_DATA = {
+  'total-ghg-emissions': {
+    title: 'Total GHG Emissions', icon: Leaf,
+    subMetrics: [
+      { 
+        name: 'Total Product Carbon Footprint (Cradle-to-Gate)', 
+        type: 'Quantitative', 
+        dataKey: 'TOTAL_GHG',
+        sasbCategory: 'Product Footprinting',
+        scope3Category: 'Category 1: Purchased goods & services'
+      },
+    ]
+  },
+  'fleet-fuel-management': {
+    title: 'Fleet Fuel Management', icon: Car,
+    subMetrics: [
+      { 
+        name: 'Calculated Transport Emissions (from Inventory)', 
+        type: 'Quantitative', 
+        dataKey: 'CALC_TRANSPORT_GHG', 
+        sasbCategory: 'Inventory Calculation',
+        scope3Category: 'Category 4: Upstream transportation & distribution'
+      },
+      { 
+        name: 'Fleet fuel consumed, percentage renewable', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-110a.1',
+        sasbCategory: 'Transport & Energy Management',
+        scope3Category: 'Category 4: Upstream transportation & distribution'
+      },
+    ]
+  },
+  // ... (rest of METRIC_BREAKDOWN_DATA) ...
+  'energy-management': {
+    title: 'Energy Management', icon: Zap,
+    subMetrics: [
+      { 
+        name: '(1) Operational energy consumed, (2) percentage grid electricity, (3) percentage renewable', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-130a.1',
+        sasbCategory: 'Energy Management',
+        scope3Category: 'Category 3: Fuel- and energy-related activities'
+      },
+    ]
+  },
+  'food-waste-management': {
+    title: 'Food Waste Management', icon: Recycle,
+    subMetrics: [
+      { 
+        name: '(1) Amount of food waste generated, (2) percentage diverted from the waste stream', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-250a.1',
+        sasbCategory: 'Waste Management',
+        scope3Category: 'Category 5: Waste generated in operations'
+      },
+    ]
+  },
+  'data-security': {
+    title: 'Data Security', icon: ShieldAlert,
+    subMetrics: [
+      { 
+        name: '(1) Number of data breaches, (2) percentage that are instances of identity theft', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-230a.1',
+        sasbCategory: 'Customer Privacy',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Number of customers affected', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-230a.2',
+        sasbCategory: 'Customer Privacy',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Description of approach for addressing data security risks', 
+        type: 'Discussion and Analysis', 
+        dataKey: 'FB-FR-230a.3',
+        sasbCategory: 'Customer Privacy',
+        scope3Category: 'NA'
+      },
+    ]
+  },
+  'food-safety': {
+    title: 'Food Safety', icon: Utensils,
+    subMetrics: [
+      { 
+        name: 'Fines and warning rate / violation rate', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-250b.1',
+        sasbCategory: 'Product Safety',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Number of recalls', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-250b.2',
+        sasbCategory: 'Product Safety',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Percentage of recalls related to private-label products', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-250b.3',
+        sasbCategory: 'Product Safety',
+        scope3Category: 'NA'
+      },
+    ]
+  },
+  'product-health-nutrition': {
+    title: 'Product Health & Nutrition', icon: HeartPulse,
+    subMetrics: [
+      { 
+        name: 'Discussion of the process to identify and manage products and ingredients linked to nutritional and health concerns', 
+        type: 'Discussion and Analysis', 
+        dataKey: 'FB-FR-260a.1',
+        sasbCategory: 'Product Health & Nutrition',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Number of incidents of non-compliance with health/safety regulations', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-260a.2',
+        sasbCategory: 'Product Health & Nutrition',
+        scope3Category: 'NA'
+      },
+    ]
+  },
+  'product-labelling-marketing': {
+    title: 'Product Labelling & Marketing', icon: Tags,
+    subMetrics: [
+      { 
+        name: 'Number of incidents of non-compliance with labelling regulations', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-270a.1',
+        sasbCategory: 'Labelling & Marketing',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Total amount of legal action fines as a result of legal proceedings associated with advertising and labelling practices', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-270a.2',
+        sasbCategory: 'Labelling & Marketing',
+        scope3Category: 'NA'
+      },
+    ]
+  },
+  'labour-practices': {
+    title: 'Labour Practices', icon: Users,
+    subMetrics: [
+      { 
+        name: 'Revenue from products derived from genetically modified organisms (GMOs)', 
+       type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.1', 
+        sasbCategory: 'Employee Engagement',
+        scope3Category: 'NA'
+      },
+      { 
+        name: '(1) Average hourly wage and (2) percentage of in-store/distribution centre employees... average hourly wage', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.2',
+        sasbCategory: 'Wages & Benefits',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Percentage of... average hourly wage, by region', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.3',
+        sasbCategory: 'Wages & Benefits',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Percentage of active employees covered under collective bargaining agreements', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.4',
+        sasbCategory: 'Labor Relations',
+        scope3Category: 'NA'
+    },
+      { 
+        name: 'Number of work stoppage days', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.5',
+        sasbCategory: 'Labor Relations',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Total amount of legal action fines as a result of legal proceedings associated with (1) labour law violations and (2) workplace discrimination', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-330a.6',
+        sasbCategory: 'Labor Relations',
+        scope3Category: 'NA'
+      },
+    ]
+  },
+  'supply-chain-impacts': {
+    title: 'Management of Env. & Social Impacts in the Supply Chain', icon: Globe,
+    subMetrics: [
+      { 
+        name: 'Revenue from products that promote sustainable sourcing', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-430a.1',
+        sasbCategory: 'Supply-Chain Management',
+        scope3Category: 'Category 1: Purchased goods & services'
+      },
+      { 
+        name: 'Percentage of revenue from (1) eggs that originated from a cage-free environment and (2) pork produced without the use of gestation crates', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-430a.2',
+        sasbCategory: 'Animal Welfare / Supply Chain',
+        scope3Category: 'Category 1: Purchased goods & services'
+      },
+      { 
+        name: 'Discussion of strategy to manage environmental and social risks within the supply chain, including animal welfare', 
+        type: 'Discussion and Analysis', 
+        dataKey: 'FB-FR-430a.3',
+        sasbCategory: 'Supply-Chain Management / Sourcing',
+        scope3Category: 'NA'
+      },
+      { 
+        name: 'Discussion of strategies to reduce the environmental impact of packaging', 
+        type: 'Discussion and Analysis', 
+        dataKey: 'FB-FR-430a.4',
+        sasbCategory: 'Supply-Chain Management / Sourcing',
+       scope3Category: 'Category 12: End-of-life treatment of sold products'
+      },
+    ]
+  },
+  'gmo': {
+    title: 'GMO Management', icon: Dna,
+    subMetrics: [
+      { 
+        name: 'Revenue from products derived from genetically modified organisms (GMOs)', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-430b.1',
+       sasbCategory: 'Product Sourcing & Labelling',
+        scope3Category: 'Category 1: Purchased goods & services'
+      },
+    ]
+  },
+};
+const generateInitialMetrics = () => {
+  const data = {};
+  for (const key in ALL_METRIC_DATA_DEFINITIONS) {
+    const def = ALL_METRIC_DATA_DEFINITIONS[key];
+    const max = def.defaultMax;
+    let value;
+    
+    if (def.staticValue) {
+      value = def.staticValue;
+    } else if (max === 0) {
+      value = 0;
+    } else if (def.decimals === 0) {
+      value = Math.floor(Math.random() * (max + 1));
+    } else {
+      value = parseFloat((Math.random() * max).toFixed(def.decimals));
+    }
+    
+    data[key] = { value, max, unit: def.unit, decimals: def.decimals };
+  }
+  return data;
+};
+
+// --- COMPONENT START ---
 const DashboardPage = () => {
-  // State for user data - Initialize with defaults or null
-  const [userId] = useState(localStorage.getItem('userId') || ''); // Get userId from localStorage
-  const [userName, setUserName] = useState('');
-  const [userInitials, setUserInitials] = useState('');
-  const [companyName, setCompanyName] = useState('');
+  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true'); 
+  const navigate = useNavigate();
+  const location = useLocation(); 
+  const [metrics, setMetrics] = useState(null); 
+  const [showProModal, setShowProModal] = useState(false);
+  const [activeMetricId, setActiveMetricId] = useState(null);
+  const [hasProducts, setHasProducts] = useState(false);
 
-  // State for dashboard data
-  const [totalEmissions, setTotalEmissions] = useState(0);
-  const [efficiencyTarget, setEfficiencyTarget] = useState(0);
-
-  // State for activities - Keep static for now as data isn't from backend summary
-  const [lcaActivityStatus] = useState('Not Started'); // Example static status
-  const [productActivityStatus] = useState('Not Started'); // Example static status
-  const [lcaActivityText, setLcaActivityText] = useState('Calculated LCA for...');
-
-  // State for bar chart
-  const [contributors, setContributors] = useState([]); // Now an array of objects {name: string, value: number}
-  const [yAxisLabels, setYAxisLabels] = useState([]);
-  const [yAxisMax, setYAxisMax] = useState(0.1);
-
-  // State for pie chart
-  const [piePercentage, setPiePercentage] = useState(0);
-  const [pieAngle, setPieAngle] = useState(0);
-  const [amountLeft, setAmountLeft] = useState(0);
-
-  // State for loading/error handling
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [loadingSummary, setLoadingSummary] = useState(true);
-  const [error, setError] = useState('');
-
-  // Fetch User Profile Data
-  const fetchUserProfile = useCallback(async () => {
-    if (!userId) {
-      setError('User ID not found. Please log in again.');
-      setLoadingProfile(false);
+  // --- **** THIS IS THE SECTION TO UPDATE **** ---
+  useEffect(() => {
+    const currentUserId = localStorage.getItem('userId');
+    if (!currentUserId) {
+      navigate('/signup'); 
       return;
     }
-    setLoadingProfile(true);
-    try {
-      const res = await fetch(`${API_BASE}/users/${userId}/profile`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch profile: ${res.status}`);
-      }
-      const profile = await res.json();
+    
+    // Check for products
+    const allProductData = JSON.parse(localStorage.getItem('productData')) || {};
+    const userProducts = allProductData[currentUserId] || [];
+    setHasProducts(userProducts.length > 0);
 
-      setUserName(profile.fullName || 'User');
-      setCompanyName(profile.companyName || 'Company');
+    // Get (or create) metrics data
+    const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};
+    let userMetrics = allMetricsData[currentUserId];
 
-      // Calculate initials
-      let initials = 'U';
-      if (profile.fullName) {
-        const nameParts = profile.fullName.split(' ');
-        initials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '')).toUpperCase();
-      }
-      setUserInitials(initials);
-      setError(''); // Clear previous errors on success
-
-    } catch (err) {
-      console.error("Error fetching user profile:", err);
-      setError('Could not load user profile.');
-      // Set defaults on error
-      setUserName('User');
-      setCompanyName('Company');
-      setUserInitials('U');
-    } finally {
-      setLoadingProfile(false);
-    }
-  }, [userId]); // Dependency: userId
-
-  // Fetch Dashboard Summary Data
-  const fetchDashboardSummary = useCallback(async () => {
-    if (!userId) {
-      // Don't set error here, handled by fetchUserProfile
-      setLoadingSummary(false);
+    if (!userMetrics || !userMetrics.metricList) {
+      navigate('/company-info'); 
       return;
     }
-    setLoadingSummary(true);
-    try {
-      const res = await fetch(`${API_BASE}/dashboard/summary/${userId}`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch dashboard summary: ${res.status}`);
-      }
-      const summary = await res.json(); // Expects { totalEmissions: number, topContributors: [{name: string, value: number}] }
-
-      setTotalEmissions(summary.totalEmissions || 0);
-
-      // --- Update Bar Chart ---
-      const activeContributors = summary.topContributors || [];
-      setContributors(activeContributors); // Directly use the fetched data
-
-      if (activeContributors.length > 0) {
-        const dataMaxValue = Math.max(...activeContributors.map(d => d.value));
-        const calculatedYAxisMax = Math.ceil(dataMaxValue * 10) / 10 || 0.1;
-
-        setYAxisMax(calculatedYAxisMax);
-        setYAxisLabels([
-          (calculatedYAxisMax).toFixed(3),
-          (calculatedYAxisMax * 0.5).toFixed(3),
-          '0.000'
-        ]);
-        // Update LCA Activity text based on actual contributors if needed
-        setLcaActivityText(`Calculated LCA for ${activeContributors.map(c => c.name).slice(0, 1).join(', ')}`);
-
-      } else {
-        setYAxisMax(0.1);
-        setYAxisLabels([]);
-        setLcaActivityText('Calculated LCA for...');
-      }
-      setError(''); // Clear previous errors
-
-    } catch (err) {
-      console.error("Error fetching dashboard summary:", err);
-      setError('Could not load dashboard data.');
-      // Reset data on error
-      setTotalEmissions(0);
-      setContributors([]);
-      setYAxisMax(0.1);
-      setYAxisLabels([]);
-    } finally {
-      setLoadingSummary(false);
+    
+    if (!userMetrics.data) {
+      userMetrics.data = generateInitialMetrics();
     }
-  }, [userId]); // Dependency: userId
 
-  // Effect to load data on mount and when userId changes
-  useEffect(() => {
-    fetchUserProfile();
-    fetchDashboardSummary();
-  }, [fetchUserProfile, fetchDashboardSummary]); // Add fetch functions as dependencies
+    // --- THIS IS THE NEW LOGIC ---
+    let totalLcaSum = 0;
+    let totalTransportLcaSum = 0;
+    
+    userProducts.forEach(product => {
+      // 1. Add to Total GHG
+      totalLcaSum += product.lcaResult || 0;
+      
+      // 2. Add to Transport GHG
+      try {
+        const dpp = JSON.parse(product.dppData || '[]');
+        dpp.forEach(component => {
+          if (component.isTransport) {
+            totalTransportLcaSum += component.lcaValue || 0;
+          }
+        });
+      } catch (e) {
+        console.error("Failed to parse dppData for GHG calculation", e);
+      }
+    });
 
-  // Effect to update Pie Chart when relevant data changes
-  useEffect(() => {
-    const storedTarget = parseFloat(sessionStorage.getItem('efficiencyTarget')) || 0;
-    setEfficiencyTarget(storedTarget); // Load target from session storage initially
-
-    let percentage = 0;
-    if (storedTarget > 0) {
-      percentage = Math.min((totalEmissions / storedTarget) * 100, 100);
+    // 3. Overwrite the (possibly random) values with the real ones
+    if (userMetrics.data['TOTAL_GHG']) {
+      userMetrics.data['TOTAL_GHG'].value = totalLcaSum.toFixed(3);
     }
-    const angle = (percentage / 100) * 360;
-    const left = Math.max(0, storedTarget - totalEmissions);
+    
+    // --- UPDATED: Inject calculated transport sum into its own metric ---
+    if (userMetrics.data['CALC_TRANSPORT_GHG']) {
+      userMetrics.data['CALC_TRANSPORT_GHG'].value = totalTransportLcaSum.toFixed(3);
+    }
+    // We NO LONGER overwrite 'FB-FR-110a.1'
+    
+    // --- END NEW LOGIC ---
 
-    setPiePercentage(Math.round(percentage));
-    setPieAngle(angle);
-    setAmountLeft(left);
-  }, [totalEmissions, efficiencyTarget]); // Recalculate pie when totalEmissions or target changes
+    // Save the updated metrics (with correct GHG) back to localStorage
+    allMetricsData[currentUserId] = userMetrics;
+    localStorage.setItem('metricsData_v2', JSON.stringify(allMetricsData));
+    
+    // --- NEW: Always add 'total-ghg-emissions' to the list if it's not there
+    if (!userMetrics.metricList.includes('total-ghg-emissions')) {
+      userMetrics.metricList.unshift('total-ghg-emissions');
+    }
 
-  // Handler for efficiency target input change
-  const handleTargetChange = (e) => {
-    const newTargetValue = parseFloat(e.target.value) || 0;
-    sessionStorage.setItem('efficiencyTarget', newTargetValue); // Save to sessionStorage
-    setEfficiencyTarget(newTargetValue); // Update state to trigger pie chart recalculation
-  };
+    // Set the final, correct metrics to state
+    setMetrics(userMetrics);
+    
+    if (userMetrics.metricList && userMetrics.metricList.length > 0) {
+      setActiveMetricId(userMetrics.metricList[0]);
+    }
 
-  // --- Render Logic ---
-  const isLoading = loadingProfile || loadingSummary;
+  }, [navigate]); // Re-runs every time Dashboard is loaded
+  
+  const handleSparkleClick = () => {
+// ... (rest of the file is identical) ...
+    if (isProUser) {
+      alert("AI Feature placeholder!");
+    } else {
+      setShowProModal(true);
+    }
+  };
 
-  return (
-    <div className="dashboard-layout">
-      <div className="sidebar">
-        {/* Sidebar content remains the same */}
-        <div className="sidebar-top">
-          <div className="logo">
-            <picture>
-              <source srcSet="src/assets/carbonx.png" media="(prefers-color-scheme: dark)" />
-              <img src="src/assets/carbonx.png" alt="Logo" width="30" />
-            </picture>
-          </div>
-          <nav className="nav-menu">
-            <NavLink to="/dashboard" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-              <span>Dashboard</span>
-            </NavLink>
-             <NavLink to="/inventory" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-              <span>Inventory</span>
-            </NavLink>
-            <NavLink to="/analytics" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              <span>Analytics</span>
-            </NavLink>
-            <NavLink to="/network" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              <span>Network</span>
-            </NavLink>
-            <NavLink to="/report" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              <span>Report</span>
-            </NavLink>
-            <NavLink to="/chat" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>AI Chat</span>
-            </NavLink>
-          </nav>
-        </div>
-        <div className="sidebar-bottom">
-          <NavLink to="/settings" className="user-profile">
-            <div className="user-avatar">{isLoading ? '...' : userInitials}</div>
-            <div className="user-info">
-              <div className="name">{isLoading ? 'Loading...' : userName}</div>
-              <div className="company">{isLoading ? 'Loading...' : companyName}</div>
-            </div>
-          </NavLink>
-        </div>
-      </div>
+  // --- Loading state ---
+  if (!metrics) {
+    return (
+      <div className="container">
+        <div className="sidebar"> 
+          <div className="sidebar-top">
+            <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+          </div>
+        </div>
+        <div className="content-section-main">
+          <div className="content-container-main" style={{padding: '2rem'}}>
+            <p>Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // --- SIDEBAR JSX (Reusable) ---
+  const Sidebar = () => (
+    <div className="sidebar">
+      <div className="sidebar-top">
+        <button 
+          type="button" 
+          onClick={() => navigate('/dashboard')}
+          className="logo-button" 
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+        >
+          <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+        </button>
+        <p className ="descriptor">Core Features</p>
+        <div className="navbar">
+          <button type="button" onClick={() => navigate('/dashboard')} className={`nav ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+            <LayoutDashboard /><span>Dashboard</span>
+          </button>
+          <button type="button" className={`nav ${location.pathname === '/inventory' ? 'active' : ''}`} onClick={() => navigate('/inventory')}>
+            <Archive /><span>Inventory</span>
+          </button>
+          <button type="button" className={`nav ${location.pathname === '/analytics' ? 'active' : ''}`} onClick={() => navigate('/analytics')}>
+            <ChartColumnBig /><span>Analytics</span>
+          </button>
+        </div>
+        <p className ="descriptor">Plugins</p>
+        <div className = "navbar">
+          <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')} disabled={!isProUser}>
+            <Network /><span>Network</span>
+          </button>
+          <button type="button" className={`nav ${location.pathname === '/report' ? 'active' : ''}`} onClick={() => navigate('/report')} disabled={!isProUser}>
+            <FileText /><span>Report</span>
+          </button>
+          <button type="button" className={`nav ${location.pathname === '/chat' ? 'active' : ''}`} onClick={() => navigate('/chat')} disabled={!isProUser}>
+            <Sprout /><span>Sprout AI</span>
+          </button>
+        </div>
+      </div>
+      <div className="sidebar-bottom">
+        <div className = "navbar">
+        <button type="button" className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} onClick={() => navigate("/settings")}>
+          <Settings /><span>Settings</span>
+        </button>
+        </div>
+      </div>
+    </div>
+  );
 
-      <main className="main-content">
-        <header>
-          <h1>Dashboard</h1>
-          <p>Overview of your carbon emissions and activities.</p>
-        </header>
+  // --- UPDATED: Filter logic ---
+  // Get all metric definitions that are in the user's metricList
+  const metricsForIndustry = allMetricDefinitions.filter(m => 
+    metrics.metricList.includes(m.id)
+  );
+  
+  const activeBreakdownTemplate = activeMetricId ? METRIC_BREAKDOWN_DATA[activeMetricId] : null;
 
-        {error && <div className="error-message">{error}</div>} {/* Display errors */}
+  // --- UPDATED: getTopLevelData ---
+  const getTopLevelData = (metricId) => {
+    const breakdown = METRIC_BREAKDOWN_DATA[metricId];
+    if (!breakdown || !metrics) return { displayValue: 'N/A' };
 
-        {isLoading ? (
-          <div>Loading dashboard data...</div>
-        ) : (
-          <div className="dashboard-grid">
-            <div className="card emissions-card">
-              <div className="card-header">
-                <span className="card-title">Current Total Carbon Emissions</span>
-                <span className="info-icon" data-tooltip="This section shows you the total sum of all your carbon emissions from your products, top 4 contributors and an AI summary.">ⓘ</span>
-              </div>
-              <div className="emissions-total">
-                <div className="label">Sum of all carbon emissions:</div>
-                {/* Use fetched totalEmissions */}
-                <div className="value">{totalEmissions.toFixed(3)} kgCO2e</div>
-              </div>
-              <div className="card-header" style={{ marginTop: '30px' }}>
-                <span className="card-title">Top Contributors of Carbon Emissions</span>
-              </div>
-              <div className="chart-area">
-                <div className="y-axis">
-                  {yAxisLabels.map((label, index) => <span key={index}>{label}</span>)}
-                </div>
-                <div className="bar-chart-container">
-                  {contributors.length > 0 ? (
-                    // Use fetched contributors data
-                    contributors.map(data => (
-                      <div className="bar-wrapper" key={data.name}>
-                        {/* Use contributor 'value' for height */}
-                        <div className="bar" style={{ height: `${(data.value / yAxisMax) * 100}%` }}></div>
-                        <div className="bar-label">{data.name}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="no-products-message" style={{ fontSize: '13px' }}>No contributor data available.</div>
-                  )}
-                </div>
-              </div>
-              <div className="ai-summary">
-                 <div className="card-header">
-                   <span className="card-title">Summary</span>
-                 </div>
-                 <p className="summary-text">No info available.</p>
-               </div>
-            </div>
+    // --- Special case for Total GHG (Calculated) ---
+    if (metricId === 'total-ghg-emissions') {
+      const metricData = metrics.data['TOTAL_GHG'];
+      if (!metricData) return { displayValue: 'N/A' };
+      return { displayValue: `${metricData.value} ${metricData.unit}` };
+    }
 
-            <div className="card">
-              <div className="card-header">
-                <span className="card-title">Activities</span>
-                <span className="info-icon" data-tooltip="This section shows you the top 5 actions you have carried out within our app.">ⓘ</span>
-              </div>
-              <div className="activities-list">
-                 {/* Activities are still static based on state */}
-                 <div className="activity-item">
-                   <div className="description">
-                     <div className="main">{lcaActivityText}</div>
-                     <div className="sub">Inventory</div>
-                   </div>
-                   <div className={`status-badge ${totalEmissions > 0 ? 'completed' : 'not-started'}`}>
-                    {totalEmissions > 0 ? 'Completed' : 'Not Started'}
-                   </div>
-                 </div>
-                 <div className="activity-item">
-                   <div className="description">
-                     <div className="main">Added a New Product</div>
-                     <div className="sub">Inventory</div>
-                   </div>
-                   <div className={`status-badge ${contributors.length > 0 ? 'completed' : 'not-started'}`}>
-                      {contributors.length > 0 ? 'Completed' : 'Not Started'}
-                   </div>
-                 </div>
-                 <div className="activity-item">
-                   <div className="description">
-                     <div className="main">Complete Onboarding</div>
-                     <div className="sub"></div>
-                   </div>
-                   <div className="status-badge completed">Completed</div>
-                 </div>
-               </div>
-            </div>
+    // --- NEW SPECIAL CASE for Fleet Fuel (Dummy) ---
+    if (metricId === 'fleet-fuel-management') {
+      const metricData = metrics.data['FB-FR-110a.1']; // Get the dummy GJ value
+      if (!metricData) return { displayValue: 'N/A' };
+      return { displayValue: `${metricData.value} ${metricData.unit}` };
+    }
+    // --- END NEW ---
 
-            <div className="card">
-              <div className="card-header">
-                <span className="card-title">Efficiency Target</span>
-                <span className="info-icon" data-tooltip="This section shows the comparison between your actual target and the amount left to hit the target.">ⓘ</span>
-              </div>
-              <div className="pie-chart-container">
-                <div
-                  className="pie-chart"
-                  style={{ background: `conic-gradient(light-dark(var(--navy), var(--blue)) ${pieAngle}deg, var(--border-color) ${pieAngle}deg)` }}
-                >
-                  <div className="pie-chart-center">{piePercentage}%</div>
-                </div>
-                <div className="pie-legend">
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'light-dark(var(--navy), var(--blue))' }}></div>
-                    {/* Use fetched totalEmissions */}
-                    <div className="legend-text">Current Emissions: <span className="value">{totalEmissions.toFixed(3)} kgCO2e</span></div>
-                  </div>
-                  <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'var(--border-color)' }}></div>
-                    <div className="legend-text">Amount Left: <span className="value">{amountLeft.toFixed(3)} kgCO2e</span></div>
-                  </div>
-                </div>
-              </div>
-              <div className="target-input-container">
-                <label htmlFor="efficiencyTargetInput">Set Target (kgCO2e)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0" // Prevent negative targets
-                  id="efficiencyTargetInput"
-                  className="target-input-editable"
-                  value={efficiencyTarget} // Controlled input
-                  onChange={handleTargetChange} // Update state and sessionStorage
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+    // Find the first quantitative sub-metric to display (for all *other* cards)
+    const firstQuantMetric = breakdown.subMetrics.find(sub => sub.type === 'Quantitative');
+    
+    if (firstQuantMetric) {
+      const metricData = metrics.data[firstQuantMetric.dataKey];
+      if (!metricData) return { displayValue: 'N/G' };
+      const { value, unit } = metricData;
+      return { displayValue: `${value} ${unit}` };
+    }
+    
+    // If no quantitative, find the first analysis one
+    const firstAnalysisMetric = breakdown.subMetrics.find(sub => sub.type === 'Discussion and Analysis');
+    if (firstAnalysisMetric) {
+       const metricData = metrics.data[firstAnalysisMetric.dataKey];
+       return { displayValue: metricData ? metricData.value : '(require input from company)' };
+    }
+    
+    return { displayValue: 'N/A' };
+  };
+
+  return (
+    <div className="container">
+      <Sidebar /> {/* Reuse sidebar */}
+
+      {/* --- MAIN CONTENT --- */}
+      <div className="content-section-main">
+        <div className="content-container-main"> 
+          
+          <div className="header-group">
+            <h1>Dashboard</h1>
+            <p className = "medium-regular">Overview of your industry metrics.</p>
+          </div>
+          
+          <div className = "sub-header" style={{ display: 'flex', alignItems: 'stretch' }}>
+ 
+            <div className = "header-col">
+              <p className='descriptor-medium'>Key Metrics</p>
+              {hasProducts ? (
+                <p style = {{color: "rgba(var(--greys), 1)"}}>
+                  {/* --- FIXED: This text is now correct --- */}
+                Showing {metricsForIndustry.length} of {metricsForIndustry.length} metrics
+                </p>
+              ) : (
+                <p style = {{color: "rgba(var(--greys), 1)"}}>
+                  No products added yet.
+                </p>
+              )}
+            </div>
+            <div className = "button-container">
+              <button 
+                className = "icon" 
+                onClick={handleSparkleClick}
+                style={!isProUser ? { backgroundColor: 'rgba(var(--greys), 0.2)' } : {}}
+              >
+                <Sparkles />
+              </button>
+            </div>
+          </div>
+          
+          {/* --- Metrics Container --- */}
+          <div className = "metrics-container">
+            {hasProducts ? (
+              <>
+                {/* --- UPDATED: Map over the single, combined list --- */}
+                {metricsForIndustry.map((metric) => {
+                  
+                  // --- NEW: Check if this is a locked pro metric ---
+                  const isLocked = metric.isPro && !isProUser;
+
+                  if (isLocked) {
+                    // --- Render the "Locked Pro Card" ---
+                    return (
+                      <div 
+                       className="metrics-card pro-metrics"
+                        key={metric.id}
+                        onClick={handleSparkleClick}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className = "metrics-card-header" style = {{color: 'rgba(var(--blacks) ,0.5)', opacity: 0.6}}>
+                          {React.createElement(metric.icon)} 
+                          <p className='medium-bold'>{metric.name}</p>
+                     </div>
+                        <div className = "metrics-content" style={{opacity: 0.6}}>
+                          <p className = "medium-bold" style = {{color: 'rgba(var(--blacks) ,0.3)'}}>Analysis</p>
+                          <p>Unlock CarbonX Pro to get your analysis!</p>
+                        </div>
+                        <div className='logo-animation' style={{marginTop: 'auto'}}>
+                          <button 
+                            className="icon"
+                            onClick={handleSparkleClick}
+                            style={{ backgroundColor: 'rgba(var(--greys), 0.2)', color: 'rgba(var(--secondary), 1)' }}
+                          >
+                            <Lock size={16} />
+                       </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // --- Render the normal, active card ---
+                  const { displayValue } = getTopLevelData(metric.id); 
+                  
+                  return (
+                    <div 
+                     className={`metrics-card ${activeMetricId === metric.id ? 'active' : ''}`} 
+                      key={metric.id}
+                    >
+                      <div className="metrics-card-header">
+                       {React.createElement(metric.icon)} 
+                        <p className='medium-bold' style={{ color: 'rgba(var(--primary) ,1)' }}>{metric.name}</p>
+                      </div>
+                     
+                     <p className="medium-bold">{displayValue.trim()}</p>
+
+                      <div className='logo-animation' style={{marginTop: 'auto'}}>
+                       <button 
+                          className={`icon ${activeMetricId === metric.id ? 'active' : ''}`}
+                          onClick={() => setActiveMetricId(metric.id)}
+                       >
+                          <ArrowRight />
+                      </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+           // --- NEW: Empty text ---
+             <p className="dashboard-empty-text">
+                Please add a product into inventory to see your key metrics.
+            </p>
+            )}
+          </div> {/* End Metrics Container */}
+
+          <div className="sub-header">
+            <div className="header-col">
+             <p className="descriptor-medium">Metric Breakdown</p>
+            </div>
+          </div>
+
+          {/* --- METRIC BREAKDOWN SECTION --- */}
+          <div>
+            {hasProducts ? (
+              activeBreakdownTemplate ? (
+                <div className="metric-breakdown-card">
+                  <div className="metrics-card-header large-bold" style={{color: 'rgba(var(--primary), 1)'}}>
+                    {React.createElement(activeBreakdownTemplate.icon, { size: 24 })}
+                    <p>{activeBreakdownTemplate.title}</p>
+                  </div>
+                  <div className="metric-breakdown-list">
+                   
+                    {activeBreakdownTemplate.subMetrics.map((sub) => {
+                      
+                      const isAnalysis = sub.type === 'Discussion and Analysis';
+                      let displayValue = '';
+                      
+                      if (isAnalysis) {
+                        const metricData = metrics.data[sub.dataKey];
+                      displayValue = (metricData && metricData.value) || '(require input from company)';
+                      } else {
+                       const metricData = metrics.data[sub.dataKey];
+                        if (metricData) {
+                          const { value, unit } = metricData;
+                         // --- UPDATED (Task 3): Removed /max ---
+                         displayValue = `${value} ${unit}`;
+                        } else {
+                          displayValue = 'N/A';
+                        }
+                      }
+                      
+                      const rowStyle = {
+                       borderBottom: '1px solid rgba(var(--greys), 0.2)',
+                        padding: '1rem',
+                        opacity: isAnalysis && !isProUser ? '0.6' : '1', 
+                        cursor: isAnalysis && !isProUser ? 'pointer' : 'default',
+                      };
+
+                        return (
+                          <div 
+                            className="sub-metric-row" 
+                            style={rowStyle}
+                            key={sub.name}
+                            onClick={isAnalysis && !isProUser ? () => setShowProModal(true) : undefined}
+                          >
+                            <div className="sub-metric-info" style={{width: '100%'}}>
+                              
+                              {/* Line 1: Name and Value */}
+                              <div className="input-group-row" style={{ alignItems: 'flex-start' }}>
+                                <p className="medium-bold" style={{flex: 1}}>{sub.name}</p>
+                             <p className="medium-bold" style={{color: "rgba(var(--primary), 1)", textAlign: 'right'}}>
+                                  {displayValue}
+                                </p>
+                              </div>
+                              
+                              {/* --- UPDATED (Task 1 & 2): New SASB/Scope 3 formatting --- */}
+                              <div className="metric-categories-col" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {sub.sasbCategory && sub.sasbCategory !== 'NA' && (
+                                  <div>
+                                    <p className="descriptor-medium" style={{color: "rgba(var(--greys), 1)"}}>SASB</p>
+                                    <p className="nofmal-regular" style={{color: "rgba(var(--blacks), 1)"}}>{sub.sasbCategory}</p>
+                                  </div>
+                               )}
+                               {sub.scope3Category && sub.scope3Category !== 'NA' && (
+                                  <div>
+                                    <p className="descriptor-medium" style={{color: "rgba(var(--greys), 1)"}}>Scope 3</p>
+                                    <p className="normal-regular" style={{color: "rgba(var(--blacks), 1)"}}>{sub.scope3Category}</p>
+                                  </div>
+                                )}
+ 
+                              </div>
+
+                              {/* --- UPDATED (Task 4): Pro Content for Analysis --- */}
+                              {isAnalysis && isProUser && (
+                                <div className="analysis-content" style={{marginTop: '1rem'}}>
+                                  {sub.proContent ? (
+                                    <>
+                                      {sub.proContent.header ? (
+                                       <div className="pro-analysis-content">
+                                          <p className="normal-regular">{sub.proContent.header}</p>
+                                          <ul className="pro-analysis-list">
+                        Examples of such tags include [Image of the human digestive system],  etc. Be very economical in your use of image tags, only add multiple tags if each additional tag is adding instructive value beyond pure illustration. Place the image tag immediately before or after the relevant text without disrupting the flow of the response. 
+                                            {sub.proContent.list.map((item, index) => (
+                                              <li key={index} className="normal-regular">{item}</li>
+                                          ))}
+                                          </ul>
+
+                                        </div>
+                                      ) : (
+                                        <div className="pro-analysis-content">
+                                          {Array.isArray(sub.proContent) ? sub.proContent.map((item, index) => (
+                                            <p key={index} className="normal-regular" style={index > 0 ? {marginTop: '0.5rem'} : {}}>
+                                              {item}
+                                           </p>
+
+                                          )) : <p className="normal-regular">{String(sub.proContent)}</p>}
+           </div>
+                                    )}
+                              </>
+                                ) : (
+                              <p className="normal-regular" style={{fontStyle: 'italic'}}>
+                                    (Pro analysis content for this metric is not yet available.)
+                           </p>
+                     )}
+                              </div>
+                            )}
+
+                          </div>
+
+                        </div>
+                     );
+                    })}
+
+                  </div>
+
+                </div>
+              ) : (
+                <p className="dashboard-empty-text" style={{ padding: '2rem 0' }}>
+                  Please select a metric card to see its breakdown.
+                </p>
+
+            )
+            ) : (
+            <p className="dashboard-empty-text" style={{ padding: '2rem 0' }}>
+                Your metric breakdown will appear here once you add a product.
+              </p>
+            )}
+          </div>
+          
+        </div> {/* End content-container-main */}
+     </div> {/* End content-section-main */}
+
+      {/* --- Pro Modal --- */}
+      {showProModal && (
+        <div className="modal-overlay active" onClick={() => setShowProModal(false)}>
+          <div className="modal-content pro-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-modal-btn" style={{ width: '100%', textAlign: 'right' }} onClick={() => setShowProModal(false)}><X /></button>
+        <div>
+              <Sparkles size={48} color="rgba(var(--secondary), 1)" />
+
+          </div>
+            
+            <p className='large-bold'>Get CarbonX Pro</p>
+            
+            <div className="group-pro-modal">
+              <p className="normal-regular">What you will get:</p>
+              
+              <ul className="pro-features-list">
+                <li><CircleCheck size={20} /><span>Cloud Hosting</span></li>
+                <li><CircleCheck size={20} /><span>Access to Report Generator & AI Functionalities</span></li>
+                <li><CircleCheck size={20} /><span>Limited access to Marketplace Community</span></li>
+                <li><CircleCheck size={20} /><span>Increase your team size to 5</span></li>
+                <li><CircleCheck size={20} /><span>IT Support</span></li>
+              </ul>
+            </div>
+            
+            <button type="button" className="default" style={{ width: '100%' }} onClick={() => navigate('/settings')}>
+          Get CarbonX Pro
+            </button>
+       </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DashboardPage;

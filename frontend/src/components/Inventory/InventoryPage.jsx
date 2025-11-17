@@ -1,33 +1,163 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
 
-// Assuming trash.svg is in src/assets/
-import trashIconPath from '../../assets/trash.svg'; 
+// Import assets
+import logoPath from '../../assets/carbonx.png'; 
+
+// Import Icons
+import {
+  LayoutDashboard,
+  Archive,
+  ChartColumnBig,
+  Network,
+  FileText,
+  Sprout,
+  Settings,
+  Search,
+  Plus,
+  X,
+  Triangle,
+  CirclePlus,
+  Trash2,
+  FilePlus
+} from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080/api';
 
-// Confirmation Modal Component
+// --- UPDATED: Smarter CSV parser ---
+const parseCsvFile = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!file) return reject(new Error("No file provided."));
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split(/[\r\n]+/).filter(line => line.trim() !== '');
+        if (lines.length < 2) {
+          return reject(new Error("CSV must have a header and at least one data row."));
+        }
+
+        const headerLine = lines[0].trim();
+        const headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+        const lowerCaseHeaders = headers.map(h => h.toLowerCase());
+
+        // Find required column indices
+        const productNameIndex = lowerCaseHeaders.indexOf('product name');
+        const ingredientIndex = lowerCaseHeaders.indexOf('ingredients'); 
+        const weightIndex = lowerCaseHeaders.indexOf('net weight (kg)');
+        const packagingTypeIndex = lowerCaseHeaders.indexOf('packaging type');
+        const packagingWeightIndex = lowerCaseHeaders.indexOf('packaging weight (g)');
+        const transportModeIndex = lowerCaseHeaders.indexOf('transportation mode');
+
+        const missingColumns = [];
+        if (productNameIndex === -1) missingColumns.push('"Product Name"');
+        if (ingredientIndex === -1) missingColumns.push('"Ingredients"');
+        if (weightIndex === -1) missingColumns.push('"Net Weight (kg)"');
+        if (packagingTypeIndex === -1) missingColumns.push('"Packaging Type"');
+        if (packagingWeightIndex === -1) missingColumns.push('"Packaging Weight (g)"');
+        if (transportModeIndex === -1) missingColumns.push('"Transportation Mode"');
+
+        if (missingColumns.length > 0) {
+          return reject(new Error(`Invalid CSV header. File is missing columns: ${missingColumns.join(', ')}`));
+        }
+        
+        const data = lines.slice(1).map(line => {
+          const values = [];
+          let inQuote = false;
+          let currentField = '';
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
+              inQuote = !inQuote;
+            } else if (char === ',' && !inQuote) {
+              values.push(currentField.trim());
+              currentField = '';
+            } else {
+              currentField += char;
+            }
+          }
+          values.push(currentField.trim());
+
+          if (values.length < headers.length) {
+             console.warn("Skipping malformed CSV line:", line);
+             return null;
+          }
+
+          const rowData = {};
+          headers.forEach((header, index) => {
+            rowData[header] = values[index] ? values[index].replace(/"/g, '') : '';
+          });
+          
+          return {
+            productName: rowData['Product Name'],
+            ingredient: rowData['Ingredients'], 
+            metadata: rowData // Store the entire row
+          };
+
+        }).filter(item => item !== null && item.productName && item.ingredient);
+
+        resolve(data);
+      } catch (err) {
+        reject(new Error("An error occurred during parsing: " + err.message));
+      }
+    };
+    
+    reader.onerror = (e) => reject(new Error("Error reading file: " + e.target.error));
+    reader.readAsText(file);
+  });
+};
+
+// --- UPDATED: PDF Parsing Simulation ---
+const parsePdfFile = (file) => {
+  return new Promise((resolve, reject) => {
+    // We use a custom modal/alert in a real app, but window.alert is fine for this mock
+    window.alert(`Simulating PDF parse for: ${file.name}\n\nReading complex spec sheets from PDFs is difficult. For best results, please use the CSV template.\n\nMock data will be added for now.`);
+
+    setTimeout(() => {
+      const mockParsedData = [
+        { 
+          productName: 'PDF-Parsed Chair', 
+          ingredient: 'Steel (from PDF)', 
+          metadata: { 
+            "Product Name": "PDF-Parsed Chair", 
+            "Product GTIN/EAN/UPC": "PDF-123456", 
+            "Brand": "MockBrand",
+            "Ingredients": "Steel (from PDF)",
+            "Net Weight (kg)": "10.5",
+            "Country of Origin": "Mockland",
+            "Packaging Type": "Cardboard Box",
+            "Packaging Weight (g)": "500",
+            "Transportation Mode": "Sea"
+          } 
+        },
+      ];
+      resolve(mockParsedData);
+    }, 1500); 
+  });
+};
+
+// --- Confirmation Modal (New UI Style) ---
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
   if (!isOpen) {
     return null;
   }
-
   return (
     <div className="modal-overlay active" onClick={onClose}>
-      <div className="confirm-modal-content" onClick={e => e.stopPropagation()}>
-        <div className="confirm-modal-header">
-          <h2>{title}</h2>
-          <button className="close-modal-btn" onClick={onClose}>&times;</button>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <p className="medium-bold">{title}</p>
+          <button className="close-modal-btn" onClick={onClose}><X /></button>
         </div>
-        <div className="confirm-modal-body">
+        <div className="normal-regular">
           {children}
         </div>
-        <div className="confirm-modal-buttons">
-          <button className="confirm-btn-cancel" onClick={onClose}>
+        <div className="confirm-modal-buttons button-modal">
+          <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onClose}>
             Cancel
           </button>
-          <button className="confirm-btn-danger" onClick={onConfirm}>
+          <button className="default" style={{ backgroundColor: 'rgba(var(--danger), 1)', padding: '0.5rem 1rem' }} onClick={onConfirm}>
             Delete
           </button>
         </div>
@@ -38,68 +168,39 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
 
 
 const InventoryPage = () => {
-  // --- STATE (No changes) ---
+  // --- STATE ---
   const [userId] = useState(localStorage.getItem('userId') || '');
-  const [userName, setUserName] = useState('');
-  const [userInitials, setUserInitials] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation(); 
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [productName, setProductName] = useState('');
+  
   const [productFile, setProductFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  
   const [uploading, setUploading] = useState(false);
   const [showDppModal, setShowDppModal] = useState(false);
-  const [currentDpp, setCurrentDpp] = useState('');
+  const [currentDppProduct, setCurrentDppProduct] = useState(null); // Renamed from currentDpp
   const [expandedRows, setExpandedRows] = useState({});
   const [subProductWeights, setSubProductWeights] = useState({});
   const [calculating, setCalculating] = useState({});
-  const [editableProcesses, setEditableProcesses] = useState({});
+  const [editableProcesses, setEditableProcesses] = useState({}); // Kept for process search
   const [suggestions, setSuggestions] = useState({});
   const [activeSuggestionBox, setActiveSuggestionBox] = useState(null);
-  const [editableComponents, setEditableComponents] = useState({});
+  const [editableIngredients, setEditableIngredients] = useState({}); // Renamed from editableComponents
   const [deleteConfirm, setDeleteConfirm] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
+    isOpen: false, title: '', message: '', onConfirm: () => {},
   });
   
-  // --- FUNCTIONS (No changes) ---
-  const fetchUserProfile = useCallback(async () => {
-    if (!userId) {
-      setError('User ID not found. Please log in again.');
-      setLoadingProfile(false);
-      return;
-    }
-    setLoadingProfile(true);
-    try {
-      const res = await fetch(`${API_BASE}/users/${userId}/profile`);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch profile: ${res.status}`);
-      }
-      const profile = await res.json();
-      setUserName(profile.fullName || 'User');
-      setCompanyName(profile.companyName || 'Company');
-      let initials = 'U';
-      if (profile.fullName) {
-        const nameParts = profile.fullName.split(' ');
-        initials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '')).toUpperCase();
-      }
-      setUserInitials(initials);
-    } catch (err) {
-      console.error("Error fetching user profile:", err);
-      setUserName('User');
-      setCompanyName('Company');
-      setUserInitials('U');
-    } finally {
-      setLoadingProfile(false);
-    }
-  }, [userId]);
+  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
 
+  // --- FUNCTIONS ---
+  
   const fetchProducts = useCallback(async () => {
     if (!userId) {
       setError('No user session found. Please log in.');
@@ -122,18 +223,24 @@ const InventoryPage = () => {
     }
   }, [userId]);
 
+  // Fetch products on component load
   useEffect(() => {
-    fetchUserProfile();
     fetchProducts();
-  }, [fetchUserProfile, fetchProducts]);
+  }, [fetchProducts]);
   
-  const autoSaveProduct = async (productId, newDppData, isDeletingSubcomponent = false) => {
+  // Autosave function (no changes)
+  const autoSaveProduct = async (productId, newDppData, newTotalLca = null) => {
     setProducts(currentProducts =>
-      currentProducts.map(prod =>
-        prod.productId === productId ? { ...prod, dppData: newDppData } : prod
-      )
+      currentProducts.map(prod => {
+        if (prod.productId === productId) {
+          const updatedLcaResult = newTotalLca !== null ? newTotalLca : prod.lcaResult;
+          return { ...prod, dppData: newDppData, lcaResult: updatedLcaResult };
+        }
+        return prod;
+      })
     );
     try {
+      // We send the new DPP data to the backend
       const res = await fetch(`${API_BASE}/inventory/dpp/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -144,312 +251,450 @@ const InventoryPage = () => {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to save changes.");
       }
-  
-      await fetchProducts();
+      
+      // If LCA was updated, send that too
+      if (newTotalLca !== null) {
+        await fetch(`${API_BASE}/inventory/lca/${productId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lcaResult: newTotalLca }),
+        });
+      }
     } catch (err) {
       console.error("Auto-save Error:", err);
-      alert("Error saving changes: " + err.message);
+      // alert("Error saving changes: " + err.message);
+      // In a real app, you might want to revert the state change here
     }
   };
 
-  const handleAddProduct = async e => {
-    e.preventDefault();
-    if (!productName || !productFile || !userId) {
-      alert('Product name, BoM file, and user session required!');
+
+  // --- NEW: Handle File Select & Drag/Drop ---
+  const handleFileSelect = (file) => {
+    if (!file) { setProductFile(null); return; }
+    if (!file.name.endsWith('.csv') && !file.name.endsWith('.pdf')) {
+      alert("Please upload a .csv or .pdf file.");
       return;
     }
+    setProductFile(file);
+  };
+
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  // --- UPDATED: Handle Add Product (Frontend Parse + Backend Save) ---
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!userId) return alert("Error: No user is logged in.");
+    if (!productFile) return alert("Please select a file first.");
+
     setUploading(true);
-    const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('productName', productName);
-    formData.append('file', productFile);
+    let parsedData = [];
+
+    // 1. Parse File on Frontend
     try {
-      const res = await fetch(`${API_BASE}/inventory/bom-upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (res.ok) {
-        setShowAddProduct(false);
-        setProductName('');
-        setProductFile(null);
-        fetchProducts();
+      if (productFile.name.endsWith('.pdf')) {
+        parsedData = await parsePdfFile(productFile);
+      } else if (productFile.name.endsWith('.csv')) {
+        parsedData = await parseCsvFile(productFile);
       } else {
-        const errorText = await res.text();
-        console.error("Product creation failed:", res.status, errorText);
-        alert('Product creation failed!');
+        throw new Error("Invalid file type.");
+      }
+
+      if (parsedData.length === 0) {
+        alert("Error: The file was empty or contained no valid data rows.");
+        setUploading(false);
+        return;
       }
     } catch (err) {
-      console.error("Network error during product add:", err);
-      alert('Network error');
+      console.error("Error parsing file:", err);
+      alert(`Error parsing file: ${err.message}`);
+      setUploading(false);
+      return;
+    }
+
+    // 2. Process Data
+    const productsMap = new Map();
+    parsedData.forEach(item => {
+      const { productName, ingredient, metadata } = item;
+      
+      if (!productsMap.has(productName)) {
+        const initialDpp = [];
+        const netWeightKg = parseFloat(metadata['Net Weight (kg)']);
+        const packagingWeightG = parseFloat(metadata['Packaging Weight (g)']);
+        const packagingWeightKg = isNaN(packagingWeightG) ? 0 : packagingWeightG / 1000;
+        const packagingType = metadata['Packaging Type'];
+        const transportMode = metadata['Transportation Mode'];
+        const ingredientWeightKg = isNaN(netWeightKg) ? 0 : netWeightKg - packagingWeightKg;
+        
+        if (packagingType && !isNaN(packagingWeightKg)) {
+          initialDpp.push({
+            ingredient: packagingType,
+            weightKg: packagingWeightKg, 
+            unit: 'kg',
+            materialId: null, lcaValue: null, emissionFactor: null,
+            isPackaging: true, isTransport: false
+          });
+        }
+        
+        if (transportMode) {
+           initialDpp.push({
+            ingredient: `Transport (${transportMode})`,
+            weightKg: 0, 
+            unit: 'km',
+            materialId: null, lcaValue: null, emissionFactor: null,
+            isPackaging: false, isTransport: true
+          });
+        }
+        productsMap.set(productName, {
+          dpp: initialDpp, metadata: metadata, calculatedIngredientWeight: ingredientWeightKg 
+        });
+      }
+      
+      const productData = productsMap.get(productName);
+      const ingredients = ingredient.split(';').map(ing => ing.trim()).filter(ing => ing);
+      if (ingredients.length > 0) {
+        const weightPerIngredient = ingredients.length > 0 ? productData.calculatedIngredientWeight / ingredients.length : 0;
+        ingredients.forEach(ingName => {
+          productData.dpp.push({
+            ingredient: ingName,
+            weightKg: weightPerIngredient,
+            unit: 'kg',
+            materialId: null, lcaValue: null, emissionFactor: null,
+            isPackaging: false, isTransport: false
+          });
+        });
+      }
+    });
+
+    // 3. Send to Backend
+    try {
+        const savePromises = Array.from(productsMap.entries()).map(async ([pName, data]) => {
+            delete data.calculatedIngredientWeight;
+            const payload = {
+                userId: userId,
+                productName: pName,
+                uploadedFile: productFile.name,
+                dppData: JSON.stringify(data.dpp),
+                metadata: data.metadata,
+                lcaResult: 0
+            };
+
+            const res = await fetch(`${API_BASE}/inventory/create`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error(`Failed to save ${pName}`);
+            return res.json();
+        });
+        await Promise.all(savePromises);
+        
+        setShowAddProduct(false);
+        setProductFile(null);
+        fetchProducts();
+    } catch (err) {
+        console.error("Network error during product save:", err);
+        alert('Failed to save one or more products. Check console.');
     }
     setUploading(false);
   };
   
+  // --- Product Deletion ---
   const performActualDeleteProduct = async (productId) => {
     try {
-      const res = await fetch(`${API_BASE}/inventory/${productId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`${API_BASE}/inventory/${productId}`, { method: 'DELETE' });
       if (res.ok) {
-        setProducts(prevProducts => prevProducts.filter(p => p.productId !== productId));
+        setProducts(prev => prev.filter(p => p.productId !== productId));
       } else {
         alert('Failed to delete product.');
       }
     } catch (err) {
       console.error("Delete error:", err);
-      alert('Error connecting to server.');
     }
   };
 
   const handleDelete = (productId) => {
     const product = products.find(p => p.productId === productId);
-    const productName = product ? product.productName : 'this product';
-    
     setDeleteConfirm({
       isOpen: true,
       title: 'Delete Product',
-      message: `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete "${product ? product.productName : 'this product'}"? This action cannot be undone.`,
       onConfirm: () => performActualDeleteProduct(productId)
     });
   };
 
-  const handleProcessChange = async (e, p, idx) => {
+  // --- Subcomponent Handlers ---
+
+  const handleComponentChange = (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
     const query = e.target.value;
-    setEditableProcesses(prev => ({ ...prev, [key]: query }));
+    setEditableIngredients(prev => ({ ...prev, [key]: query }));
     setActiveSuggestionBox(key);
-    setProducts(currentProducts => {
-      return currentProducts.map(prod => {
+    
+    // Optimistic update
+    setProducts(currentProducts => currentProducts.map(prod => {
         if (prod.productId === p.productId) {
           let dpp = JSON.parse(prod.dppData);
-          dpp[idx].process = query;
-          dpp[idx].processId = null;
+          dpp[idx].ingredient = query;
+          dpp[idx].materialId = null;
+          dpp[idx].lcaValue = null;
+          dpp[idx].emissionFactor = null;
           return { ...prod, dppData: JSON.stringify(dpp) };
         }
         return prod;
-      });
-    });
+    }));
+
     if (query.length < 2) {
       setSuggestions(prev => ({ ...prev, [key]: [] }));
       return;
     }
-    try {
-      const res = await fetch(`${API_BASE}/products?query=${encodeURIComponent(query)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSuggestions(prev => ({ ...prev, [key]: data }));
-      }
-    } catch (err) {
-      console.error("Failed to fetch suggestions:", err);
+    
+    // Mock Suggestions
+    const mockSuggestions = [
+      { name: "Steel", openLcaMaterialId: 'mock-steel' }, { name: "Stainless Steel", openLcaMaterialId: 'mock-stainless-steel' },
+      { name: "Aluminum", openLcaMaterialId: 'mock-aluminum' }, { name: "Copper", openLcaMaterialId: 'mock-copper' },
+      { name: "Glass", openLcaMaterialId: 'mock-glass' }, { name: "PLA", openLcaMaterialId: 'mock-pla' },
+      { name: "ABS Plastic", openLcaMaterialId: 'mock-abs' }, { name: "Polycarbonate", openLcaMaterialId: 'mock-polycarbonate' },
+      { name: "Nylon 6", openLcaMaterialId: 'mock-nylon' }, { name: "Nylon", openLcaMaterialId: 'mock-nylon' },
+      { name: "Polyester Mesh", openLcaMaterialId: 'mock-polyester' }, { name: "Rubber", openLcaMaterialId: 'mock-rubber' },
+      { name: "Dried white sesame", openLcaMaterialId: 'mock-sesame' }, { name: "Plastic pouch", openLcaMaterialId: 'mock-plastic-pouch' }, 
+      { name: "Transport (Road)", openLcaMaterialId: 'mock-transport-road' }, { name: "Transport (Sea)", openLcaMaterialId: 'mock-transport-sea' },
+    ].filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
+    setSuggestions(prev => ({ ...prev, [key]: mockSuggestions }));
+  };
+
+  const handleSuggestionClick = (p, idx, suggestion) => {
+    const key = `${p.productId}_${idx}`;
+    let newDppData;
+    let weightToUse;
+    setProducts(currentProducts => {
+      const newProducts = currentProducts.map(prod => {
+        if (prod.productId === p.productId) {
+          let dpp = JSON.parse(prod.dppData);
+          dpp[idx].ingredient = suggestion.name;
+          dpp[idx].materialId = suggestion.openLcaMaterialId;
+          dpp[idx].lcaValue = null;
+          dpp[idx].emissionFactor = null;
+          weightToUse = dpp[idx].weightKg;
+          newDppData = JSON.stringify(dpp);
+          return { ...prod, dppData: newDppData };
+        }
+        return prod;
+      });
+      return newProducts;
+    });
+    setEditableIngredients(prev => ({ ...prev, [key]: undefined }));
+    setSuggestions(prev => ({ ...prev, [key]: [] }));
+    setActiveSuggestionBox(null);
+    if (newDppData) {
+      autoSaveProduct(p.productId, newDppData);
+      runLcaCalculation(p.productId, idx, weightToUse); // Auto-calculate on select
     }
   };
 
-  const handleComponentChange = (e, p, idx) => {
+  const handleWeightBlur = (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
-    const newName = e.target.value;
-    setEditableComponents(prev => ({ ...prev, [key]: newName }));
-  };
-  
-  const performActualDeleteSubcomponent = async (productId, indexToDelete) => {
-    const product = products.find(p => p.productId === productId);
+    const newWeight = Number(e.target.value);
+    setSubProductWeights(prev => ({ ...prev, [key]: newWeight }));
+    const product = products.find(pr => pr.productId === p.productId);
     if (!product) return;
     let dpp = JSON.parse(product.dppData);
-    dpp.splice(indexToDelete, 1);
-    await autoSaveProduct(productId, JSON.stringify(dpp), true); // autoSaveProduct handles the rest
+    const item = dpp[idx];
+    
+    if (item.materialId || item.ingredient) {
+      runLcaCalculation(p.productId, idx, newWeight);
+    } else {
+      item.weightKg = newWeight;
+      autoSaveProduct(p.productId, JSON.stringify(dpp));
+    }
   };
 
   const handleDeleteSubcomponent = (productId, indexToDelete) => {
     const product = products.find(p => p.productId === productId);
-    let componentName = 'this subcomponent';
-    if(product) {
-      try {
-        const dpp = JSON.parse(product.dppData);
-        componentName = dpp[indexToDelete]?.component || componentName;
-      } catch (e) {}
-    }
+    if (!product) return;
+    let dpp = JSON.parse(product.dppData);
+    const item = dpp[indexToDelete];
+    let ingredientName = item?.ingredient || 'this component';
 
     setDeleteConfirm({
       isOpen: true,
-      title: 'Delete Subcomponent',
-      message: `Are you sure you want to delete "${componentName}"?`,
+      title: 'Delete LCA Component',
+      message: `Are you sure you want to delete "${ingredientName}"?`,
       onConfirm: () => performActualDeleteSubcomponent(productId, indexToDelete)
     });
   };
   
-  const runLcaCalculation = async (productId, subcomponentIndex, weightToUse) => {
-    const key = `${productId}_${subcomponentIndex}`;
-    setCalculating(prev => ({ ...prev, [key]: true }));
-
+  const performActualDeleteSubcomponent = (productId, indexToDelete) => {
     const product = products.find(p => p.productId === productId);
-    if (!product) {
-      alert("Error: Product not found in state.");
-      setCalculating(prev => ({ ...prev, [key]: false }));
-      return;
-    }
-
+    if (!product) return;
     let dpp = JSON.parse(product.dppData);
-    const item = dpp[subcomponentIndex];
-    const processIdentifier = item.processId || item.process;
-
-    if (!processIdentifier) {
-      alert("Error: Cannot calculate without a process.");
-      setCalculating(prev => ({ ...prev, [key]: false }));
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/openlca/calculate`, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inventoryId: productId,
-          components: [{
-            processId: processIdentifier,
-            weight: weightToUse,
-          }],
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Calculation failed");
-      }
-
-      const data = await res.json();
-      const value = data.results?.[0]?.lcaValue;
-      
-      dpp[subcomponentIndex].lcaValue = value;
-      dpp[subcomponentIndex].weightKg = weightToUse;
-      
-      await autoSaveProduct(productId, JSON.stringify(dpp));
-
-    } catch (err) {
-      console.error(`[LCA Error ${key}]`, err);
-      alert("LCA Calculation Error: " + err.message);
-    } finally {
-      setCalculating(prev => ({ ...prev, [key]: false }));
-    }
+    dpp.splice(indexToDelete, 1);
+    
+    const totalLca = dpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
+    autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
   };
 
-  const handleSuggestionClick = async (p, idx, suggestion) => {
-    const key = `${p.productId}_${idx}`;
-    let newDppData;
-    setProducts(currentProducts => {
-      const newProducts = currentProducts.map(prod => {
-        if (prod.productId === p.productId) {
-          let dpp = JSON.parse(prod.dppData);
-          dpp[idx].process = suggestion.name;
-          dpp[idx].processId = suggestion.openLcaProcessId;
-          dpp[idx].lcaValue = null; // Reset LCA value
-          newDppData = JSON.stringify(dpp);
-          return { ...prod, dppData: newDppData };
-        }
-        return prod;
-      });
-      return newProducts;
-    });
-    setEditableProcesses(prev => ({ ...prev, [key]: undefined }));
-    setSuggestions(prev => ({ ...prev, [key]: [] }));
-    setActiveSuggestionBox(null);
-    if (newDppData) {
-      await autoSaveProduct(p.productId, newDppData);
-    }
-  };
-
-  const handleComponentBlur = async (p, idx) => {
-    const key = `${p.productId}_${idx}`;
-    const newName = editableComponents[key];
-    if (newName === undefined) return;
-    let newDppData;
-    setProducts(currentProducts => {
-      const newProducts = currentProducts.map(prod => {
-        if (prod.productId === p.productId) {
-          let dpp = JSON.parse(prod.dppData);
-          dpp[idx].component = newName;
-          newDppData = JSON.stringify(dpp);
-          return { ...prod, dppData: newDppData };
-        }
-        return prod;
-      });
-      return newProducts;
-    });
-    setEditableComponents(prev => ({ ...prev, [key]: undefined }));
-    if (newDppData) {
-      await autoSaveProduct(p.productId, newDppData);
-    }
-  };
-
-  const handleAddSubcomponent = async (productId) => {
+  const handleAddSubcomponent = (productId) => {
     const product = products.find(p => p.productId === productId);
     if (!product) return;
     let dpp = [];
     if (product.dppData) {
         try { dpp = JSON.parse(product.dppData); } catch (e) {}
     }
-    
     dpp.push({ 
-      component: `Component ${dpp.length + 1}`, 
-      process: "", 
-      weightKg: 0, 
-      lcaValue: null,
-      processId: null 
+      ingredient: "", weightKg: 0, unit: 'kg', lcaValue: null,
+      materialId: null, emissionFactor: null,
+      isPackaging: false, isTransport: false
     });
-    
-    await autoSaveProduct(productId, JSON.stringify(dpp));
+    autoSaveProduct(productId, JSON.stringify(dpp));
   };
   
-  const handleWeightBlur = async (e, p, idx) => {
-    const key = `${p.productId}_${idx}`;
-    const newWeight = Number(e.target.value);
-    setSubProductWeights(prev => ({ ...prev, [key]: newWeight }));
+  // --- LCA Calculation ---
+  const runLcaCalculation = (productId, subcomponentIndex, weightToUse) => {
+    const key = `${productId}_${subcomponentIndex}`;
+    setCalculating(prev => ({ ...prev, [key]: true }));
+    const product = products.find(p => p.productId === productId);
+    if (!product) return setCalculating(prev => ({ ...prev, [key]: false }));
 
-    const product = products.find(pr => pr.productId === p.productId);
-    if (!product) return;
     let dpp = JSON.parse(product.dppData);
-    const item = dpp[idx];
-
-    if (item.lcaValue !== null && item.lcaValue !== undefined) {
-      await runLcaCalculation(p.productId, idx, newWeight);
-    } else {
-      item.weightKg = newWeight;
-      await autoSaveProduct(p.productId, JSON.stringify(dpp));
+    const item = dpp[subcomponentIndex];
+    const materialIdentifier = item.materialId || item.ingredient;
+    if (!materialIdentifier) {
+      // alert("Error: Cannot calculate without an LCA Component.");
+      setCalculating(prev => ({ ...prev, [key]: false }));
+      return;
     }
+
+    // --- MOCK CALCULATION ---
+    let emissionFactor = item.emissionFactor;
+    if (emissionFactor === null || emissionFactor === undefined) {
+      emissionFactor = Math.random() * (5.0 - 0.5) + 0.5; // Mock factor
+      if (item.isPackaging) emissionFactor = 1.5; 
+      if (item.isTransport) emissionFactor = 0.5;
+      dpp[subcomponentIndex].emissionFactor = emissionFactor;
+    }
+
+    let calculatedLcaValue = 0;
+    if (item.isTransport) {
+      const distance = weightToUse; // "weight" is "distance" for transport
+      calculatedLcaValue = distance * emissionFactor;
+      dpp[subcomponentIndex].weightKg = distance;
+    } else {
+      calculatedLcaValue = weightToUse * emissionFactor;
+      dpp[subcomponentIndex].weightKg = weightToUse;
+    }
+    dpp[subcomponentIndex].lcaValue = calculatedLcaValue;
+    const totalLca = dpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
+    // --- END MOCK ---
+    
+    // Save results and stop loading
+    autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
+    setCalculating(prev => ({ ...prev, [key]: false }));
+  };
+
+  const runFullLcaCalculation = (productId) => {
+    const product = products.find(p => p.productId === productId);
+    if (!product) return;
+    let dpp;
+    try { dpp = JSON.parse(product.dppData); } catch (e) { return; }
+    if (!Array.isArray(dpp)) return;
+
+    // Check if any item needs calculation
+    const needsCalculation = dpp.some(item => 
+      (item.materialId || item.ingredient) &&
+      (item.lcaValue === null || item.lcaValue === undefined)
+    );
+    if (!needsCalculation) return;
+
+    const newCalculatingState = {};
+    dpp.forEach((item, idx) => {
+      if ((item.materialId || item.ingredient) && (item.lcaValue === null || item.lcaValue === undefined)) {
+        newCalculatingState[`${productId}_${idx}`] = true;
+      }
+    });
+    setCalculating(prev => ({ ...prev, ...newCalculatingState }));
+
+    // Mock full calculation
+    setTimeout(() => {
+      const updatedDpp = dpp.map((item) => {
+        if (!(item.materialId || item.ingredient) || item.lcaValue !== null) return item;
+        
+        let emissionFactor = item.emissionFactor;
+        if (emissionFactor === null || emissionFactor === undefined) {
+          emissionFactor = Math.random() * (5.0 - 0.5) + 0.5;
+          if (item.isPackaging) emissionFactor = 1.5;
+          if (item.isTransport) emissionFactor = 0.5;
+        }
+        
+        let calculatedLcaValue = 0;
+        let weightToUse = item.weightKg;
+        if (item.isTransport) {
+          const distance = (weightToUse === 0) ? 100 : weightToUse; // Mock 100km
+          calculatedLcaValue = distance * emissionFactor;
+          item.weightKg = distance;
+        } else {
+          calculatedLcaValue = weightToUse * emissionFactor;
+        }
+        return { ...item, lcaValue: calculatedLcaValue, emissionFactor: emissionFactor };
+      });
+
+      const totalLca = updatedDpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
+      autoSaveProduct(productId, JSON.stringify(updatedDpp), totalLca);
+
+      const finishedCalculatingState = {};
+      dpp.forEach((_, idx) => { finishedCalculatingState[`${productId}_${idx}`] = false; });
+      setCalculating(prev => ({ ...prev, ...finishedCalculatingState }));
+    }, 1000);
+  };
+
+  // --- Utility Functions ---
+  const closeDeleteModal = () => {
+    setDeleteConfirm({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   };
   
-  const closeDeleteModal = () => {
-    setDeleteConfirm({
-      isOpen: false,
-      title: '',
-      message: '',
-      onConfirm: () => {},
-    });
-  };
-
-  const formatDpp = (dppData) => {
-    if (!dppData || dppData === '[No DPP stored]') return '[No DPP stored]';
-    try {
-      let data = dppData;
-      if (typeof data === 'string' && (data.trim().startsWith('[') || data.trim().startsWith('{'))) {
-        data = JSON.parse(data);
+  const formatDpp = (product) => {
+    if (!product) return '[No DPP stored]';
+    let dppData;
+    try { dppData = JSON.parse(product.dppData); } catch (e) { dppData = []; }
+    const metadata = product.metadata || {};
+    
+    let output = "--- PRODUCT DETAILS ---\n";
+    output += `Product Name: ${metadata['Product Name'] || product.productName}\n`;
+    output += `Brand: ${metadata['Brand'] || 'N/A'}\n`;
+    output += `Product GTIN/EAN/UPC: ${metadata['Product GTIN/EAN/UPC'] || 'N/A'}\n`;
+    output += `Country of Origin: ${metadata['Country of Origin'] || 'N/A'}\n`;
+    output += `Certifications: ${metadata['Certifications'] || 'N/A'}\n`;
+    
+    output += "\n--- OTHER METADATA ---\n";
+    Object.keys(metadata).forEach(key => {
+      if (!['Product Name', 'Brand', 'Product GTIN/EAN/UPC', 'Country of Origin', 'Certifications', 'Ingredients', 'Net Weight (kg)', 'Packaging Type', 'Packaging Weight (g)', 'Transportation Mode'].includes(key)) {
+        if(metadata[key]) { output += `${key}: ${metadata[key]}\n`; }
       }
-      
-      const displayData = data.map(item => ({
-        component: item.component,
-        process: item.process,
-        weightKg: item.weightKg,
-        lcaValue: item.lcaValue
-      }));
-      
-      return JSON.stringify(displayData, null, 2); 
-    } catch (e) {
-      return '[Invalid DPP JSON] ' + String(dppData);
+    });
+
+    output += "\n--- LCA COMPONENTS ---\n";
+    if (dppData.length > 0) {
+      dppData.forEach((item, index) => {
+        output += `  [${index + 1}] Component: ${item.ingredient}\n`;
+        output += `      Amount: ${item.weightKg} ${item.unit || 'kg'}\n`; 
+        output += `      LCA Value: ${item.lcaValue ? item.lcaValue.toFixed(3) + ' kgCO2e' : 'Not calculated'}\n`;
+        if (item.isPackaging) output += `      (Packaging Component)\n`;
+        if (item.isTransport) output += `      (Transport Component)\n`;
+      });
+    } else {
+      output += "No components listed for this product.\n";
     }
+    return output;
   };
 
   const formatTotalLca = (value) => {
-    if (value === null || value === undefined) {
-      return '0.000 kgCO₂e';
-    }
+    if (value === null || value === undefined) return '0.000 kgCO₂e';
     return `${value.toFixed(3)} kgCO₂e`;
   };
 
@@ -457,372 +702,346 @@ const InventoryPage = () => {
     product.productName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // --- JSX ---
   return (
-    <div className="dashboard-layout">
-      {/* --- Sidebar (no change) --- */}
+    <div className="container"> {/* Main container */}
+      {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-top">
-          <div className="logo">
-            <picture>
-              <source srcSet="/src/assets/carbonx.png" media="(prefers-color-scheme: dark)" />
-              <img src="/src/assets/carbonx.png" alt="Logo" width="30" />
-            </picture>
+          <button 
+            type="button" 
+            onClick={() => navigate('/dashboard')}
+            className="logo-button" 
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+          </button>
+          <p className ="descriptor">Core Features</p>
+          <div className="navbar">
+            <button type="button" onClick={() => navigate('/dashboard')} className={`nav ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+              <LayoutDashboard /><span>Dashboard</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/inventory' ? 'active' : ''}`} onClick={() => navigate('/inventory')}>
+              <Archive /><span>Inventory</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/analytics' ? 'active' : ''}`} onClick={() => navigate('/analytics')}>
+              <ChartColumnBig /><span>Analytics</span>
+            </button>
           </div>
-          <nav className="nav-menu">
-            <NavLink to="/dashboard" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-              <span>Dashboard</span>
-            </NavLink>
-             <NavLink to="/inventory" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-              <span>Inventory</span>
-            </NavLink>
-            <NavLink to="/analytics" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              <span>Analytics</span>
-            </NavLink>
-            <NavLink to="/network" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              <span>Network</span>
-            </NavLink>
-            <NavLink to="/report" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              <span>Report</span>
-            </NavLink>
-            <NavLink to="/chat" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>AI Chat</span>
-            </NavLink>
-          </nav>
+          <p className ="descriptor">Plugins</p>
+          <div className = "navbar">
+            <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')} disabled={!isProUser}>
+              <Network /><span>Network</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/report' ? 'active' : ''}`} onClick={() => navigate('/report')} disabled={!isProUser}>
+              <FileText /><span>Report</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/chat' ? 'active' : ''}`} onClick={() => navigate('/chat')} disabled={!isProUser}>
+              <Sprout /><span>Sprout AI</span>
+            </button>
+          </div>
         </div>
         <div className="sidebar-bottom">
-          <NavLink to="/settings" className="user-profile">
-            <div className="user-avatar">{loadingProfile ? '...' : userInitials}</div>
-            <div className="user-info">
-              <div className="name">{loadingProfile ? 'Loading...' : userName}</div>
-              <div className="company">{loadingProfile ? 'Loading...' : companyName}</div>
-            </div>
-          </NavLink>
+          <button type="button" className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} onClick={() => navigate("/settings")}>
+            <Settings /><span>Settings</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        <header className="dashboard-header">
-          <h1>Inventory</h1>
-          <p>Overview of your products.</p>
-        </header>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="inventory-controls">
-          <div className="search-bar">
-            <span>🔍</span>
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      {/* Main Content Area */}
+      <div className="content-section-main">
+        <div className="content-container-main"> 
+          <div className="header-group">
+            <h1>Inventory</h1>
+            <p className = "medium-regular">Overview of your products.</p>
           </div>
-          <button className="add-new-btn-inventory" onClick={() => setShowAddProduct(true)}>
-            Add New
-          </button>
-        </div>
+          <div className = "sub-header">
+            <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} products</p>
+            <div className = "two-row-component-container">
+              <div className = "input-base search-bar"><Search />
+                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              </div>
+              <button className = "icon" onClick={() => setShowAddProduct(true)}><Plus /></button>
+            </div>
+          </div>
+          <div className="inventory-table-container">
+            <table className="inventory-table">
+              <thead className = "normal-bold">
+                <tr>
+                  <th></th>
+                  <th>Product Name</th>
+                  <th>Uploaded File</th>
+                  <th>DPP</th>
+                  <th>Total LCA Result</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="no-products-message">Loading products...</td>
+                  </tr>
+                )}
+                
+                {!loading && error && (
+                  <tr>
+                    <td colSpan={6} className="no-products-message" style={{ color: 'rgba(var(--danger), 1)' }}>
+                      {error}
+                    </td>
+                  </tr>
+                )}
+                
+                {!loading && !error && products.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="no-products-message">
+                      No products found. Click the <Plus size={16} style={{ display: 'inline-block', verticalAlign: 'middle', margin: '0 4px' }} /> button to add your first product.
+                    </td>
+                  </tr>
+                )}
+                
+                {!loading && !error && products.length > 0 && filteredProducts.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="no-products-message">
+                      No products match your search query.
+                    </td>
+                  </tr>
+                )}
 
-        <div className="inventory-table-container">
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Product Name</th>
-                <th>Uploaded File</th>
-                <th>View BoM</th>
-                <th>View DPP</th>
-                <th>Total LCA Result</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* ... (loading/empty rows, no change) ... */}
-              {!loading && !error && filteredProducts.map(p => {
-                const dpp = p.dppData &&
-                  (typeof p.dppData === 'string' ? JSON.parse(p.dppData) : p.dppData);
+                {!loading && !error && filteredProducts.map(p => {
+                  const dpp = p.dppData &&
+                    (typeof p.dppData === 'string' ? JSON.parse(p.dppData) : p.dppData);
 
-                return (
-                  <React.Fragment key={p.productId}>
-                    {/* Main Row (no change) */}
-                    <tr>
-                      <td>
-                        <button className="expand-btn" onClick={() => setExpandedRows(prev => ({
-                          ...prev, [p.productId]: !prev[p.productId]
-                        }))}>
-                          {expandedRows[p.productId] ? '▼' : '▶'}
-                        </button>
-                      </td>
-                      <td>{p.productName}</td>
-                      <td>{p.uploadedFile}</td>
-                      <td>
-                        {p.uploadedFile ? (
-                          <a
-                            href={`${API_BASE}/inventory/file/${encodeURIComponent(p.uploadedFile)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="view-file-btn"
-                          >View BoM</a>
-                        ) : (
-                          <span className="no-file-text">[No File]</span>
-                        )}
-                      </td>
-                      <td>
-                        <button className="dpp-link" onClick={() => {
-                          setShowDppModal(true);
-                          setCurrentDpp(p.dppData || '[No DPP stored]');
-                        }}>
-                          View DPP
-                        </button>
-                      </td>
-                      <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
-                      <td>
-                        <button
-                          className="delete-btn"
-                          title="Delete product"
-                          onClick={() => handleDelete(p.productId)}
-                        >
-                          <img src={trashIconPath} alt="Delete" className="icon-trash" />
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Expanded Row (no change from Step 2) */}
-                    {expandedRows[p.productId] && dpp && Array.isArray(dpp) && (
-                      <tr className="sub-table-row">
-                        <td colSpan={7}>
-                          <div className="sub-table-container">
-                            <table className="sub-inventory-table">
-                              {/* --- Table Head (no change from Step 3) --- */}
-                              <thead>
-                                <tr>
-                                  <th>Subcomponent</th>
-                                  <th>Process</th>
-                                  <th>Weight (kg)</th>
-                                  <th>LCA Output</th>
-                                  <th>Calculate</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {dpp.map((item, idx) => {
-                                  const key = `${p.productId}_${idx}`;
-                                  const lcaValue = item.lcaValue;
-
-                                  return (
-                                  <tr key={idx}>
-                                    {/* Component Input (no change) */}
-                                    <td>
-                                        <input
-                                          type="text"
-                                          className="suggestion-input"
-                                          value={editableComponents[key] ?? item.component}
-                                          onChange={(e) => handleComponentChange(e, p, idx)}
-                                          onBlur={() => handleComponentBlur(p, idx)}
-                                          placeholder="Component name"
-                                        />
-                                    </td>
-                                    
-                                    {/* Process Input (no change) */}
-                                    <td>
-                                      <div className="suggestion-box">
-                                        <input
-                                          type="text"
-                                          className="suggestion-input"
-                                          value={editableProcesses[key] ?? item.process}
-                                          onChange={(e) => handleProcessChange(e, p, idx)}
-                                          onBlur={() => {
-                                            setTimeout(() => setActiveSuggestionBox(null), 150);
-                                            const typedValue = editableProcesses[key];
-                                            if (typedValue !== undefined && typedValue !== item.process) {
-                                                let dpp = JSON.parse(p.dppData);
-                                                dpp[idx].process = typedValue;
-                                                dpp[idx].processId = null; 
-                                                dpp[idx].lcaValue = null;
-                                                autoSaveProduct(p.productId, JSON.stringify(dpp));
-                                            }
-                                            setEditableProcesses(prev => ({...prev, [key]: undefined}));
-                                          }}
-                                          onFocus={() => {
-                                            setActiveSuggestionBox(key);
-                                            if (!item.process) {
-                                                handleProcessChange({ target: { value: '' }}, p, idx);
-                                            }
-                                          }}
-                                          placeholder="Type to search process..."
-                                        />
-                                        {activeSuggestionBox === key && suggestions[key] && suggestions[key].length > 0 && (
-                                          <div className="suggestion-dropdown">
-                                            {suggestions[key].map((sug, sugIdx) => (
-                                              <div
-                                                key={sug.openLcaProcessId || sugIdx}
-                                                className="suggestion-item"
-                                                onMouseDown={() => handleSuggestionClick(p, idx, sug)}
-                                              >
-                                                {sug.name}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </td>
-
-                                    {/* Weight Input (no change from Step 3) */}
-                                    <td>
-                                      <input
-                                        type="number"
-                                        className="weight-input"
-                                        value={subProductWeights[key] ?? item.weightKg}
-                                        min={0}
-                                        step={0.01}
-                                        onChange={e => setSubProductWeights(prev => ({
-                                          ...prev,
-                                          [key]: e.target.value
-                                        }))}
-                                        onBlur={(e) => handleWeightBlur(e, p, idx)}
-                                      />
-                                    </td>
-
-                                    {/* --- MODIFIED: LCA Output --- */}
-                                    {/* Now displays "Recalculating..." */}
-                                    <td>
-                                      <strong>
-                                        {calculating[key] ? (
-                                          <span style={{ color: '#888', fontStyle: 'italic' }}>Calculating...</span>
-                                        ) : (
-                                          (() => {
-                                              if (lcaValue === undefined || lcaValue === null) {
-                                                  return 'Not calculated';
-                                              }
-                                              if (typeof lcaValue === 'number') {
-                                                  return `${lcaValue.toFixed(3)} kgCO₂e`;
-                                              }
-                                              return lcaValue;
-                                          })()
-                                        )}
-                                      </strong>
-                                    </td>
-                                    
-                                    {/* --- MODIFIED: Calculate Button --- */}
-                                    {/* Now only shows the button, not the loading text */}
-                                    <td>
-                                      {/* Show button ONLY if not calculating AND lcaValue is null */}
-                                      {(!calculating[key] && (lcaValue === undefined || lcaValue === null)) && (
-                                        <button
-                                          className="calculate-lca-btn"
-                                          disabled={!(item.processId || item.process)}
-                                          onClick={() => {
-                                            const newWeightString = subProductWeights[key];
-                                            const weightToSend = (newWeightString !== undefined && newWeightString !== null && newWeightString !== "")
-                                              ? Number(newWeightString)
-                                              : item.weightKg;
-                                            runLcaCalculation(p.productId, idx, weightToSend);
-                                          }}
-                                        >
-                                          Calculate LCA
-                                        </button>
-                                      )}
-                                      {/* If calculating, this cell is empty (loading text is in LCA Output).
-                                        If done, this cell is empty.
-                                      */}
-                                    </td>
-                                    
-                                    {/* Delete Button (no change) */}
-                                    <td>
-                                      <button
-                                        className="delete-subcomponent-btn"
-                                        title="Delete subcomponent"
-                                        onClick={() => handleDeleteSubcomponent(p.productId, idx)}
-                                      >
-                                        <img src={trashIconPath} alt="Delete" className="icon-trash" />
-                                      </button>
-                                    </td>
-                                  </tr>
-                                )})}
-                              </tbody>
-                            </table>
-                            
-                            {/* Add Subcomponent Button (no change) */}
-                            <div className="subcomponent-buttons-container">
-                              <button
-                                className="add-subcomponent-yellow-btn"
-                                onClick={() => handleAddSubcomponent(p.productId)}
-                              >
-                                + Add Subcomponent
-                              </button>
-                            </div>
+                  return (
+                    <React.Fragment key={p.productId}>
+                      <tr>
+                        <td>
+                          <button 
+                            className="icon icon-small" 
+                            onClick={() => {
+                              const isOpening = !expandedRows[p.productId];
+                              setExpandedRows(prev => ({ ...prev, [p.productId]: !prev[p.productId] }));
+                              if (isOpening) {
+                                runFullLcaCalculation(p.productId);
+                              }
+                            }}
+                          >
+                            <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
+                          </button>
+                        </td>
+                        <td>{p.productName}</td>
+                        <td>{p.uploadedFile}</td>
+                        <td>
+                          <a href="#" className="link normal-bold" onClick={(e) => { e.preventDefault(); setShowDppModal(true); setCurrentDppProduct(p); }}>
+                            View DPP
+                          </a>
+                        </td>
+                        <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
+                        <td>
+                          <div className='two-row-component-container'>
+                            <button className="icon" title="Add component" onClick={() => handleAddSubcomponent(p.productId)}><CirclePlus /></button>
+                            <button className="icon" style = {{backgroundColor: "rgba(var(--danger), 1)"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
+                              <Trash2 />
+                            </button>
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+
+                      {expandedRows[p.productId] && dpp && Array.isArray(dpp) && (
+                        <tr className="sub-table-row">
+                          <td colSpan={6}>
+                            <div className="sub-table-container">
+                              <table className="sub-inventory-table">
+                                <thead className = " normal-bold">
+                                  <tr>
+                                    <th>No.</th>
+                                    <th>LCA Component</th>
+                                    <th>Amount</th>
+                                    <th>Unit</th>
+                                    <th>LCA (kgCO2e)</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {dpp.map((item, idx) => {
+                                    const key = `${p.productId}_${idx}`;
+                                    const lcaValue = item.lcaValue;
+                                    const isPackaging = item.isPackaging || false;
+                                    const isTransport = item.isTransport || false;
+                                    const isLocked = isPackaging || isTransport;
+
+                                    return (
+                                      <tr key={idx} className={isLocked ? 'packaging-row' : ''}>
+                                        <td>{idx + 1}</td>
+                                        <td>
+                                          <div>
+                                            <input 
+                                              type="text" 
+                                              className="input-base" 
+                                              value={editableIngredients[key] ?? item.ingredient} 
+                                              onChange={(e) => handleComponentChange(e, p, idx)} 
+                                              onBlur={() => {
+                                                setTimeout(() => setActiveSuggestionBox(null), 150);
+                                                const typedValue = editableIngredients[key];
+                                                if (typedValue !== undefined && typedValue !== item.ingredient) {
+                                                  let dpp = JSON.parse(p.dppData);
+                                                  dpp[idx].ingredient = typedValue;
+                                                  dpp[idx].materialId = null;
+                                                  dpp[idx].lcaValue = null;
+                                                  dpp[idx].emissionFactor = null;
+                                                  autoSaveProduct(p.productId, JSON.stringify(dpp));
+                                                  runLcaCalculation(p.productId, idx, dpp[idx].weightKg);
+                                                }
+                                                setEditableIngredients(prev => ({...prev, [key]: undefined}));
+                                              }} 
+                                              onFocus={() => {
+                                                setActiveSuggestionBox(key);
+                                                if (!item.ingredient) {
+                                                  handleComponentChange({ target: { value: '' }}, p, idx);
+                                                }
+                                              }} 
+                                              placeholder="Search LCA Components"
+                                              disabled={isLocked}
+                                            />
+                                            {activeSuggestionBox === key && suggestions[key] && suggestions[key].length > 0 && (
+                                              <div className="suggestion-dropdown">
+                                                {suggestions[key].map((sug, sugIdx) => (
+                                                  <div key={sug.openLcaMaterialId || sugIdx} className="suggestion-item" onMouseDown={() => handleSuggestionClick(p, idx, sug)}>
+                                                    {sug.name}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <input 
+                                            type="number" 
+                                            className="input-base" 
+                                            value={subProductWeights[key] ?? item.weightKg} 
+                                            min={0} 
+                                            step={isTransport ? 1 : 0.001}
+                                            onChange={e => setSubProductWeights(prev => ({
+                                                ...prev,
+                                                [key]: e.target.value
+                                              }))} 
+                                            onBlur={(e) => handleWeightBlur(e, p, idx)}
+                                          />
+                                        </td>
+                                        <td>
+                                          <input 
+                                            type="text"
+                                            className="input-base"
+                                            value={item.unit || 'kg'}
+                                            disabled // This field is read-only
+                                          />
+                                        </td>
+                                        <td>
+                                          <strong>
+                                            {calculating[key] ? (
+                                              <span style={{ color: 'rgba(var(--black), 0.8)'}}>Calculating...</span>
+                                            ) : (
+                                              (() => {
+                                                  if (lcaValue === undefined || lcaValue === null) {
+                                                    return 'Not calculated';
+                                                  }
+                                                  if (typeof lcaValue === 'number') {
+                                                    return `${lcaValue.toFixed(3)} kgCO₂e`;
+                                                  }
+                                                  return lcaValue;
+                                              })()
+                                            )}
+                                          </strong>
+                                        </td>
+                                        <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                          <button 
+                                            className="icon" 
+                                            style = {{backgroundColor: "rgba(var(--danger), 1)"}} 
+                                            title={isLocked ? "Spec sheet components cannot be deleted" : "Delete component"} 
+                                            onClick={() => handleDeleteSubcomponent(p.productId, idx)}
+                                            disabled={isLocked}
+                                          >
+                                            <Trash2 size = {16} />
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    )})}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+      
+      {/* --- MODALS --- */}
 
-      {/* --- Modals (no change) --- */}
       {showAddProduct && (
         <div className="modal-overlay active">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Add a New Product</h2>
-              <button className="close-modal-btn" onClick={() => setShowAddProduct(false)}>&times;</button>
+              <p className = "medium-bold">Add New Products</p>
+              <button className="close-modal-btn" onClick={() => setShowAddProduct(false)}><X /></button>
             </div>
             <form id="addProductForm" onSubmit={handleAddProduct}>
-              <div className="form-group">
-                <label htmlFor="productName">Product Name</label>
-                <input
-                  type="text"
-                  id="productName"
-                  value={productName}
-                  onChange={e => setProductName(e.target.value)}
-                  required
-                />
+              <div className = "add-product-form">
+                <div className="input-group-col">
+                  <label className="normal-bold">
+                    Upload File <span className='submit-error'>*</span>
+                  </label>
+                  {productFile && (
+                      <div className = "modal-header">
+                        <p className='small-regular' style = {{color: `rgba(var(--blacks), 0.8)`}}>File Uploaded: <strong>{productFile.name}</strong></p>
+                        <button type="button" className="remove-file-btn" onClick={() => handleFileSelect(null)}>
+                          <X size = {14}/>
+                        </button>
+                      </div>
+                  )}
+                  <label htmlFor="fileUpload" className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}onDragOver={handleDragOver}onDragLeave={handleDragLeave}onDrop={handleDrop}>
+                    <FilePlus />
+                    <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your CSV or PDF here</p>
+                    <span className="outline-browse">
+                      Or Browse Files
+                    </span>
+                    <input 
+                      type="file" 
+                      id="fileUpload"
+                      ref={fileInputRef}
+                      className="file-input-hidden" 
+                      accept=".csv,.pdf" 
+                      onChange={(e) => handleFileSelect(e.target.files[0])}
+                    />
+                  </label>
+                </div>
+                <button type="submit" className="default" disabled={uploading || !productFile}>
+                  {uploading ? "Uploading..." : "Add Products"}
+                </button>
               </div>
-              <div className="form-group">
-                <label>BoM File (CSV)</label>
-                <input
-                  type="file"
-                  id="fileUpload"
-                  className="file-input"
-                  accept=".csv"
-                  onChange={e => setProductFile(e.target.files[0])}
-                  required
-                />
-                <span className="file-name-display">{productFile ? productFile.name : 'Click or drag file'}</span>
-              </div>
-              <button type="submit" className="create-dpp-btn" disabled={uploading}>
-                {uploading ? "Uploading..." : "Create Product"}
-              </button>
             </form>
           </div>
         </div>
       )}
-
+ 
       {showDppModal && (
         <div className="modal-overlay active" onClick={() => setShowDppModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '600px', maxWidth: '90%' }}>
             <div className="modal-header">
-              <h2>DPP Data</h2>
-              <button className="close-modal-btn" onClick={() => setShowDppModal(false)}>&times;</button>
+              <p className="medium-bold">Digital Product Passport (DPP)</p>
+              <button className="close-modal-btn" onClick={() => setShowDppModal(false)}><X /></button>
             </div>
             <pre className="dpp-modal-pre">
-              {formatDpp(currentDpp)}
+              {formatDpp(currentDppProduct)}
             </pre>
           </div>
         </div>
       )}
-
+ 
       <ConfirmationModal
         isOpen={deleteConfirm.isOpen}
         title={deleteConfirm.title}

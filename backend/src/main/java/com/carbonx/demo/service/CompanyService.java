@@ -2,6 +2,7 @@ package com.carbonx.demo.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional; // Import Optional
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,12 +17,17 @@ public class CompanyService {
     @Autowired
     private CompanyInfoRepository companyInfoRepository;
 
+    // Fallback defaults
     private static final List<String> DEFAULT_METRICS = Arrays.asList("ghg", "energy", "water");
 
-    // CHANGE 1: Return CompanyInfo instead of void
+    // --- THIS METHOD IS NOW UPDATED ---
     public CompanyInfo processCompanyInfo(CompanyInfoRequest request) {
         
-        CompanyInfo companyInfo = new CompanyInfo();
+        // 1. Find existing info for this user, OR create a new one if not found
+        CompanyInfo companyInfo = companyInfoRepository.findByUserId(request.getUserId())
+                .orElse(new CompanyInfo()); // This is the "find or create" logic
+
+        // 2. Set (or update) all fields from the request
         companyInfo.setUserId(request.getUserId());
         companyInfo.setCompanyName(request.getCompanyName());
         companyInfo.setSector(request.getSector());
@@ -29,16 +35,23 @@ public class CompanyService {
         companyInfo.setHeadquarters(request.getHeadquarters());
         companyInfo.setReportingYear(request.getReportingYear());
 
+        // 3. Calculate Metrics
         List<String> calculatedMetrics = determineMetrics(request.getSector(), request.getIndustry());
+        
+        // 4. Set the metrics
         companyInfo.setActiveMetrics(calculatedMetrics);
 
-        // CHANGE 2: Return the result of the save operation
+        // 5. Save (this will either INSERT or UPDATE thanks to JPA)
         return companyInfoRepository.save(companyInfo);
     }
 
-    // ... keep determineMetrics logic exactly the same ...
-     private List<String> determineMetrics(String sector, String industry) {
-        // ... (Your existing logic)
+    // --- ADD THIS NEW METHOD for the Dashboard to call ---
+    public Optional<CompanyInfo> getCompanyInfoByUserId(String userId) {
+        return companyInfoRepository.findByUserId(userId);
+    }
+
+    // --- (determineMetrics method remains unchanged) ---
+    private List<String> determineMetrics(String sector, String industry) {
         if (sector == null || industry == null) return DEFAULT_METRICS;
 
         if ("Food & Beverages".equals(sector)) {
@@ -50,8 +63,8 @@ public class CompanyService {
                     "supply-chain-impacts", "gmo"
                 );
             }
-            // ... other logic ...
-             List<String> standardFbIndustries = Arrays.asList(
+            
+            List<String> standardFbIndustries = Arrays.asList(
                 "Agricultural Products", "Alcoholic Beverages", "(Meat, Poultry & Dairy)", 
                 "Non-alcoholic Beverages", "Processed Foods", "Restaurants", "Tobacco"
             );
@@ -60,6 +73,7 @@ public class CompanyService {
                 return Arrays.asList("ghg", "water", "sourcing", "impact");
             }
         }
+        
         return DEFAULT_METRICS;
     }
 }

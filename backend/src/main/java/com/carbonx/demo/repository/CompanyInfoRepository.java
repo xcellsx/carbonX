@@ -1,15 +1,16 @@
 package com.carbonx.demo.repository;
 
-import java.util.Optional;
-
+import com.carbonx.demo.model.CompanyInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import com.carbonx.demo.model.CompanyInfo; // Import this
+import java.util.List;
+import java.util.Optional; // Import Optional
 
-@Repository
 public interface CompanyInfoRepository extends JpaRepository<CompanyInfo, Long> {
     
-    // Change return type from 'CompanyInfo' to 'Optional<CompanyInfo>'
+    // --- ADD THIS METHOD ---
+    // This allows us to find an existing entry by the user's ID
     Optional<CompanyInfo> findByUserId(String userId);
+
+    List<CompanyInfo> findAll();
 }
