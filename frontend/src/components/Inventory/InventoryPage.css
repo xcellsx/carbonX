@@ -20,8 +20,8 @@
 
 .inventory-table th, 
 .inventory-table td {
-  padding: 1rem 1rem;
   text-align: left;
+  border: none
 }
 
 .inventory-table th {
@@ -31,6 +31,7 @@
 
 .inventory-table td {
   background-color: rgba(var(--greys), 0.1);
+  padding: 0;
 }
 
 .no-products-message {
@@ -46,10 +47,11 @@
 }
 
 .sub-table-container {
-  background-color: rgba(var(--background));
+  /* background-color: rgba(var(--background)); */
   display: flex;
   flex-direction: column;
   align-items: start;
+  width: 100%;
 }
 
 .sub-inventory-table {

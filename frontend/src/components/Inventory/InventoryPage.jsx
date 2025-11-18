@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
-
-// Import assets
 import logoPath from '../../assets/carbonx.png'; 
-
-// Import Icons
 import {
   LayoutDashboard,
   Archive,
@@ -33,14 +29,35 @@ const parseCsvFile = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target.result;
+        let text = e.target.result;
+        if (text.charCodeAt(0) === 0xFEFF) {
+          text = text.substring(1);
+        }
+
         const lines = text.split(/[\r\n]+/).filter(line => line.trim() !== '');
         if (lines.length < 2) {
           return reject(new Error("CSV must have a header and at least one data row."));
         }
 
-        const headerLine = lines[0].trim();
-        const headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+        const headerLine = lines[0]; 
+        const headers = [];
+        let inQuote = false;
+        let currentField = '';
+        for (let i = 0; i < headerLine.length; i++) {
+          const char = headerLine[i];
+          if (char === '"' && (i === 0 || headerLine[i-1] !== '\\')) {
+            inQuote = !inQuote;
+          } else if (char === ',' && !inQuote) {
+            headers.push(currentField.trim().replace(/"/g, '')); 
+            currentField = '';
+          } else {
+            if (char !== '"' || inQuote) {
+              currentField += char;
+            }
+          }
+        }
+        headers.push(currentField.trim().replace(/"/g, '')); 
+
         const lowerCaseHeaders = headers.map(h => h.toLowerCase());
 
         // Find required column indices
@@ -50,6 +67,7 @@ const parseCsvFile = (file) => {
         const packagingTypeIndex = lowerCaseHeaders.indexOf('packaging type');
         const packagingWeightIndex = lowerCaseHeaders.indexOf('packaging weight (g)');
         const transportModeIndex = lowerCaseHeaders.indexOf('transportation mode');
+        const distanceIndex = lowerCaseHeaders.findIndex(h => h.includes('distance')); 
 
         const missingColumns = [];
         if (productNameIndex === -1) missingColumns.push('"Product Name"');
@@ -90,10 +108,15 @@ const parseCsvFile = (file) => {
             rowData[header] = values[index] ? values[index].replace(/"/g, '') : '';
           });
           
+          // Capture distance
+          if (distanceIndex !== -1) {
+             rowData['Distance (km)'] = values[distanceIndex] ? values[distanceIndex].replace(/"/g, '') : '';
+          }
+
           return {
             productName: rowData['Product Name'],
             ingredient: rowData['Ingredients'], 
-            metadata: rowData // Store the entire row
+            metadata: rowData 
           };
 
         }).filter(item => item !== null && item.productName && item.ingredient);
@@ -103,42 +126,12 @@ const parseCsvFile = (file) => {
         reject(new Error("An error occurred during parsing: " + err.message));
       }
     };
-    
     reader.onerror = (e) => reject(new Error("Error reading file: " + e.target.error));
     reader.readAsText(file);
   });
 };
 
-// --- UPDATED: PDF Parsing Simulation ---
-const parsePdfFile = (file) => {
-  return new Promise((resolve, reject) => {
-    // We use a custom modal/alert in a real app, but window.alert is fine for this mock
-    window.alert(`Simulating PDF parse for: ${file.name}\n\nReading complex spec sheets from PDFs is difficult. For best results, please use the CSV template.\n\nMock data will be added for now.`);
-
-    setTimeout(() => {
-      const mockParsedData = [
-        { 
-          productName: 'PDF-Parsed Chair', 
-          ingredient: 'Steel (from PDF)', 
-          metadata: { 
-            "Product Name": "PDF-Parsed Chair", 
-            "Product GTIN/EAN/UPC": "PDF-123456", 
-            "Brand": "MockBrand",
-            "Ingredients": "Steel (from PDF)",
-            "Net Weight (kg)": "10.5",
-            "Country of Origin": "Mockland",
-            "Packaging Type": "Cardboard Box",
-            "Packaging Weight (g)": "500",
-            "Transportation Mode": "Sea"
-          } 
-        },
-      ];
-      resolve(mockParsedData);
-    }, 1500); 
-  });
-};
-
-// --- Confirmation Modal (New UI Style) ---
+// --- Confirmation Modal ---
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
   if (!isOpen) {
     return null;
@@ -168,7 +161,6 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
 
 
 const InventoryPage = () => {
-  // --- STATE ---
   const [userId] = useState(localStorage.getItem('userId') || '');
   const navigate = useNavigate();
   const location = useLocation(); 
@@ -185,22 +177,19 @@ const InventoryPage = () => {
   
   const [uploading, setUploading] = useState(false);
   const [showDppModal, setShowDppModal] = useState(false);
-  const [currentDppProduct, setCurrentDppProduct] = useState(null); // Renamed from currentDpp
+  const [currentDppProduct, setCurrentDppProduct] = useState(null);
   const [expandedRows, setExpandedRows] = useState({});
   const [subProductWeights, setSubProductWeights] = useState({});
   const [calculating, setCalculating] = useState({});
-  const [editableProcesses, setEditableProcesses] = useState({}); // Kept for process search
-  const [suggestions, setSuggestions] = useState({});
+  const [editableIngredients, setEditableIngredients] = useState({});
   const [activeSuggestionBox, setActiveSuggestionBox] = useState(null);
-  const [editableIngredients, setEditableIngredients] = useState({}); // Renamed from editableComponents
+  const [suggestions, setSuggestions] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => {},
   });
   
   const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
 
-  // --- FUNCTIONS ---
-  
   const fetchProducts = useCallback(async () => {
     if (!userId) {
       setError('No user session found. Please log in.');
@@ -223,12 +212,10 @@ const InventoryPage = () => {
     }
   }, [userId]);
 
-  // Fetch products on component load
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
   
-  // Autosave function (no changes)
   const autoSaveProduct = async (productId, newDppData, newTotalLca = null) => {
     setProducts(currentProducts =>
       currentProducts.map(prod => {
@@ -240,7 +227,6 @@ const InventoryPage = () => {
       })
     );
     try {
-      // We send the new DPP data to the backend
       const res = await fetch(`${API_BASE}/inventory/dpp/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -251,28 +237,16 @@ const InventoryPage = () => {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to save changes.");
       }
-      
-      // If LCA was updated, send that too
-      if (newTotalLca !== null) {
-        await fetch(`${API_BASE}/inventory/lca/${productId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lcaResult: newTotalLca }),
-        });
-      }
     } catch (err) {
       console.error("Auto-save Error:", err);
-      // alert("Error saving changes: " + err.message);
-      // In a real app, you might want to revert the state change here
     }
   };
 
 
-  // --- NEW: Handle File Select & Drag/Drop ---
   const handleFileSelect = (file) => {
     if (!file) { setProductFile(null); return; }
-    if (!file.name.endsWith('.csv') && !file.name.endsWith('.pdf')) {
-      alert("Please upload a .csv or .pdf file.");
+    if (!file.name.endsWith('.csv')) {
+      alert("Please upload a .csv file.");
       return;
     }
     setProductFile(file);
@@ -287,7 +261,7 @@ const InventoryPage = () => {
     }
   };
 
-  // --- UPDATED: Handle Add Product (Frontend Parse + Backend Save) ---
+  // --- ADD PRODUCT (Uses new distance logic) ---
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!userId) return alert("Error: No user is logged in.");
@@ -296,14 +270,11 @@ const InventoryPage = () => {
     setUploading(true);
     let parsedData = [];
 
-    // 1. Parse File on Frontend
     try {
-      if (productFile.name.endsWith('.pdf')) {
-        parsedData = await parsePdfFile(productFile);
-      } else if (productFile.name.endsWith('.csv')) {
+      if (productFile && productFile.name.endsWith('.csv')) {
         parsedData = await parseCsvFile(productFile);
       } else {
-        throw new Error("Invalid file type.");
+        throw new Error("Invalid file type. Please upload a .csv file.");
       }
 
       if (parsedData.length === 0) {
@@ -318,7 +289,6 @@ const InventoryPage = () => {
       return;
     }
 
-    // 2. Process Data
     const productsMap = new Map();
     parsedData.forEach(item => {
       const { productName, ingredient, metadata } = item;
@@ -330,10 +300,15 @@ const InventoryPage = () => {
         const packagingWeightKg = isNaN(packagingWeightG) ? 0 : packagingWeightG / 1000;
         const packagingType = metadata['Packaging Type'];
         const transportMode = metadata['Transportation Mode'];
+        
+        // Parse distance
+        let transportDistanceKm = parseFloat(metadata['Distance (km)']);
+        if (isNaN(transportDistanceKm)) transportDistanceKm = 100; // Default 100km
+
         const ingredientWeightKg = isNaN(netWeightKg) ? 0 : netWeightKg - packagingWeightKg;
         
         if (packagingType && !isNaN(packagingWeightKg)) {
-          initialDpp.push({
+           initialDpp.push({
             ingredient: packagingType,
             weightKg: packagingWeightKg, 
             unit: 'kg',
@@ -345,7 +320,7 @@ const InventoryPage = () => {
         if (transportMode) {
            initialDpp.push({
             ingredient: `Transport (${transportMode})`,
-            weightKg: 0, 
+            weightKg: transportDistanceKm, // Use distance
             unit: 'km',
             materialId: null, lcaValue: null, emissionFactor: null,
             isPackaging: false, isTransport: true
@@ -357,7 +332,8 @@ const InventoryPage = () => {
       }
       
       const productData = productsMap.get(productName);
-      const ingredients = ingredient.split(';').map(ing => ing.trim()).filter(ing => ing);
+      const ingredients = (ingredient || "").split(';').map(ing => ing.trim()).filter(ing => ing);
+
       if (ingredients.length > 0) {
         const weightPerIngredient = ingredients.length > 0 ? productData.calculatedIngredientWeight / ingredients.length : 0;
         ingredients.forEach(ingName => {
@@ -372,7 +348,6 @@ const InventoryPage = () => {
       }
     });
 
-    // 3. Send to Backend
     try {
         const savePromises = Array.from(productsMap.entries()).map(async ([pName, data]) => {
             delete data.calculatedIngredientWeight;
@@ -385,16 +360,16 @@ const InventoryPage = () => {
                 lcaResult: 0
             };
 
-            const res = await fetch(`${API_BASE}/inventory/create`, { 
+            const res = await fetch(`${API_BASE}/inventory`, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
             if (!res.ok) throw new Error(`Failed to save ${pName}`);
             return res.json();
         });
         await Promise.all(savePromises);
-        
         setShowAddProduct(false);
         setProductFile(null);
         fetchProducts();
@@ -405,7 +380,6 @@ const InventoryPage = () => {
     setUploading(false);
   };
   
-  // --- Product Deletion ---
   const performActualDeleteProduct = async (productId) => {
     try {
       const res = await fetch(`${API_BASE}/inventory/${productId}`, { method: 'DELETE' });
@@ -429,15 +403,13 @@ const InventoryPage = () => {
     });
   };
 
-  // --- Subcomponent Handlers ---
-
+  // --- Component Handlers ---
   const handleComponentChange = (e, p, idx) => {
     const key = `${p.productId}_${idx}`;
     const query = e.target.value;
     setEditableIngredients(prev => ({ ...prev, [key]: query }));
     setActiveSuggestionBox(key);
     
-    // Optimistic update
     setProducts(currentProducts => currentProducts.map(prod => {
         if (prod.productId === p.productId) {
           let dpp = JSON.parse(prod.dppData);
@@ -455,7 +427,6 @@ const InventoryPage = () => {
       return;
     }
     
-    // Mock Suggestions
     const mockSuggestions = [
       { name: "Steel", openLcaMaterialId: 'mock-steel' }, { name: "Stainless Steel", openLcaMaterialId: 'mock-stainless-steel' },
       { name: "Aluminum", openLcaMaterialId: 'mock-aluminum' }, { name: "Copper", openLcaMaterialId: 'mock-copper' },
@@ -494,7 +465,7 @@ const InventoryPage = () => {
     setActiveSuggestionBox(null);
     if (newDppData) {
       autoSaveProduct(p.productId, newDppData);
-      runLcaCalculation(p.productId, idx, weightToUse); // Auto-calculate on select
+      runLcaCalculation(p.productId, idx, weightToUse);
     }
   };
 
@@ -502,17 +473,12 @@ const InventoryPage = () => {
     const key = `${p.productId}_${idx}`;
     const newWeight = Number(e.target.value);
     setSubProductWeights(prev => ({ ...prev, [key]: newWeight }));
+    
     const product = products.find(pr => pr.productId === p.productId);
     if (!product) return;
-    let dpp = JSON.parse(product.dppData);
-    const item = dpp[idx];
     
-    if (item.materialId || item.ingredient) {
-      runLcaCalculation(p.productId, idx, newWeight);
-    } else {
-      item.weightKg = newWeight;
-      autoSaveProduct(p.productId, JSON.stringify(dpp));
-    }
+    // Trigger calculation directly
+    runLcaCalculation(p.productId, idx, newWeight);
   };
 
   const handleDeleteSubcomponent = (productId, indexToDelete) => {
@@ -555,105 +521,127 @@ const InventoryPage = () => {
     autoSaveProduct(productId, JSON.stringify(dpp));
   };
   
-  // --- LCA Calculation ---
-  const runLcaCalculation = (productId, subcomponentIndex, weightToUse) => {
+  // --- SINGLE ITEM CALCULATION ---
+  const runLcaCalculation = async (productId, subcomponentIndex, weightToUse) => {
     const key = `${productId}_${subcomponentIndex}`;
     setCalculating(prev => ({ ...prev, [key]: true }));
+
+    // 1. Update local state
     const product = products.find(p => p.productId === productId);
-    if (!product) return setCalculating(prev => ({ ...prev, [key]: false }));
-
-    let dpp = JSON.parse(product.dppData);
-    const item = dpp[subcomponentIndex];
-    const materialIdentifier = item.materialId || item.ingredient;
-    if (!materialIdentifier) {
-      // alert("Error: Cannot calculate without an LCA Component.");
-      setCalculating(prev => ({ ...prev, [key]: false }));
-      return;
+    if (!product) {
+         setCalculating(prev => ({ ...prev, [key]: false }));
+         return;
     }
-
-    // --- MOCK CALCULATION ---
-    let emissionFactor = item.emissionFactor;
-    if (emissionFactor === null || emissionFactor === undefined) {
-      emissionFactor = Math.random() * (5.0 - 0.5) + 0.5; // Mock factor
-      if (item.isPackaging) emissionFactor = 1.5; 
-      if (item.isTransport) emissionFactor = 0.5;
-      dpp[subcomponentIndex].emissionFactor = emissionFactor;
-    }
-
-    let calculatedLcaValue = 0;
-    if (item.isTransport) {
-      const distance = weightToUse; // "weight" is "distance" for transport
-      calculatedLcaValue = distance * emissionFactor;
-      dpp[subcomponentIndex].weightKg = distance;
-    } else {
-      calculatedLcaValue = weightToUse * emissionFactor;
-      dpp[subcomponentIndex].weightKg = weightToUse;
-    }
-    dpp[subcomponentIndex].lcaValue = calculatedLcaValue;
-    const totalLca = dpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
-    // --- END MOCK ---
     
-    // Save results and stop loading
-    autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
-    setCalculating(prev => ({ ...prev, [key]: false }));
+    let dpp;
+    try { dpp = JSON.parse(product.dppData); } catch (e) { dpp = []; }
+    if (!dpp[subcomponentIndex]) {
+        setCalculating(prev => ({ ...prev, [key]: false }));
+        return;
+    }
+
+    dpp[subcomponentIndex].weightKg = weightToUse;
+    
+    // 2. Save updated weight & trigger Backend Calc
+    try {
+        const newDppJson = JSON.stringify(dpp);
+        
+        // Optimistic UI update
+        setProducts(currentProducts =>
+            currentProducts.map(prod => {
+                if (prod.productId === productId) {
+                    return { ...prod, dppData: newDppJson };
+                }
+                return prod;
+            })
+        );
+        
+        // New Endpoint for single item calc
+        const payload = {
+            itemIndex: subcomponentIndex,
+            weight: weightToUse
+        };
+
+        const res = await fetch(`${API_BASE}/inventory/calculate-item/${productId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to calculate item on backend.");
+        }
+
+        const updatedProduct = await res.json();
+
+        // 3. Update state with returned product
+        setProducts(currentProducts =>
+            currentProducts.map(prod => {
+                if (prod.productId === productId) {
+                    return updatedProduct;
+                }
+                return prod;
+            })
+        );
+        
+    } catch (err) {
+        console.error("Error updating weight/calculating:", err);
+    } finally {
+        setCalculating(prev => ({ ...prev, [key]: false }));
+    }
   };
 
-  const runFullLcaCalculation = (productId) => {
+  // --- FULL CALCULATION ---
+  const runFullLcaCalculation = async (productId) => {
     const product = products.find(p => p.productId === productId);
     if (!product) return;
     let dpp;
     try { dpp = JSON.parse(product.dppData); } catch (e) { return; }
     if (!Array.isArray(dpp)) return;
 
-    // Check if any item needs calculation
     const needsCalculation = dpp.some(item => 
       (item.materialId || item.ingredient) &&
       (item.lcaValue === null || item.lcaValue === undefined)
     );
-    if (!needsCalculation) return;
+    if (!needsCalculation) {
+      console.log("No calculation needed for product", productId);
+      return;
+    }
 
     const newCalculatingState = {};
-    dpp.forEach((item, idx) => {
-      if ((item.materialId || item.ingredient) && (item.lcaValue === null || item.lcaValue === undefined)) {
-        newCalculatingState[`${productId}_${idx}`] = true;
-      }
+    dpp.forEach((_, idx) => {
+      newCalculatingState[`${productId}_${idx}`] = true;
     });
     setCalculating(prev => ({ ...prev, ...newCalculatingState }));
 
-    // Mock full calculation
-    setTimeout(() => {
-      const updatedDpp = dpp.map((item) => {
-        if (!(item.materialId || item.ingredient) || item.lcaValue !== null) return item;
-        
-        let emissionFactor = item.emissionFactor;
-        if (emissionFactor === null || emissionFactor === undefined) {
-          emissionFactor = Math.random() * (5.0 - 0.5) + 0.5;
-          if (item.isPackaging) emissionFactor = 1.5;
-          if (item.isTransport) emissionFactor = 0.5;
-        }
-        
-        let calculatedLcaValue = 0;
-        let weightToUse = item.weightKg;
-        if (item.isTransport) {
-          const distance = (weightToUse === 0) ? 100 : weightToUse; // Mock 100km
-          calculatedLcaValue = distance * emissionFactor;
-          item.weightKg = distance;
-        } else {
-          calculatedLcaValue = weightToUse * emissionFactor;
-        }
-        return { ...item, lcaValue: calculatedLcaValue, emissionFactor: emissionFactor };
+    try {
+      const res = await fetch(`${API_BASE}/inventory/calculate/${productId}`, {
+        method: 'POST',
       });
 
-      const totalLca = updatedDpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
-      autoSaveProduct(productId, JSON.stringify(updatedDpp), totalLca);
+      if (!res.ok) {
+        throw new Error("Failed to calculate LCA on backend.");
+      }
 
+      const updatedProduct = await res.json();
+
+      setProducts(currentProducts =>
+        currentProducts.map(p => 
+          p.productId === updatedProduct.productId ? updatedProduct : p
+        )
+      );
+
+    } catch (err) {
+      console.error("Error running full LCA calculation:", err);
+    } finally {
       const finishedCalculatingState = {};
-      dpp.forEach((_, idx) => { finishedCalculatingState[`${productId}_${idx}`] = false; });
+      dpp.forEach((_, idx) => {
+        finishedCalculatingState[`${productId}_${idx}`] = false;
+      });
       setCalculating(prev => ({ ...prev, ...finishedCalculatingState }));
-    }, 1000);
+    }
   };
 
-  // --- Utility Functions ---
   const closeDeleteModal = () => {
     setDeleteConfirm({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   };
@@ -702,10 +690,8 @@ const InventoryPage = () => {
     product.productName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- JSX ---
   return (
-    <div className="container"> {/* Main container */}
-      {/* Sidebar */}
+    <div className="container">
       <div className="sidebar">
         <div className="sidebar-top">
           <button 
@@ -748,7 +734,6 @@ const InventoryPage = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="content-section-main">
         <div className="content-container-main"> 
           <div className="header-group">
@@ -855,7 +840,7 @@ const InventoryPage = () => {
                                   <tr>
                                     <th>No.</th>
                                     <th>LCA Component</th>
-                                    <th>Amount</th>
+                                    <th>Amount / Distance</th>
                                     <th>Unit</th>
                                     <th>LCA (kgCO2e)</th>
                                     <th>Actions</th>
@@ -868,6 +853,8 @@ const InventoryPage = () => {
                                     const isPackaging = item.isPackaging || false;
                                     const isTransport = item.isTransport || false;
                                     const isLocked = isPackaging || isTransport;
+                                    
+                                    const displayUnit = isTransport ? 'km' : (item.unit || 'kg');
 
                                     return (
                                       <tr key={idx} className={isLocked ? 'packaging-row' : ''}>
@@ -889,7 +876,7 @@ const InventoryPage = () => {
                                                   dpp[idx].lcaValue = null;
                                                   dpp[idx].emissionFactor = null;
                                                   autoSaveProduct(p.productId, JSON.stringify(dpp));
-                                                  runLcaCalculation(p.productId, idx, dpp[idx].weightKg);
+                                                  runFullLcaCalculation(p.productId); 
                                                 }
                                                 setEditableIngredients(prev => ({...prev, [key]: undefined}));
                                               }} 
@@ -900,7 +887,7 @@ const InventoryPage = () => {
                                                 }
                                               }} 
                                               placeholder="Search LCA Components"
-                                              disabled={isLocked}
+                                              disabled={isLocked && !isTransport} 
                                             />
                                             {activeSuggestionBox === key && suggestions[key] && suggestions[key].length > 0 && (
                                               <div className="suggestion-dropdown">
@@ -917,22 +904,24 @@ const InventoryPage = () => {
                                           <input 
                                             type="number" 
                                             className="input-base" 
+                                            step={isTransport ? 1 : 0.001} 
                                             value={subProductWeights[key] ?? item.weightKg} 
                                             min={0} 
-                                            step={isTransport ? 1 : 0.001}
                                             onChange={e => setSubProductWeights(prev => ({
                                                 ...prev,
                                                 [key]: e.target.value
                                               }))} 
                                             onBlur={(e) => handleWeightBlur(e, p, idx)}
+                                            placeholder={isTransport ? "Distance" : "Weight"}
                                           />
                                         </td>
                                         <td>
                                           <input 
                                             type="text"
                                             className="input-base"
-                                            value={item.unit || 'kg'}
-                                            disabled // This field is read-only
+                                            value={displayUnit}
+                                            disabled 
+                                            style={{ width: '80px', textAlign: 'center' }}
                                           />
                                         </td>
                                         <td>
@@ -945,6 +934,9 @@ const InventoryPage = () => {
                                                     return 'Not calculated';
                                                   }
                                                   if (typeof lcaValue === 'number') {
+                                                    if (lcaValue > 0 && lcaValue < 0.001) {
+                                                        return `< 0.001 kgCO₂e`; 
+                                                    }
                                                     return `${lcaValue.toFixed(3)} kgCO₂e`;
                                                   }
                                                   return lcaValue;
@@ -952,7 +944,7 @@ const InventoryPage = () => {
                                             )}
                                           </strong>
                                         </td>
-                                        <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <td style={{ display: 'flex', alignItems: 'center' }}>
                                           <button 
                                             className="icon" 
                                             style = {{backgroundColor: "rgba(var(--danger), 1)"}} 
@@ -960,7 +952,7 @@ const InventoryPage = () => {
                                             onClick={() => handleDeleteSubcomponent(p.productId, idx)}
                                             disabled={isLocked}
                                           >
-                                            <Trash2 size = {16} />
+                                            <Trash2 size = {24} />
                                           </button>
                                         </td>
                                       </tr>
@@ -979,9 +971,7 @@ const InventoryPage = () => {
           </div>
         </div>
       </div>
-      
-      {/* --- MODALS --- */}
-
+      {/* ... Modals ... */}
       {showAddProduct && (
         <div className="modal-overlay active">
           <div className="modal-content">
@@ -1005,7 +995,7 @@ const InventoryPage = () => {
                   )}
                   <label htmlFor="fileUpload" className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}onDragOver={handleDragOver}onDragLeave={handleDragLeave}onDrop={handleDrop}>
                     <FilePlus />
-                    <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your CSV or PDF here</p>
+                    <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your CSV here</p>
                     <span className="outline-browse">
                       Or Browse Files
                     </span>
@@ -1014,7 +1004,7 @@ const InventoryPage = () => {
                       id="fileUpload"
                       ref={fileInputRef}
                       className="file-input-hidden" 
-                      accept=".csv,.pdf" 
+                      accept=".csv" 
                       onChange={(e) => handleFileSelect(e.target.files[0])}
                     />
                   </label>

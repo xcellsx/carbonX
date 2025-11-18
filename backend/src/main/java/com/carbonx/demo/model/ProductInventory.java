@@ -1,63 +1,89 @@
-// src/main/java/com/carbonx/demo/model/ProductInventory.java
-
 package com.carbonx.demo.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.Map; // Import Map
 
 @Entity
-@Table(name = "product_inventory")
 public class ProductInventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
-    @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false)
+    private String userId; 
     private String productName;
+    private String uploadedFile;
 
-    private String uploadedFile; // store path or file reference
+    @Column(length = 2048) 
+    private String dppData; 
+    
+    private Double lcaResult;
 
-    private String dppId;    // Digital Product Passport ID
-    @Lob
-    private String dppData;  // JSON or text, can be large
+    // --- THIS IS THE FIX ---
+    // This tells JPA to store the metadata object from your frontend
+    // in a separate table linked to this product.
+    @ElementCollection
+    @CollectionTable(name = "product_metadata", joinColumns = @JoinColumn(name = "product_id"))
+    @MapKeyColumn(name = "metadata_key")
+    @Column(name = "metadata_value", length = 1024) // Added length for safety
+    private Map<String, String> metadata;
+    // --- END FIX ---
 
-    // --- getters & setters ---
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
+    // Getters and Setters
+    public Long getProductId() {
+        return productId;
+    }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
-    public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
+    public String getUserId() {
+        return userId;
+    }
 
-    public String getUploadedFile() { return uploadedFile; }
-    public void setUploadedFile(String uploadedFile) { this.uploadedFile = uploadedFile; }
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-    public String getDppId() { return dppId; }
-    public void setDppId(String dppId) { this.dppId = dppId; }
+    public String getProductName() {
+        return productName;
+    }
 
-    public String getDppData() { return dppData; }
-    public void setDppData(String dppData) { this.dppData = dppData; }
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 
-    @Column(length = 10000)
-private String bomData; // Store CSV content as plain text (or path if you save file)
+    public String getUploadedFile() {
+        return uploadedFile;
+    }
 
-public String getBomData() { return bomData; }
-public void setBomData(String bomData) { this.bomData = bomData; }
+    public void setUploadedFile(String uploadedFile) {
+        this.uploadedFile = uploadedFile;
+    }
 
-private Double lcaResult;
-public Double getLcaResult() { return lcaResult; }
-public void setLcaResult(Double lcaResult) { this.lcaResult = lcaResult; }
+    public String getDppData() {
+        return dppData;
+    }
 
+    public void setDppData(String dppData) {
+        this.dppData = dppData;
+    }
 
+    public Double getLcaResult() {
+        return lcaResult;
+    }
+
+    public void setLcaResult(Double lcaResult) {
+        this.lcaResult = lcaResult;
+    }
+
+    // --- ADD GETTER/SETTER FOR METADATA ---
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
 }
