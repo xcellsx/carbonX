@@ -1,6 +1,9 @@
 package com.carbonx.demo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +16,8 @@ import com.carbonx.demo.model.CompanyInfo;
 import com.carbonx.demo.model.ProductInventory;
 import com.carbonx.demo.repository.CompanyInfoRepository;
 import com.carbonx.demo.repository.ProductInventoryRepository;
+import com.fasterxml.jackson.databind.JsonNode; // You might need to import Jackson
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/dashboard")
@@ -24,29 +29,61 @@ public class DashboardController {
     @Autowired
     private ProductInventoryRepository productInventoryRepository;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @GetMapping("/summary/{userId}")
-    // --- THIS IS THE FIX ---
-    // Changed '@PathVariable Long userId' to '@PathVariable String userId'
     public DashboardSummary getDashboardSummary(@PathVariable String userId) {
         
-        List<String> activeMetrics = companyInfoRepository.findByUserId(userId) // <-- This now correctly passes a String
+        // 1. Get Active Metrics (User Preferences)
+        List<String> activeMetrics = companyInfoRepository.findByUserId(userId)
                 .map(CompanyInfo::getActiveMetrics)
-                .orElse(List.of());
+                .orElse(new ArrayList<>());
 
-        List<ProductInventory> products = productInventoryRepository.findByUserId(userId); // <-- This now correctly passes a String
-
-        double totalLca = products.stream()
-                .mapToDouble(p -> p.getLcaResult() != null ? p.getLcaResult() : 0.0) // Added null check for safety
-                .sum();
-
+        // 2. Get Inventory
+        List<ProductInventory> products = productInventoryRepository.findByUserId(userId);
         int productCount = products.size();
 
-        // Create and return the summary DTO
-        
-        // --- TEMPORARY FIX: Comment out the broken line ---
-        // return new DashboardSummary(activeMetrics, totalLca, productCount);
-        
-        // --- ADD THIS LINE to allow the project to compile ---
-        return null; 
+        // 3. Calculate Totals (GHG and Transport)
+        double totalLca = 0.0;
+        double totalTransportLca = 0.0;
+
+        for (ProductInventory p : products) {
+            // Total GHG
+            if (p.getLcaResult() != null) {
+                totalLca += p.getLcaResult();
+            }
+
+            // Transport GHG (Parse the JSON dppData)
+            if (p.getDppData() != null && !p.getDppData().isEmpty()) {
+                try {
+                    JsonNode root = objectMapper.readTree(p.getDppData());
+                    if (root.isArray()) {
+                        for (JsonNode node : root) {
+                            if (node.has("isTransport") && node.get("isTransport").asBoolean()) {
+                                if (node.has("lcaValue") && !node.get("lcaValue").isNull()) {
+                                    totalTransportLca += node.get("lcaValue").asDouble();
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error parsing DPP data for product " + p.getProductId() + ": " + e.getMessage());
+                }
+            }
+        }
+
+        // 4. Calculate Top Contributors (Top 5 products by LCA)
+        List<Map<String, Object>> topContributors = products.stream()
+            .filter(p -> p.getLcaResult() != null && p.getLcaResult() > 0)
+            .sorted((p1, p2) -> Double.compare(p2.getLcaResult(), p1.getLcaResult()))
+            .limit(5)
+            .map(p -> Map.of(
+                "name", (Object) p.getProductName(), 
+                "value", (Object) p.getLcaResult()
+            ))
+            .collect(Collectors.toList());
+
+        // 5. Return DTO
+        return new DashboardSummary(productCount, activeMetrics, totalLca, totalTransportLca, topContributors);
     }
 }
