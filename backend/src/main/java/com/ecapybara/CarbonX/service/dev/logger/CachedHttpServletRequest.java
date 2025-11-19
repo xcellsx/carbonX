@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service.dev.logger;
+package com.ecapybara.CarbonX.service.dev.logger;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

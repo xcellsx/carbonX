@@ -21,7 +21,7 @@ The full list of the dependencies and their properties can be viewed under the `
 # To-Do
 This list seeks to align the development process for the backend application. The current focus is to map out the required backend API endpoints that is used by the frontend controllers:
 - [ ] `AnalyticsController.java`
-- [ ] `AuthController.java`
+- [x] `AuthController.java` ✅
 - [ ] `CompanyInfoController.java`
 - [ ] `DashboardController.java`
 - [ ] `HealthController.java`
@@ -30,10 +30,24 @@ This list seeks to align the development process for the backend application. Th
 - [ ] `OpenLCAController.java`
 - [ ] `ProductController.java`
 - [ ] `ProductInventoryController.java`
-- [ ] `UserController.java`
+- [x] `UserController.java` ✅
 
 ## Luvyn
-- Map out Celine's `UserController.java` endpoints to our backend implementation
+- [x] ~~Map out Celine's `UserController.java` endpoints to our backend implementation~~ ✅ **COMPLETED**
+  - Created complete RESTful User API with 9 endpoints
+  - ArangoDB integration with User entity and repository
+  - CORS configuration for frontend connectivity
+  - DTO pattern for secure responses
+  - Full documentation and testing interface
+  - See: `backend/docs/API_Documentation.md` and `QUICK_START_USER_API.md`
+
+- [x] ~~Map out Celine's `AuthController.java` endpoints to our backend implementation~~ ✅ **COMPLETED**
+  - Created comprehensive Authentication API with 10 endpoints
+  - Register, login, logout, password management, token validation
+  - Separation of auth concerns from user management
+  - Production-ready architecture with JWT/email placeholders
+  - Security best practices documented
+  - See: `backend/docs/AUTH_CONTROLLER_MAPPING.md`
 
 ## Hilman
 - Create backend dashboard using Spring-Actuator library

@@ -1,9 +1,9 @@
-package com.ecapybara.carbonx.repository;
+package com.ecapybara.CarbonX.repository;
 
 import java.util.List;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.carbonx.entity.Product;
+import com.ecapybara.CarbonX.entity.Product;
 
 public interface ProductRepository extends ArangoRepository<Product, String>{
   

@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -27,9 +27,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecapybara.carbonx.entity.DigitalProductPassport;
-import com.ecapybara.carbonx.entity.Product;
-import com.ecapybara.carbonx.repository.ProductInventoryRepository;
+import com.ecapybara.CarbonX.entity.DigitalProductPassport;
+import com.ecapybara.CarbonX.entity.Product;
+import com.ecapybara.CarbonX.repository.ProductInventoryRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +47,7 @@ public class ProductInventoryController {
 
     // GET: List all products for a user
     @GetMapping("/user/{userId}")
-    public List<Product> getUserInventory(@PathVariable Long userId) {
+    public List<Product> getUserInventory(@PathVariable String userId) {
         return repo.findByUserId(userId);
     }
 
@@ -60,7 +60,7 @@ public class ProductInventoryController {
     // POST (multipart): Upload BoM file, save file, create DPP, add to inventory
     @PostMapping(value = "/bom-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product uploadBOM(
-            @RequestParam("userId") Long userId,
+            @RequestParam("userId") String userId,
             @RequestParam("productNature") String productNature,
             @RequestParam("file") MultipartFile file
     ) throws Exception {
@@ -146,7 +146,7 @@ public class ProductInventoryController {
     // PUT: Updates the DPP (Bill of Materials) data
     @PutMapping("/dpp/{productId}")
     public ResponseEntity<Product> updateProductDpp(
-            @PathVariable Long productId,
+            @PathVariable String productId,
             @RequestBody String dppDataString // Receive the raw JSON string from the frontend
     ) {
         Product inv = repo.findById(productId)
@@ -177,15 +177,15 @@ public class ProductInventoryController {
         inv.setLcaResult(totalLca);
 
         // 4. Save to repository and return
-        UserProduct updatedInventory = repo.save(inv);
+        Product updatedInventory = repo.save(inv);
         return ResponseEntity.ok(updatedInventory);
     }
 
     // --- NEW METHOD ---
     // DELETE: Delete a product by its ID
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
-        UserProduct product = repo.findById(productId).orElse(null);
+    public ResponseEntity<Void> deleteProduct(@PathVariable String productId) {
+        Product product = repo.findById(productId).orElse(null);
         
         if (product == null) {
             return ResponseEntity.notFound().build();

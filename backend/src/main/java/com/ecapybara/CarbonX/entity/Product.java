@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.entity;
+package com.ecapybara.CarbonX.entity;
 
 import java.util.Properties;
 
@@ -24,6 +24,12 @@ public class Product {
   private Properties functionalProperties;
   private Properties nonFunctionalProperties;
   private DigitalProductPassport DPP;
+  
+  // Additional fields for inventory management
+  private String userId; // User who owns this product
+  private String uploadedFile; // Filename of uploaded BOM file
+  private String dppData; // JSON string of DPP items
+  private double lcaResult; // Calculated LCA result
 
   // constructors
   public Product(final String productNature) {
@@ -123,5 +129,34 @@ public class Product {
   }
   public void setDPP( DigitalProductPassport DPP) {
     this.DPP = DPP;
-  }  
+  }
+  
+  // Getters and setters for inventory fields
+  public String getUserId() {
+    return userId;
+  }
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
+  
+  public String getUploadedFile() {
+    return uploadedFile;
+  }
+  public void setUploadedFile(String uploadedFile) {
+    this.uploadedFile = uploadedFile;
+  }
+  
+  public String getDppData() {
+    return dppData;
+  }
+  public void setDppData(String dppData) {
+    this.dppData = dppData;
+  }
+  
+  public double getLcaResult() {
+    return lcaResult;
+  }
+  public void setLcaResult(double lcaResult) {
+    this.lcaResult = lcaResult;
+  }
 }

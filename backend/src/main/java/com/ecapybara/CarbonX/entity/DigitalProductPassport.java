@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.entity;
+package com.ecapybara.CarbonX.entity;
 
 import org.springframework.data.annotation.Id;
 
@@ -65,6 +65,12 @@ public class DigitalProductPassport {
   public void setWeight(double weight) {
     this.weight = weight;
   }
-
   
+  // Alias for weight (used in some controllers)
+  public double getWeightKg() {
+    return weight;
+  }
+  public void setWeightKg(double weight) {
+    this.weight = weight;
+  }
 }

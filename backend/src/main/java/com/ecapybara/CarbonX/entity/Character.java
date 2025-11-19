@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.entity;
+package com.ecapybara.CarbonX.entity;
 
 import com.arangodb.springframework.annotation.ArangoId;
 import com.arangodb.springframework.annotation.Document;

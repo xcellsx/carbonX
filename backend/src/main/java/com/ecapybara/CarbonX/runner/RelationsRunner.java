@@ -1,13 +1,13 @@
-package com.ecapybara.carbonx.runner;
+package com.ecapybara.CarbonX.runner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.ecapybara.carbonx.entity.Character;
-import com.ecapybara.carbonx.entity.ChildOf;
-import com.ecapybara.carbonx.repository.CharacterRepository;
-import com.ecapybara.carbonx.repository.ChildOfRepository;
+import com.ecapybara.CarbonX.entity.Character;
+import com.ecapybara.CarbonX.entity.ChildOf;
+import com.ecapybara.CarbonX.repository.CharacterRepository;
+import com.ecapybara.CarbonX.repository.ChildOfRepository;
 
 import java.util.Arrays;
 
