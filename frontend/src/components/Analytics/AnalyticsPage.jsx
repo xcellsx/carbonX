@@ -1,56 +1,101 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './AnalyticsPage.css';
+import logoPath from '../../assets/carbonx.png';
+import { 
+  LayoutDashboard, Archive, ChartColumnBig, Network, 
+  FileText, Sprout, Settings, ChevronDown, Sparkles, Lock,
+  X, CircleCheck
+} from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080/api';
 
-const AnalyticsPage = () => {
-  // --- State for User Profile (from InventoryPage) ---
-  const [userId] = useState(localStorage.getItem('userId') || '');
-  const [userName, setUserName] = useState('');
-  const [userInitials, setUserInitials] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [loadingProfile, setLoadingProfile] = useState(true);
+// --- Mock Data for Pro Analysis Card ---
+const MOCK_PRODUCT_ANALYSIS = {
+  topContributors: [
+    { name: 'Component 1 (Steel)', amount: '1500 kgCO2e' },
+    { name: 'Component 3 (Aluminum)', amount: '920 kgCO2e' },
+    { name: 'Component 2 (PLA)', amount: '180 kgCO2e' },
+    { name: 'Transport', amount: '50 kgCO2e' },
+    { name: 'End-of-Life', amount: '25 kgCO2e' },
+  ],
+  suggestions: [
+    'Investigate sourcing lower-carbon steel for Component 1.',
+    'Explore recycled aluminum options for Component 3.'
+  ]
+};
 
-  // --- State for Analytics Page ---
+// --- Pro Modal Component ---
+const ProModal = ({ isOpen, onClose, onGoToSettings }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay active" onClick={onClose}>
+      <div className="modal-content pro-modal" onClick={e => e.stopPropagation()}>
+        <button className="close-modal-btn" style={{ width: '100%', textAlign: 'right' }} onClick={onClose}><X /></button>
+        <div><Sparkles size={48} color="rgba(var(--secondary), 1)" /></div>
+        <p className='large-bold'>Get CarbonX Pro</p>
+        <div className="group-pro-modal">
+          <p className="normal-regular">What you will get:</p>
+          <ul className="pro-features-list">
+            <li><CircleCheck size={20} /><span>Cloud Hosting</span></li>
+            <li><CircleCheck size={20} /><span>Access to Report Generator & AI Functionalities</span></li>
+            <li><CircleCheck size={20} /><span>Limited access to Marketplace Community</span></li>
+            <li><CircleCheck size={20} /><span>Increase your team size to 5</span></li>
+            <li><CircleCheck size={20} /><span>IT Support</span></li>
+          </ul>
+        </div>
+        <button type="button" className="default" style={{ width: '100%' }} onClick={onGoToSettings}>
+          Get CarbonX Pro
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsPage = () => {
+  // --- State for User Profile & Logic ---
+  const [userId] = useState(localStorage.getItem('userId') || '');
+  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState('');
-  const [selectedComponentIndex, setSelectedComponentIndex] = useState(0);
+  
+  // --- UPDATED: Initialize state from sessionStorage ---
+  const [selectedProductId, setSelectedProductId] = useState(
+    sessionStorage.getItem('analytics_selectedProductId') || ''
+  );
+  const [selectedComponentIndex, setSelectedComponentIndex] = useState(
+    parseInt(sessionStorage.getItem('analytics_selectedComponentIndex') || '0', 10)
+  );
+
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  
+  // Combined data state
   const [analyticsData, setAnalyticsData] = useState({ inputs: [], outputs: [], impacts: [] });
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [error, setError] = useState('');
+  
+  // UI State
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState('inputs');
+  const [showProModal, setShowProModal] = useState(false);
 
-  // --- Fetch User Profile (for Sidebar) ---
-  const fetchUserProfile = useCallback(async () => {
-    if (!userId) {
-      setError('User ID not found. Please log in again.');
-      setLoadingProfile(false);
-      return;
-    }
-    setLoadingProfile(true);
-    try {
-      const res = await fetch(`${API_BASE}/users/${userId}/profile`);
-      if (!res.ok) throw new Error(`Failed to fetch profile: ${res.status}`);
-      const profile = await res.json();
-      setUserName(profile.fullName || 'User');
-      setCompanyName(profile.companyName || 'Company');
-      let initials = 'U';
-      if (profile.fullName) {
-        const nameParts = profile.fullName.split(' ');
-        initials = (nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '')).toUpperCase();
-      }
-      setUserInitials(initials);
-    } catch (err) {
-      console.error("Error fetching user profile:", err);
-      setUserName('User');
-      setCompanyName('Company');
-      setUserInitials('U');
-    } finally {
-      setLoadingProfile(false);
-    }
-  }, [userId]);
+  // --- Helper to sort "Values" before "No Values" ---
+  const sortDataValuesFirst = (dataArray) => {
+    return dataArray.sort((a, b) => {
+      const valA = parseFloat(a.amount) || 0;
+      const valB = parseFloat(b.amount) || 0;
+      const isZeroA = valA === 0;
+      const isZeroB = valB === 0;
 
-  // --- Fetch Product List (for Dropdown) ---
+      if (!isZeroA && isZeroB) return -1; 
+      if (isZeroA && !isZeroB) return 1;  
+      
+      return 0; 
+    });
+  };
+
+  // --- Fetch Product List ---
   const fetchProducts = useCallback(async () => {
     if (!userId) return;
     try {
@@ -66,9 +111,7 @@ const AnalyticsPage = () => {
     }
   }, [userId]);
 
-  // --- Fetch Analytics Data (for Tables) ---
-  // *** This function is no longer called directly, but kept for reference ***
-  const fetchAnalyticsData = useCallback(async (productId, componentIndex) => {
+  const fetchAnalyticsDataForProduct = async (productId, componentIndex, currentProducts) => {
     if (!productId) {
       setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
       return;
@@ -76,8 +119,7 @@ const AnalyticsPage = () => {
     setLoadingAnalytics(true);
     setError('');
 
-    // --- Find the selected component ---
-    const product = products.find(p => p.productId == productId);
+    const product = currentProducts.find(p => p.productId == productId);
     if (!product) {
       setError('Selected product not found.');
       setLoadingAnalytics(false);
@@ -95,31 +137,34 @@ const AnalyticsPage = () => {
 
     const selectedComponent = components[componentIndex];
     if (!selectedComponent) {
-      // This can happen if dppData is empty.
       setLoadingAnalytics(false);
       setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
       return;
     }
 
-    // Get the process identifier (UUID or Name) and weight
-    const { processId, process, weightKg } = selectedComponent;
-    const identifier = processId || process; // Use UUID if available, else fall back to name
-    const weight = weightKg || 0;
+    // Handle different key names
+    const identifier = selectedComponent.processId 
+                    || selectedComponent.materialId 
+                    || selectedComponent.process 
+                    || selectedComponent.ingredient;
+
+    const weight = selectedComponent.weightKg || 0;
+
+    console.log("Resolved Identifier:", identifier);
 
     if (!identifier) {
-      setError('Selected component has no process defined.');
+      console.error("ERROR: Identifier is missing for component:", selectedComponent);
+      setError(`Selected component (Index: ${componentIndex}) has no process defined. Data: ${JSON.stringify(selectedComponent)}`);
       setLoadingAnalytics(false);
       return;
     }
 
-    // --- Create URL-friendly parameters ---
     const params = new URLSearchParams({
       processIdentifier: identifier,
       weight: weight
     });
 
     try {
-      // --- Call new backend endpoints ---
       const [flowsRes, impactsRes] = await Promise.all([
          fetch(`${API_BASE}/analytics/flows?${params.toString()}`),
          fetch(`${API_BASE}/analytics/impacts?${params.toString()}`)
@@ -131,51 +176,49 @@ const AnalyticsPage = () => {
       const rawFlows = await flowsRes.json();
       const rawImpacts = await impactsRes.json();
 
-      // --- Process data just like in openlcav2.html ---
-      // 1. Process Flows (Inputs/Outputs)
-      const inputs = [];
-      const outputs = [];
+      let inputs = [];
+      let outputs = [];
       if (Array.isArray(rawFlows)) {
         rawFlows.forEach(flow => {
           if (flow.enviFlow) {
-             // --- EDIT START: Filter out 0 values ---
              const amountValue = parseFloat(flow.amount || 0);
-             if (amountValue !== 0) {
-                const item = {
-                  flowName: flow.enviFlow.flow?.name || 'Unknown',
-                  category: flow.enviFlow.flow?.category || '-',
-                  amount: amountValue.toPrecision(3),
-                  unit: flow.enviFlow.flow?.refUnit || 'unit'
-                };
-                if (flow.enviFlow.isInput) {
-                  inputs.push(item);
-                } else {
-                  outputs.push(item);
-                }
+             const item = {
+               flowName: flow.enviFlow.flow?.name || 'Unknown',
+               category: flow.enviFlow.flow?.category || '-',
+               amount: amountValue.toPrecision(3),
+               unit: flow.enviFlow.flow?.refUnit || 'unit',
+               location: flow.enviFlow.flow?.location || '-' 
+             };
+             
+             if (flow.enviFlow.isInput) {
+               inputs.push(item);
+             } else {
+               outputs.push(item);
              }
-             // --- EDIT END ---
           }
         });
       }
 
-      // 2. Process Impacts
-      const impacts = [];
+      // --- Process Impacts ---
+      let impacts = [];
       if (Array.isArray(rawImpacts)) {
         rawImpacts.forEach(impact => {
           if (impact.impactCategory) {
-            // --- EDIT START: Filter out 0 values ---
             const amountValue = parseFloat(impact.amount || 0);
-            if (amountValue !== 0) {
-                impacts.push({
-                  category: impact.impactCategory.name || 'Unknown',
-                  amount: amountValue.toPrecision(3),
-                  unit: impact.impactCategory.refUnit || 'unit'
-                });
-            }
-            // --- EDIT END ---
+              impacts.push({
+                category: impact.impactCategory.name || 'Unknown',
+                amount: amountValue.toPrecision(3),
+                unit: impact.impactCategory.refUnit || 'unit',
+                location: '-' 
+              });
           }
         });
       }
+
+      // --- APPLY SORTING HERE ---
+      inputs = sortDataValuesFirst(inputs);
+      outputs = sortDataValuesFirst(outputs);
+      impacts = sortDataValuesFirst(impacts);
 
       setAnalyticsData({ inputs, outputs, impacts });
 
@@ -186,29 +229,50 @@ const AnalyticsPage = () => {
     } finally {
       setLoadingAnalytics(false);
     }
-  }, [products]); // depends on 'products' to find component data
+  };
 
-  // --- Initial Data Load ---
+  // --- Initial Load ---
   useEffect(() => {
-    fetchUserProfile();
     fetchProducts();
-  }, [fetchUserProfile, fetchProducts]);
+  }, [fetchProducts]);
 
-  // --- Handle Product Selection ---
+  // --- UPDATED: Effect to load stored product when 'products' list arrives ---
+  useEffect(() => {
+    if (products.length > 0 && selectedProductId) {
+      // Check if the stored product ID actually exists in the fetched list
+      const productExists = products.find(p => p.productId == selectedProductId);
+      
+      if (productExists) {
+        // It exists! Load the data for it.
+        fetchAnalyticsDataForProduct(selectedProductId, selectedComponentIndex, products);
+      } else {
+        // Product was deleted or invalid; clear the storage
+        setSelectedProductId('');
+        sessionStorage.removeItem('analytics_selectedProductId');
+        setSelectedComponentIndex(0);
+        sessionStorage.removeItem('analytics_selectedComponentIndex');
+        setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
+      }
+    }
+  }, [products]); // Only runs when 'products' updates (i.e., after fetch completes)
+
+
+  // --- UPDATED: Handle Product Selection ---
   const handleProductChange = (e) => {
     const newProductId = e.target.value;
     setSelectedProductId(newProductId);
-    setSelectedComponentIndex(0); // Reset to the first component
+    sessionStorage.setItem('analytics_selectedProductId', newProductId); // Save to storage
+
+    setSelectedComponentIndex(0); 
+    sessionStorage.setItem('analytics_selectedComponentIndex', '0'); // Reset and save index
     
     if (newProductId) {
-      // We must pass 'products' here manually because state update is async
       const allProducts = products; 
       const product = allProducts.find(p => p.productId == newProductId);
       if (product && product.dppData) {
          try {
            const components = JSON.parse(product.dppData);
            if (components.length > 0) {
-             // Pass 'allProducts' to the fetcher so it can find the product
              fetchAnalyticsDataForProduct(newProductId, 0, allProducts);
            } else {
              setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
@@ -220,136 +284,18 @@ const AnalyticsPage = () => {
          setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
       }
     } else {
-      setAnalyticsData({ inputs: [], outputs: [], impacts: [] }); // Clear data
+      setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
     }
   };
 
-  // --- Wrapper function to pass 'products' state to fetcher ---
-  // This is needed because the 'products' state might not be updated
-  // immediately when handleProductChange is called.
-  const fetchAnalyticsDataForProduct = async (productId, componentIndex, currentProducts) => {
-    if (!productId) {
-      setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-      return;
-    }
-    setLoadingAnalytics(true);
-    setError('');
-
-    const product = currentProducts.find(p => p.productId == productId);
-    // ... (rest of the logic from fetchAnalyticsData) ...
-        if (!product) {
-      setError('Selected product not found.');
-      setLoadingAnalytics(false);
-      return;
-    }
-    
-    let components = [];
-    try {
-      components = JSON.parse(product.dppData || '[]');
-    } catch (e) {
-      setError('Failed to parse product components.');
-      setLoadingAnalytics(false);
-      return;
-    }
-
-    const selectedComponent = components[componentIndex];
-    if (!selectedComponent) {
-      setLoadingAnalytics(false);
-      setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-      return;
-    }
-
-    const { processId, process, weightKg } = selectedComponent;
-    const identifier = processId || process;
-    const weight = weightKg || 0;
-
-    if (!identifier) {
-      setError('Selected component has no process defined.');
-      setLoadingAnalytics(false);
-      return;
-    }
-
-    const params = new URLSearchParams({
-      processIdentifier: identifier,
-      weight: weight
-    });
-
-    try {
-      const [flowsRes, impactsRes] = await Promise.all([
-         fetch(`${API_BASE}/analytics/flows?${params.toString()}`),
-         fetch(`${API_BASE}/analytics/impacts?${params.toString()}`)
-      ]);
-
-      if (!flowsRes.ok) throw new Error(`Failed to fetch flows: ${await flowsRes.text()}`);
-      if (!impactsRes.ok) throw new Error(`Failed to fetch impacts: ${await impactsRes.text()}`);
-
-      const rawFlows = await flowsRes.json();
-      const rawImpacts = await impactsRes.json();
-
-      const inputs = [];
-      const outputs = [];
-      if (Array.isArray(rawFlows)) {
-        rawFlows.forEach(flow => {
-          if (flow.enviFlow) {
-             // --- This check for Flows (Inputs/Outputs) remains ---
-             const amountValue = parseFloat(flow.amount || 0);
-             if (amountValue !== 0) {
-               const item = {
-                flowName: flow.enviFlow.flow?.name || 'Unknown',
-                category: flow.enviFlow.flow?.category || '-',
-                amount: amountValue.toPrecision(3),
-                unit: flow.enviFlow.flow?.refUnit || 'unit'
-              };
-              if (flow.enviFlow.isInput) {
-                inputs.push(item);
-              } else {
-                outputs.push(item);
-              }
-            }
-            // --- End of check for Flows ---
-          }
-        });
-      }
-
-      const impacts = [];
-      if (Array.isArray(rawImpacts)) {
-        rawImpacts.forEach(impact => {
-          if (impact.impactCategory) {
-            // --- EDIT: Removing the filter for Impact Categories ---
-            const amountValue = parseFloat(impact.amount || 0);
-            // if (amountValue !== 0) { // <-- This check is REMOVED
-              impacts.push({
-                category: impact.impactCategory.name || 'Unknown',
-                amount: amountValue.toPrecision(3),
-                unit: impact.impactCategory.refUnit || 'unit'
-              });
-            // } // <-- This check is REMOVED
-            // --- END OF EDIT ---
-          }
-        });
-      }
-
-
-      setAnalyticsData({ inputs, outputs, impacts });
-
-    } catch (err) {
-      console.error("Error fetching analytics data:", err);
-      setError(`Could not load analytics data: ${err.message}`);
-      setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-    } finally {
-      setLoadingAnalytics(false);
-    }
-  };
-  
-  // --- NEW: Handle Component Tab Selection ---
+  // --- UPDATED: Handle Component Tab Selection ---
   const handleComponentSelect = (index) => {
     setSelectedComponentIndex(index);
+    sessionStorage.setItem('analytics_selectedComponentIndex', index); // Save to storage
     fetchAnalyticsDataForProduct(selectedProductId, index, products);
   };
 
-  const isLoading = loadingProfile;
-
-  // --- Helper to get components for rendering ---
+  // --- Helper to parse components for tabs ---
   const selectedProduct = products.find(p => p.productId == selectedProductId);
   let components = [];
   if (selectedProduct && selectedProduct.dppData) {
@@ -359,208 +305,310 @@ const AnalyticsPage = () => {
       console.error("Failed to parse DPP data for tabs");
     }
   }
+  
+  const isLoading = loadingProfile;
+
+  // --- RENDER TABLE DATA (WITH INLINE STYLES) ---
+  const renderTableData = () => {
+    let data;
+    let headers;
+
+    if (activeAnalysisTab === 'inputs') {
+      data = analyticsData.inputs;
+      headers = ['Input', 'Category', 'Amount', 'Unit'];
+    } else if (activeAnalysisTab === 'outputs') {
+      data = analyticsData.outputs;
+      headers = ['Output', 'Category', 'Amount', 'Unit'];
+    } else { // impacts
+      data = analyticsData.impacts;
+      headers = ['Impact Category', 'Amount', 'Unit'];
+    }
+
+    return (
+      <div className="analytics-table-container">
+        <table className="analytics-table" style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {headers.map((h, i) => {
+                 // Inline styles for headers to ensure correct width
+                 let style = { textAlign: 'left', padding: '12px', backgroundColor: 'rgba(51, 71, 97, 1)', color: 'white' };
+                 
+                 if (i === 0) style = { ...style, width: '40%' }; // First column (Name) - 40%
+                 else if (h === 'Unit') style = { ...style, width: '15%' }; // Unit - 15%
+                 else if (h === 'Amount') style = { ...style, width: '20%', textAlign: 'right', paddingRight: '1.5rem' }; // Amount - 20%
+                 else if (h === 'Category') style = { ...style, width: '25%' }; // Category - 25%
+                 
+                 return <th key={h} style={style}>{h}</th>;
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {data.length > 0 ? (
+              data.map((item, idx) => (
+                <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+                  {/* 1. Flow Name (Wraps) */}
+                  <td style={{ 
+                      padding: '12px', 
+                      width: '40%', 
+                      whiteSpace: 'normal', 
+                      wordWrap: 'break-word', 
+                      overflowWrap: 'break-word', 
+                      verticalAlign: 'top' 
+                  }}>
+                    {item.flowName || item.category}
+                  </td>
+                  
+                  {/* 2. Category (Only for Inputs/Outputs) */}
+                  {activeAnalysisTab !== 'impacts' && (
+                    <td style={{ 
+                        padding: '12px', 
+                        width: '25%', 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        verticalAlign: 'top' 
+                    }}>
+                      {item.category}
+                    </td>
+                  )}
+                  
+                  {/* 3. Amount */}
+                  <td style={{ 
+                      padding: '12px', 
+                      width: '20%', 
+                      textAlign: 'right', 
+                      paddingRight: '1.5rem', 
+                      verticalAlign: 'top' 
+                  }}>
+                    {item.amount}
+                  </td>
+
+                  {/* 4. Unit */}
+                  <td style={{ 
+                      padding: '12px', 
+                      width: '15%', 
+                      textAlign: 'left', 
+                      verticalAlign: 'top' 
+                  }}>
+                    {item.unit}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={headers.length} className="no-data-message" style={{ textAlign: 'center', padding: '24px', fontStyle: 'italic', color: '#888' }}>
+                  No {activeAnalysisTab} data available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
-    <div className="dashboard-layout">
-      {/* --- Sidebar (Unchanged) --- */}
+    <div className="container">
       <div className="sidebar">
+        {/* ... Sidebar (Unchanged) ... */}
         <div className="sidebar-top">
-          <div className="logo">
-            <picture>
-              <source srcSet="/src/assets/carbonx.png" media="(prefers-color-scheme: dark)" />
-              <img src="/src/assets/carbonx.png" alt="Logo" width="30" />
-            </picture>
+          <button 
+            type="button" 
+            onClick={() => navigate('/dashboard')}
+            className="logo-button" 
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
+          </button>
+          <p className ="descriptor">Core Features</p>
+          <div className="navbar">
+            <button type="button" onClick={() => navigate('/dashboard')} className={`nav ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+              <LayoutDashboard /><span>Dashboard</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/inventory' ? 'active' : ''}`} onClick={() => navigate('/inventory')}>
+              <Archive /><span>Inventory</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/analytics' ? 'active' : ''}`} onClick={() => navigate('/analytics')}>
+              <ChartColumnBig /><span>Analytics</span>
+            </button>
           </div>
-          <nav className="nav-menu">
-            <NavLink to="/dashboard" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-              <span>Dashboard</span>
-            </NavLink>
-            <NavLink to="/inventory" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-              <span>Inventory</span>
-            </NavLink>
-            <NavLink to="/analytics" className="nav-item active">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              <span>Analytics</span>
-            </NavLink>
-            <NavLink to="/network" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              <span>Network</span>
-            </NavLink>
-            <NavLink to="/report" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              <span>Report</span>
-            </NavLink>
-            <NavLink to="/chat" className="nav-item">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span>AI Chat</span>
-            </NavLink>
-          </nav>
+          <p className ="descriptor">Plugins</p>
+          <div className = "navbar">
+            <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')} disabled={!isProUser}>
+              <Network /><span>Network</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/report' ? 'active' : ''}`} onClick={() => navigate('/report')} disabled={!isProUser}>
+              <FileText /><span>Report</span>
+            </button>
+            <button type="button" className={`nav ${location.pathname === '/chat' ? 'active' : ''}`} onClick={() => navigate('/chat')} disabled={!isProUser}>
+              <Sprout /><span>Sprout AI</span>
+            </button>
+          </div>
         </div>
         <div className="sidebar-bottom">
-          <NavLink to="/settings" className="user-profile">
-            <div className="user-avatar">{isLoading ? '...' : userInitials}</div>
-            <div className="user-info">
-              <div className="name">{isLoading ? 'Loading...' : userName}</div>
-              <div className="company">{isLoading ? 'Loading...' : companyName}</div>
-            </div>
-          </NavLink>
+          <button type="button" className={`nav ${location.pathname === '/settings' ? 'active' : ''}`} onClick={() => navigate("/settings")}>
+            <Settings /><span>Settings</span>
+          </button>
         </div>
       </div>
 
-      {/* --- Main Content Area --- */}
-      <div className="main-content">
-        <header className="dashboard-header">
-          <h1>Analytics</h1>
-          <p>Breakdown of your products and processes.</p>
-        </header>
+      <div className="content-section-main">
+        <div className="content-container-main">
+          <header className="header-group">
+            <h1>Analytics</h1>
+            <p className="medium-regular">Breakdown of your products and processes.</p>
+          </header>
+          
+          {/* --- Product Selection --- */}
+          <div className="sub-header" style={{ display: 'flex', alignItems: 'stretch' }}>
+            <div className = "header-col">
+              <label htmlFor="product-select" className="normal-bold">Select your product:</label>
+              <div className="select-wrapper">
+                <select 
+                  id="product-select" 
+                  className="input-base"
+                  value={selectedProductId} 
+                  onChange={handleProductChange}
+                  disabled={products.length === 0}
+                >
+                  <option value="">{products.length === 0 ? "No products found" : "-- Select a product --"}</option>
+                  {products.map(product => (
+                    <option key={product.productId} value={product.productId}>
+                      {product.productName}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="select-arrow" />
+              </div>
+            </div>
 
-        {error && <div className="error-message" style={{color: 'red', marginBottom: '15px'}}>{error}</div>}
-
-        {/* --- Product Selector --- */}
-        <div className="product-selector-container">
-          <label htmlFor="product-select">Select your product:</label>
-          <select 
-            id="product-select" 
-            value={selectedProductId} 
-            onChange={handleProductChange}
-            disabled={products.length === 0}
-          >
-            <option value="">{products.length === 0 ? "No products found" : "-- Select a product --"}</option>
-            {products.map(product => (
-              <option key={product.productId} value={product.productId}>
-                {product.productName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* --- Component Tabs --- */}
-        {selectedProductId && components.length > 0 && (
-          <nav className="component-tabs">
-            {components.map((component, index) => (
-              <button
-                key={index}
-                className={`component-tab-btn ${index === selectedComponentIndex ? 'active' : ''}`}
-                onClick={() => handleComponentSelect(index)}
+            <div className = "button-container">
+              <button 
+                className = "icon"
+                title={isProUser ? "Get AI Suggestions" : "Unlock CarbonX Pro for AI Suggestions"}
+                style={!isProUser ? { backgroundColor: 'rgba(var(--greys), 0.2)' } : {}}
+                onClick={() => {
+                  if (isProUser) {
+                    alert('AI suggestions activated!');
+                  } else {
+                    setShowProModal(true);
+                  }
+                }}
               >
-                {component.component || `Component ${index + 1}`}
+                <Sparkles />
               </button>
-            ))}
-          </nav>
-        )}
+            </div>
+          </div>
+          
+          {error && <div className="submit-error" style={{ marginBottom: '15px'}}>{error}</div>}
 
-        {/* --- Analytics Cards --- */}
-        {loadingAnalytics ? (
-          <div className="loading-message">Loading analytics data...</div>
-        ) : (
-          selectedProductId && (
-            <div className="analytics-grid">
-              {/* --- Inputs Card --- */}
-              <div className="analytics-card">
-                <h3>Inputs</h3>
-                <div className="analytics-table-container">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Flow Name</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Unit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analyticsData.inputs.length > 0 ? (
-                        analyticsData.inputs.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{item.flowName}</td>
-                            <td>{item.category}</td>
-                            <td>{item.amount}</td>
-                            <td>{item.unit}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="4" className="no-data-message">No input data available.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+          {/* --- Product Analysis Section (UI Retained, Mock Data) --- */}
+          <div className = "sub-header">
+            <div className = "header-col">
+              <p className='descriptor-medium'>Product Analysis</p>
+            </div>
+          </div>
+          
+          <div className="product-analysis-card">
+            {!isProUser && (
+              <div className="blur-overlay" onClick={() => setShowProModal(true)}>
+                <Lock />
+                <p className="medium-bold">Unlock CarbonX Pro</p>
+                <p className="normal-regular">to see your product-level analysis.</p>
               </div>
-
-              {/* --- Outputs Card --- */}
-              <div className="analytics-card">
-                <h3>Outputs</h3>
-                <div className="analytics-table-container">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Flow Name</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Unit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analyticsData.outputs.length > 0 ? (
-                        analyticsData.outputs.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{item.flowName}</td>
-                            <td>{item.category}</td>
-                            <td>{item.amount}</td>
-                            <td>{item.unit}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="4" className="no-data-message">No output data available.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+            )}
+            <div className={`product-analysis-content ${!isProUser ? 'blurred' : ''}`}>
+              <div className="analysis-column">
+                <p className="medium-bold">Top 5 Highest Contributors</p>
+                <ul className="analysis-list">
+                  {MOCK_PRODUCT_ANALYSIS.topContributors.map((item, i) => (
+                    <li key={i}>
+                      <span>{item.name}</span>
+                      <span>{item.amount}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              {/* --- Impact Category Card --- */}
-              <div className="analytics-card">
-                <h3>Impact Category</h3>
-                <div className="analytics-table-container">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Impact Category</th>
-                        <th>Amount</th>
-                        <th>Unit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analyticsData.impacts.length > 0 ? (
-                        analyticsData.impacts.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{item.category}</td>
-                            <td>{item.amount}</td>
-                            <td>{item.unit}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="3" className="no-data-message">No impact data available.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="analysis-column">
+                <p className="medium-bold">Suggestions</p>
+                <ul className="analysis-list simple">
+                  {MOCK_PRODUCT_ANALYSIS.suggestions.map((item, i) => (
+                    <li key={i}><span>{item}</span></li>
+                  ))}
+                </ul>
               </div>
             </div>
-          )
-        )}
+          </div>
+
+          {/* --- Component Analysis Section (Real Data) --- */}
+          <div className = "sub-header" style={{marginTop: '2rem'}}>
+            <div className = "header-col">
+              <p className='descriptor-medium'>Component Analysis</p>
+            </div>
+          </div>
+
+          {selectedProductId && components.length > 0 ? (
+            <nav className="component-tabs">
+              {components.map((component, index) => (
+                <button
+                  key={index}
+                  className={`component-tab-btn ${index === selectedComponentIndex ? 'active' : ''}`}
+                  onClick={() => handleComponentSelect(index)}
+                >
+                  {component.component || component.ingredient || `Component ${index + 1}`}
+                </button>
+              ))}
+            </nav>
+          ) : (
+            <p className="normal-regular" style={{color: 'rgba(var(--greys), 1)'}}>
+              {selectedProductId ? 'This product has no components.' : 'Please select a product to see component details.'}
+            </p>
+          )}
+
+          {selectedProductId && components.length > 0 && (
+            <div className="component-analysis-container">
+              {/* Tabs for Input/Output/Impacts */}
+              <div className="chip-group" style={{ marginBottom: '1rem'}}>
+                <button 
+                  className={`chip ${activeAnalysisTab === 'inputs' ? 'active' : ''}`}
+                  onClick={() => setActiveAnalysisTab('inputs')}
+                >
+                  Inputs
+                </button>
+                <button 
+                  className={`chip ${activeAnalysisTab === 'outputs' ? 'active' : ''}`}
+                  onClick={() => setActiveAnalysisTab('outputs')}
+                >
+                  Outputs
+                </button>
+                <button 
+                  className={`chip ${activeAnalysisTab === 'impacts' ? 'active' : ''}`}
+                  onClick={() => setActiveAnalysisTab('impacts')}
+                >
+                  Impact Categories
+                </button>
+              </div>
+
+              {loadingAnalytics ? (
+                <div className="loading-message">Loading analytics data...</div>
+              ) : (
+                renderTableData()
+              )}
+            </div>
+          )}
+        </div>
       </div>
+      
+      <ProModal 
+        isOpen={showProModal} 
+        onClose={() => setShowProModal(false)}
+        onGoToSettings={() => {
+          setShowProModal(false);
+          navigate('/settings');
+        }}
+      />
     </div>
   );
 };
 
 export default AnalyticsPage;
-
-

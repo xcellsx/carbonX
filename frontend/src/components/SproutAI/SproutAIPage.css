@@ -18,6 +18,7 @@
   padding: 0 2rem 2rem 2rem;
   overflow: hidden;
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .chat-history-container {

@@ -10,8 +10,10 @@ import {
 import { useCompanyForm } from '../../hooks/useCompanyForm'; 
 // Make sure this path is correct for your project structure
 import CompanyForm from '../../components/Company/CompanyForm';
-import BillingSubscriptions from './BillingSubscriptions'; // Assumes it's in the same /Settings folder
-import BillingHistory from './BillingHistory'; // --- NEW: Import BillingHistory ---
+import BillingSubscriptions from './BillingSubscriptions'; 
+import BillingHistory from './BillingHistory'; 
+
+const API_BASE = 'http://localhost:8080/api';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 
@@ -21,13 +23,13 @@ const SettingsPage = () => {
     localStorage.getItem('settingsTab') || 'account'
   );
 
-  // --- UPDATED: Reads 'isProUser' from localStorage ---
   const [isProUser, setIsProUser] = useState(
     localStorage.getItem('isProUser') === 'true'
   ); 
   
   const [password, setPassword] = useState(''); 
   const [saveMessage, setSaveMessage] = useState('');
+  
   const [initialUserDetails, setInitialUserDetails] = useState({
     fullName: '', 
     email: '',
@@ -54,26 +56,39 @@ const SettingsPage = () => {
     localStorage.setItem('settingsTab', activeTab);
   }, [activeTab]);
 
-  // Load user data on mount
+  // --- UPDATED: Load user data from Backend API on mount ---
   useEffect(() => {
-    const currentUserId = localStorage.getItem('userId');
-    if (!currentUserId) {
-      console.error("SettingsPage: No user ID found in localStorage.");
-      return;
-    }
+    const fetchUserData = async () => {
+      const currentUserId = localStorage.getItem('userId');
+      if (!currentUserId) {
+        console.error("SettingsPage: No user ID found in localStorage.");
+        return;
+      }
 
-    const allUsers = JSON.parse(localStorage.getItem('users')) || [];
-    const currentUser = allUsers.find(user => user.id === currentUserId);
+      try {
+        const res = await fetch(`${API_BASE}/users/${currentUserId}/profile`);
+        if (res.ok) {
+          const data = await res.json();
+          
+          // Map the API response to your state
+          // Note: 'phone' is not currently returned by your backend endpoint
+          const loadedDetails = {
+            fullName: data.fullName || '', 
+            email: data.email || '',
+            phone: data.phone || '' 
+          };
+          
+          setUserDetails(loadedDetails);
+          setInitialUserDetails(loadedDetails);
+        } else {
+          console.error("Failed to fetch user profile:", res.status);
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      }
+    };
 
-    if (currentUser) {
-      const loadedDetails = {
-        fullName: currentUser.fullName, 
-        email: currentUser.email,
-        phone: currentUser.phone || ''
-      };
-      setUserDetails(loadedDetails);
-      setInitialUserDetails(loadedDetails);
-    }
+    fetchUserData();
   }, []); 
 
   const onDetailsChange = (e) => {
@@ -104,12 +119,14 @@ const SettingsPage = () => {
     
     const userId = localStorage.getItem('userId');
     if (!userId) {
-      console.error("User ID not found, can't save settings.");
       setSaveMessage("Error: User ID not found."); 
       return;
     }
 
-    // Save Account Details
+    // TODO: Update this to send a POST/PUT request to your backend
+    // Currently it just saves to LocalStorage which won't persist across devices
+    
+    // Save Account Details locally for now
     const allUsers = JSON.parse(localStorage.getItem('users')) || [];
     const updatedUsers = allUsers.map(user => {
       if (user.id === userId) {
@@ -120,7 +137,6 @@ const SettingsPage = () => {
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     setInitialUserDetails(userDetails); 
 
-    // Save Password
     if (isPasswordDirty) { 
       console.log('Saving new password...', { password });
       setPassword(''); 
@@ -135,11 +151,8 @@ const SettingsPage = () => {
     setSaveMessage('Settings saved successfully!');
   };
   
-  // --- NEW: Logout Function ---
   const handleLogout = () => {
-    // Clear all local storage to end the session
     localStorage.clear();
-    // Navigate to the login page
     navigate('/login');
   };
   
@@ -189,11 +202,11 @@ const SettingsPage = () => {
                 {saveMessage}
               </div>
             )}
-            {/* --- UPDATED: Button container --- */}
+            
             <div className="settings-action-buttons">
               <button 
                 type="button" 
-                className="default" // Use the secondary button style
+                className="default" 
                 style={{marginTop: '1rem', backgroundColor: 'rgba(var(--secondary), 1)'}}
                 onClick={handleLogout}
               >
@@ -201,21 +214,18 @@ const SettingsPage = () => {
               </button>
               <button 
                 type="submit" 
-                className="default" // Use the primary 'default' style
+                className="default" 
                 style={{marginTop: '1rem'}} 
                 disabled={!isFormDirty}
               >
-                {/* --- UPDATED: Text changed --- */}
                 Save Changes
               </button>
             </div>
           </form>
         );
       case 'billing':
-        // --- Pass a function to update the Pro status ---
         return <BillingSubscriptions onPlanSave={() => setIsProUser(true)} />;
       case 'history':
-        // --- UPDATED: Render the new component ---
         return <BillingHistory />;
       default:
         return null;
@@ -249,8 +259,6 @@ const SettingsPage = () => {
             </div>
             <p className ="descriptor">Plugins</p>
             <div className = "navbar">
-              {/* --- This button is now controlled by isProUser state --- */}
-              {/* --- FIXED: Removed the '.' from type.="button" --- */}
               <button type="button" className={`nav ${location.pathname === '/network' ? 'active' : ''}`} onClick={() => navigate('/network')} disabled={!isProUser}>
                 <Network /><span>Network</span>
               </button>

@@ -1,0 +1,124 @@
+/* --- Main Graph Container --- */
+.network-graph-container {
+  position: relative; 
+  width: 100%;
+  height: 600px; /* Fixed height for D3 */
+  background: #fdfdfd; /* A very light background for the SVG */
+  border-radius: 6px;
+  overflow: hidden; /* Ensures SVG corners are rounded */
+}
+
+.network-graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Loading/Empty Messages --- */
+/* These styles are used inside the .analytics-table-container */
+.no-data-message, .loading-message {
+  text-align: center;
+  color: rgba(var(--greys), 1);
+  padding: 40px;
+  font-style: italic;
+  font-size: var(--normal);
+  min-height: 600px; /* Match graph height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- D3 Graph Styles --- */
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.node text {
+  font-size: 11px;
+  font-family: 'Inter', sans-serif; /* Use global font */
+  pointer-events: none;
+  text-anchor: start; 
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: 0.6;
+  stroke-width: 1.5px;
+}
+
+/* --- Legend (Top-Left) --- */
+.graph-legend {
+  position: absolute;
+  top: 15px;
+  left: 15px; /* Positioned top-left */
+  background: rgba(var(--whites), 0.9);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem; /* Match global style */
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(var(--blacks), 0.1);
+  z-index: 10;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--small);
+  width: 200px; /* Fixed width */
+}
+
+.graph-legend strong {
+  display: block;
+  font-weight: var(--bold);
+  font-size: 13px;
+  color: rgba(var(--primary), 1);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(var(--blacks), 0.1);
+}
+
+.graph-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  color: rgba(var(--blacks), 1);
+}
+
+.legend-color-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(var(--blacks), 0.1);
+}
+
+/* --- Node Info Box (replaces tooltip) --- */
+.graph-info {
+  position: absolute;
+  top: 150px; /* Position it below the legend */
+  left: 15px;  /* Align with legend */
+  width: 200px; /* Match legend width */
+  background-color: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--blacks), 0.1);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: var(--small);
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(var(--blacks), 0.1);
+  z-index: 10;
+  pointer-events: none; /* So it doesn't block mouse events on the SVG */
+}
+
+.graph-info p {
+  margin: 0;
+  padding: 0;
+}

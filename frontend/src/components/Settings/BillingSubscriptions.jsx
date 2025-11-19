@@ -86,7 +86,7 @@ const BillingSubscriptions = ({ onPlanSave }) => {
       id: 'pro',
       name: 'CarbonX Pro',
       price: '833.33',
-      annualPrice: '10000.00',
+      annualPrice: '9000.00',
       term: '/month',
       subtext: 'Save 10% by paying annually',
       subtextClass: 'plan-save-info large-bold',

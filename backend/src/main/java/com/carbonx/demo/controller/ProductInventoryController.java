@@ -1,4 +1,3 @@
-// ... (imports remain the same, plus new Map import if needed)
 package com.carbonx.demo.controller;
 
 import java.io.InputStreamReader;
@@ -48,19 +47,27 @@ public class ProductInventoryController {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    // ... (GET /user/{userId} remains the same) ...
+    // --- MAPPING LOGIC ---
+    // This maps your CSV Component Names -> OpenLCA Process Names
+    // Ideally, these should match exactly, but this helper handles differences.
+    private static final Map<String, String> INGREDIENT_TO_PROCESS_MAP = new HashMap<>();
+    static {
+        INGREDIENT_TO_PROCESS_MAP.put("Dried white sesame", "Rapsanbau (Rapskorn), ab Feld");
+        INGREDIENT_TO_PROCESS_MAP.put("Transport (Road)", "Rapskorn Transport, ab Hof");
+        INGREDIENT_TO_PROCESS_MAP.put("Plastic pouch", "Rapskorn Lagerung, ab Lagerung");
+        // Add other generic mappings here if needed
+    }
+
     @GetMapping("/user/{userId}")
     public List<ProductInventory> getUserInventory(@PathVariable String userId) {
         return repo.findByUserId(userId);
     }
 
-    // ... (POST addProduct remains the same) ...
     @PostMapping
     public ProductInventory addProduct(@RequestBody ProductInventory product) {
         return repo.save(product);
     }
 
-    // ... (POST /bom-upload remains the same) ...
     @PostMapping(value = "/bom-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ProductInventory uploadBOM(
             @RequestParam("userId") String userId, 
@@ -79,10 +86,16 @@ public class ProductInventoryController {
         List<DPPItem> dppItems = parseBoMToDPP(file);
         ObjectMapper mapper = new ObjectMapper();
         List<Map<String, Object>> dppItemsWithLca = new ArrayList<>();
+        
         for (DPPItem item : dppItems) {
             Map<String, Object> map = new HashMap<>();
+            
+            // Map the CSV name to the OpenLCA name
+            String rawName = item.getProcess();
+            String mappedName = INGREDIENT_TO_PROCESS_MAP.getOrDefault(rawName, rawName);
+            
             map.put("component", item.getComponent());
-            map.put("process", item.getProcess());
+            map.put("process", mappedName); // Store the mapped name
             map.put("weightKg", item.getWeightKg());
             map.put("lcaValue", null);
             dppItemsWithLca.add(map);
@@ -98,7 +111,6 @@ public class ProductInventoryController {
         return repo.save(entry);
     }
 
-    // ... (GET /file remains the same) ...
     @GetMapping("/file/{filename:.+}")
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {
         try {
@@ -116,7 +128,6 @@ public class ProductInventoryController {
         }
     }
 
-    // ... (parseBoMToDPP remains the same) ...
     private List<DPPItem> parseBoMToDPP(MultipartFile file) throws Exception {
         List<DPPItem> dppItems = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
@@ -126,7 +137,7 @@ public class ProductInventoryController {
             while ((nextLine = reader.readNext()) != null) {
                 if (nextLine.length >= 3) {
                     String component = "Component " + idx;
-                    String process = nextLine[1].trim();
+                    String process = nextLine[1].trim(); 
                     try {
                         double weight = Double.parseDouble(nextLine[2]);
                         dppItems.add(new DPPItem(component, process, weight));
@@ -134,15 +145,12 @@ public class ProductInventoryController {
                     } catch (NumberFormatException e) { 
                         System.err.println("Skipping row due to invalid weight: " + String.join(",", nextLine));
                     }
-                } else {
-                    System.err.println("Skipping row due to insufficient columns: " + String.join(",", nextLine));
                 }
             }
         }
         return dppItems;
     }
 
-    // ... (PUT /dpp remains the same) ...
     @PutMapping("/dpp/{productId}")
     public ResponseEntity<ProductInventory> updateProductDpp(
             @PathVariable Long productId,
@@ -172,19 +180,16 @@ public class ProductInventoryController {
         return ResponseEntity.ok(updatedInventory);
     }
 
-    // --- POST /calculate (Full Product) remains the same ---
     @PostMapping("/calculate/{productId}")
     public ResponseEntity<ProductInventory> calculateProductLca(@PathVariable Long productId) {
         try {
             ProductInventory updatedProduct = productInventoryService.calculateLcaForProduct(productId);
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
-            System.err.println("Failed to calculate LCA for product " + productId + ": " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // --- NEW: POST /calculate-item (Single Item) ---
     @PostMapping("/calculate-item/{productId}")
     public ResponseEntity<ProductInventory> calculateItemLca(
             @PathVariable Long productId,
@@ -197,27 +202,20 @@ public class ProductInventoryController {
             ProductInventory updatedProduct = productInventoryService.calculateLcaForItem(productId, itemIndex, weight);
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
-            System.err.println("Failed to calculate item LCA for product " + productId + ": " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // ... (DELETE remains the same) ...
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
         ProductInventory product = repo.findById(productId).orElse(null);
-        
-        if (product == null) {
-            return ResponseEntity.notFound().build();
-        }
+        if (product == null) return ResponseEntity.notFound().build();
         
         if (product.getUploadedFile() != null && !product.getUploadedFile().isEmpty()) {
             try {
                 Path filePath = Paths.get("uploads").resolve(product.getUploadedFile()).normalize();
                 Files.deleteIfExists(filePath);
-            } catch (Exception e) {
-                System.err.println("Failed to delete file for product " + productId + ": " + e.getMessage());
-            }
+            } catch (Exception e) {}
         }
 
         repo.deleteById(productId);

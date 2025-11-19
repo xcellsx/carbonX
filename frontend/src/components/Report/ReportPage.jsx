@@ -3,17 +3,19 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './ReportPage.css';
 import logoPath from '../../assets/carbonx.png';
 import { 
-  ChevronDown, Plus, Search, Trash2, X, Eye, Pencil,
+  ChevronDown, Plus, Search, Trash2, X, Eye, Pencil, Download,
   LayoutDashboard, Archive, ChartColumnBig, Network, 
-  FileText, Sprout, Settings, ChevronLeft, // Sprout is already here
+  FileText, Sprout, Settings, ChevronLeft, 
   ArrowUp, ArrowDown, Minus, CheckCircle, XCircle 
 } from 'lucide-react';
 
-// --- Confirmation Modal (Unchanged) ---
+// --- NEW IMPORTS FOR PDF GENERATION ---
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+// --- Confirmation Modal ---
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
   return (
     <div className="modal-overlay active" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -21,27 +23,19 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
           <p className="medium-bold">{title}</p>
           <button className="close-modal-btn" onClick={onClose}><X /></button>
         </div>
-        <div className="normal-regular">
-          {children}
-        </div>
+        <div className="normal-regular">{children}</div>
         <div className="confirm-modal-buttons button-modal">
-          <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onClose}>
-            Cancel
-          </button>
-          <button className="default" style={{ backgroundColor: 'rgba(var(--danger), 1)', padding: '0.5rem 1rem' }} onClick={onConfirm}>
-            Delete
-          </button>
+          <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onClose}>Cancel</button>
+          <button className="default" style={{ backgroundColor: 'rgba(var(--danger), 1)', padding: '0.5rem 1rem' }} onClick={onConfirm}>Delete</button>
         </div>
       </div>
     </div>
   );
 };
 
-// --- NEW: Generate Report Modal ---
+// --- Generate Report Modal ---
 const GenerateReportModal = ({ isOpen, onClose, onNavigate }) => {
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
   return (
     <div className="modal-overlay active" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center' }}>
@@ -54,75 +48,14 @@ const GenerateReportModal = ({ isOpen, onClose, onNavigate }) => {
           <p>Generate your reports from SproutAI!</p>
         </div>
         <div className="confirm-modal-buttons button-modal" style={{ justifyContent: 'center' }}>
-          <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onNavigate}>
-            Go to Sprout AI
-          </button>
+          <button className="default" style={{ padding: '0.5rem 1rem' }} onClick={onNavigate}>Go to Sprout AI</button>
         </div>
       </div>
     </div>
   );
 };
 
-// --- UPDATED: Mock Report Data (now for Sesame) ---
-const MOCK_REPORT_DATA = {
-  productName: 'Dried White Sesame - Golden Lion',
-  boardStatement: "This report details the life cycle analysis of our 'Dried White Sesame - Golden Lion' product, focusing on its supply chain from farm to packaging. We are committed to transparency in our agricultural and transport-related emissions.",
-  frameworks: ["GRI Standards", "SASB (Food & Beverage)"],
-  performanceHighlights: [
-    { label: "Total Product Footprint", value: "1.37 kg CO2e", change: "N/A", type: "neutral", source: "Baseline Report" },
-    { label: "Farming (Sesame)", value: "1.20 kg CO2e", change: "87.6%", type: "negative", source: "Component Share" },
-    { label: "Packaging (Plastic Pouch)", value: "0.15 kg CO2e", change: "10.9%", type: "negative", source: "Component Share" },
-    { label: "Transport (Road)", value: "0.02 kg CO2e", change: "1.5%", type: "negative", source: "Component Share" },
-  ],
-  materialFactors: [
-    {
-      title: "Upstream: Agricultural Production (Sesame)",
-      commitment: "To work with suppliers to promote sustainable farming practices and reduce on-farm emissions.",
-      performanceSummary: "Farming represents the largest portion of the footprint (87.6%). The primary drivers are land use change and fertilizers. Water consumption for irrigation is also a key impact area.",
-      metrics: [
-        { label: "Global Warming (GWP 100a)", value: "1.20 kg CO2-eq", change: "per kg product" },
-        { label: "Land Use", value: "1.50 m2*a", change: "per kg product" },
-        { label: "Eutrophication", value: "0.02 kg P-eq", change: "per kg product" },
-      ]
-    },
-    {
-      title: "Upstream: Packaging (Plastic Pouch)",
-      commitment: "To source lower-impact packaging materials and explore recyclable or compostable alternatives.",
-      performanceSummary: "The plastic pouch, while lightweight, is derived from fossil fuels and contributes ~11% of the total footprint. This is our second-largest hotspot.",
-      metrics: [
-        { label: "Global Warming (GWP 100a)", value: "0.15 kg CO2-eq", change: "per kg product" },
-        { label: "Fossil Fuel Depletion", value: "2.10 MJ", change: "per kg product" },
-      ]
-    },
-    {
-      title: "Upstream: Transportation",
-      commitment: "To optimize logistics and prefer lower-emission transport modes where feasible.",
-      performanceSummary: "Transport currently represents a small fraction of the total footprint. We will continue to monitor this as shipment volumes increase.",
-      metrics: [
-        { label: "Transport (Road)", value: "0.02 kg CO2-eq", change: "per kg product" },
-      ]
-    },
-  ],
-  targetSummary: [
-    { target: "Identify low-emission fertilizer options with suppliers", status: "On Track", performance: "Currently in discussion with two major suppliers." },
-    { target: "Trial a recyclable-film alternative for plastic pouch", status: "Not Achieved", performance: "R&D postponed due to material sourcing delays." },
-    { target: "Maintain transport emissions below 3% of total footprint", status: "Achieved", performance: "Transport emissions are currently 1.5% of total." },
-  ]
-};
-
-// --- UPDATED: Mock Reports List ---
-const MOCK_REPORTS_LIST = [
-  {
-    id: 'rpt_001',
-    reportName: 'Q4 2025 - Dried Sesame Analysis',
-    description: 'LCA report for Dried White Sesame product line.',
-    date: '2025-11-15',
-    fullData: MOCK_REPORT_DATA 
-  }
-  // --- Office Chair Report Removed ---
-];
-
-// --- Highlight Card Component (Unchanged) ---
+// --- Highlight Card Component ---
 const HighlightCard = ({ item }) => {
   const isNegative = item.type === 'negative';
   const isNeutral = item.type === 'neutral';
@@ -142,15 +75,13 @@ const HighlightCard = ({ item }) => {
   );
 };
 
-// --- Material Factor Card Component (Unchanged) ---
+// --- Factor Card Component ---
 const FactorCard = ({ factor }) => {
   return (
     <div className="factor-card">
       <div className="header-group" style={{gap: '0.5rem'}}>
         <h5>{factor.title}</h5>
-        <p className="normal-regular" style={{fontStyle: 'italic', color: 'rgba(var(--greys), 1)'}}>
-          "{factor.commitment}"
-        </p>
+        <p className="normal-regular" style={{fontStyle: 'italic', color: 'rgba(var(--greys), 1)'}}>"{factor.commitment}"</p>
       </div>
       <p className="normal-regular" style={{margin: '1rem 0'}}>{factor.performanceSummary}</p>
       <div className="factor-metrics-table">
@@ -160,9 +91,7 @@ const FactorCard = ({ factor }) => {
               <tr key={idx}>
                 <td className="normal-regular">{metric.label}</td>
                 <td className="normal-bold" style={{textAlign: 'right', width: '30%'}}>{metric.value}</td>
-                <td className="small-regular" style={{color: 'rgba(var(--greys), 1)', textAlign: 'right', width: '30%'}}>
-                  {metric.change}
-                </td>
+                <td className="small-regular" style={{color: 'rgba(var(--greys), 1)', textAlign: 'right', width: '30%'}}>{metric.change}</td>
               </tr>
             ))}
           </tbody>
@@ -172,24 +101,13 @@ const FactorCard = ({ factor }) => {
   );
 };
 
-// --- Report Content (Detail View) (Unchanged) ---
+// --- Report Detail View ---
 const ReportContent = ({ data, onBack }) => {
-  if (!data) {
-    return (
-      <div className="report-container" style={{padding: '1.5rem'}}>
-        <p className="no-products-message">Loading report details...</p>
-      </div>
-    );
-  }
+  if (!data) return <div className="report-container"><p>Loading...</p></div>;
 
   return (
     <div className="report-container">
-      <button 
-        type="button" 
-        onClick={onBack} 
-        className="nav"
-        style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}
-      >
+      <button type="button" onClick={onBack} className="nav" style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}>
         <ChevronLeft size={18} />
         <span style={{fontSize: '1rem'}}>Back to all reports</span>
       </button>
@@ -199,9 +117,7 @@ const ReportContent = ({ data, onBack }) => {
           <h1>Sustainability Report</h1>
           <p className="medium-regular">Product: <span className="medium-bold">{data.productName}</span></p>
         </div>
-        <p className="normal-regular" style={{marginTop: '1.5rem', fontStyle: 'italic', maxWidth: '80ch'}}>
-          {data.boardStatement}
-        </p>
+        <p className="normal-regular" style={{marginTop: '1.5rem', fontStyle: 'italic', maxWidth: '80ch'}}>{data.boardStatement}</p>
         <div className="framework-tags">
           <span className="small-bold">Reporting Frameworks:</span>
           {data.frameworks?.map(f => <span key={f} className="framework-tag">{f}</span>)}
@@ -261,21 +177,24 @@ const ReportPage = () => {
   const [currentView, setCurrentView] = useState('list');
   const [selectedReportData, setSelectedReportData] = useState(null); 
   const [deleteConfirm, setDeleteConfirm] = useState({isOpen: false, title: '', message: '', onConfirm: () => {},});
-
-  // --- NEW: State for the new report modal ---
   const [showNewReportModal, setShowNewReportModal] = useState(false);
 
   const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
   
-  // --- (All functions below are unchanged until handleNewReport) ---
+  // --- Fetch from LocalStorage ---
   const fetchReportsList = () => {
     setLoading(true);
     try {
       setTimeout(() => {
-        setReportsList(MOCK_REPORTS_LIST);
+        const storedReports = localStorage.getItem('carbonx_reports');
+        if (storedReports) {
+            setReportsList(JSON.parse(storedReports));
+        } else {
+            setReportsList([]); 
+        }
         setError('');
         setLoading(false);
-      }, 500);
+      }, 300);
     } catch (err) {
       console.error("Failed to fetch reports:", err);
       setError('Could not load reports list.');
@@ -288,7 +207,9 @@ const ReportPage = () => {
   }, []);
   
   const performActualDeleteReport = (reportId) => {
-    setReportsList(prevList => prevList.filter(r => r.id !== reportId));
+    const updatedList = reportsList.filter(r => r.id !== reportId);
+    setReportsList(updatedList);
+    localStorage.setItem('carbonx_reports', JSON.stringify(updatedList));
   };
 
   const handleDelete = (reportId) => {
@@ -303,12 +224,7 @@ const ReportPage = () => {
   };
 
   const closeDeleteModal = () => {
-    setDeleteConfirm({
-      isOpen: false,
-      title: '',
-      message: '',
-      onConfirm: () => {},
-    });
+    setDeleteConfirm({isOpen: false, title: '', message: '', onConfirm: () => {},});
   };
 
   const handleViewReport = (report) => {
@@ -320,12 +236,82 @@ const ReportPage = () => {
     navigate('/chat');
   };
 
+  // --- NEW: REAL PDF GENERATION LOGIC ---
+  const handleDownloadReport = (report) => {
+    const doc = new jsPDF();
+    const data = report.fullData || {};
+
+    // 1. Header
+    doc.setFontSize(22);
+    doc.setTextColor(51, 71, 97); // CarbonX Primary Blue
+    doc.text("Sustainability Report", 14, 20);
+
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(`Generated by CarbonX`, 14, 28);
+    doc.text(`Date: ${report.date}`, 160, 28);
+
+    // 2. Product Info
+    doc.setDrawColor(200);
+    doc.line(14, 32, 196, 32); // Divider line
+
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text(`Product: ${data.productName || report.reportName}`, 14, 42);
+
+    // Board Statement (wrapped text)
+    doc.setFontSize(10);
+    doc.setTextColor(60);
+    const splitStatement = doc.splitTextToSize(data.boardStatement || "", 180);
+    doc.text(splitStatement, 14, 50);
+
+    let finalY = 50 + (splitStatement.length * 5);
+
+    // 3. Performance Highlights (Table)
+    doc.setFontSize(14);
+    doc.setTextColor(51, 71, 97);
+    doc.text("Performance Highlights", 14, finalY + 10);
+    
+    const highlightRows = data.performanceHighlights?.map(h => [h.label, h.value, h.change]) || [];
+    autoTable(doc, {
+      startY: finalY + 15,
+      head: [['Metric', 'Value', 'Change']],
+      body: highlightRows,
+      theme: 'striped',
+      headStyles: { fillColor: [51, 71, 97] },
+      styles: { fontSize: 10 }
+    });
+
+    finalY = doc.lastAutoTable.finalY + 10;
+
+    // 4. Target Summary (Table)
+    doc.text("Target Summary", 14, finalY + 10);
+    const targetRows = data.targetSummary?.map(t => [t.target, t.status, t.performance]) || [];
+    
+    autoTable(doc, {
+      startY: finalY + 15,
+      head: [['Target', 'Status', 'Performance']],
+      body: targetRows,
+      theme: 'grid',
+      headStyles: { fillColor: [51, 71, 97] },
+      styles: { fontSize: 10 },
+      columnStyles: { 
+        0: { cellWidth: 80 },
+        1: { cellWidth: 30, fontStyle: 'bold' },
+        2: { cellWidth: 'auto' }
+      }
+    });
+
+    // 5. Save File
+    const fileName = `CarbonX_Report_${report.reportName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    doc.save(fileName);
+  };
+
   const handleBackToList = () => {
     setCurrentView('list');
     setSelectedReportData(null);
   };
 
-  // --- UPDATED: handleNewReport ---
   const handleNewReport = () => {
     setShowNewReportModal(true);
   };
@@ -337,14 +323,8 @@ const ReportPage = () => {
   return (
     <div className="container">
       <div className="sidebar">
-        {/* --- Sidebar (Unchanged) --- */}
         <div className="sidebar-top">
-          <button 
-            type="button" 
-            onClick={() => navigate('/dashboard')}
-            className="logo-button" 
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-          >
+          <button type="button" onClick={() => navigate('/dashboard')} className="logo-button" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
             <img src={logoPath} alt="Logo" width="48" style={{ margin: 0, padding: 0, display: 'block' }}/>
           </button>
           <p className ="descriptor">Core Features</p>
@@ -379,17 +359,12 @@ const ReportPage = () => {
         </div>
       </div>
 
-      {/* --- Main Content Area --- */}
       <div className="content-section-main">
         {error && (
-          <div className="content-container-main">
-            <p className="submit-error">{error}</p>
-          </div>
+          <div className="content-container-main"><p className="submit-error">{error}</p></div>
         )}
 
         {currentView === 'list' ? (
-          
-          // --- LIST VIEW (Unchanged) ---
           <>
             <div className="content-container-main"> 
               <div className="header-group">
@@ -403,9 +378,7 @@ const ReportPage = () => {
                     <Search />
                     <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
-                  <button className = "icon" onClick={handleNewReport}>
-                    <Plus />
-                  </button>
+                  <button className = "icon" onClick={handleNewReport}><Plus /></button>
                 </div>
               </div>
               
@@ -422,9 +395,7 @@ const ReportPage = () => {
                     </thead>
                     <tbody>
                       {loading && (
-                        <tr>
-                          <td colSpan={4} className="no-products-message">Loading reports...</td>
-                        </tr>
+                        <tr><td colSpan={4} className="no-products-message">Loading reports...</td></tr>
                       )}
                       
                       {!loading && !error && reportsList.length === 0 && (
@@ -436,11 +407,7 @@ const ReportPage = () => {
                       )}
                       
                       {!loading && !error && reportsList.length > 0 && filteredReports.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="no-products-message">
-                            No reports match your search query.
-                          </td>
-                        </tr>
+                        <tr><td colSpan={4} className="no-products-message">No reports match your search query.</td></tr>
                       )}
 
                       {!loading && !error && filteredReports.map(report => {
@@ -451,27 +418,14 @@ const ReportPage = () => {
                             <td>{report.date}</td>
                             <td>
                               <div className='two-row-component-container' style={{ gap: '0.5rem' }}>
-                                <button 
-                                  className="icon" 
-                                  title="View Report" 
-                                  onClick={() => handleViewReport(report)}
-                                  style={{ backgroundColor: 'rgba(var(--info), 1)' }}
-                                >
+                                <button className="icon" title="View Report" onClick={() => handleViewReport(report)} style={{ backgroundColor: 'rgba(var(--info), 1)' }}>
                                   <Eye size={16} />
                                 </button>
-                                <button 
-                                  className="icon" 
-                                  title="Edit with Sprout AI" 
-                                  onClick={() => handleEditReport(report)}
-                                >
-                                  <Pencil size={16} />
+                                {/* --- DOWNLOAD BUTTON --- */}
+                                <button className="icon" title="Download PDF" onClick={() => handleDownloadReport(report)} style={{ backgroundColor: 'rgba(var(--success), 1)' }}>
+                                  <Download size={16} />
                                 </button>
-                                <button 
-                                  className="icon" 
-                                  title="Delete Report" 
-                                  onClick={() => handleDelete(report.id)}
-                                  style={{ backgroundColor: 'rgba(var(--danger), 1)' }}
-                                >
+                                <button className="icon" title="Delete Report" onClick={() => handleDelete(report.id)} style={{ backgroundColor: 'rgba(var(--danger), 1)' }}>
                                   <Trash2 size={16} />
                                 </button>
                               </div>
@@ -485,41 +439,20 @@ const ReportPage = () => {
               </div>
             </div>
           </>
-
         ) : (
-          
-          // --- DETAIL VIEW (Unchanged) ---
           <div className="content-container-main">
             <div className="analytics-card"> 
               <ReportContent data={selectedReportData} onBack={handleBackToList} />
             </div>
           </div>
-
         )}
       </div>
       
-      {/* --- Delete Confirmation Modal --- */}
-      <ConfirmationModal
-        isOpen={deleteConfirm.isOpen}
-        title={deleteConfirm.title}
-        onClose={closeDeleteModal}
-        onConfirm={() => {
-          deleteConfirm.onConfirm();
-          closeDeleteModal();
-        }}
-      >
+      <ConfirmationModal isOpen={deleteConfirm.isOpen} title={deleteConfirm.title} onClose={closeDeleteModal} onConfirm={() => { deleteConfirm.onConfirm(); closeDeleteModal(); }}>
         {deleteConfirm.message}
       </ConfirmationModal>
 
-      {/* --- NEW: Generate Report Modal --- */}
-      <GenerateReportModal
-        isOpen={showNewReportModal}
-        onClose={() => setShowNewReportModal(false)}
-        onNavigate={() => {
-          setShowNewReportModal(false);
-          navigate('/chat');
-        }}
-      />
+      <GenerateReportModal isOpen={showNewReportModal} onClose={() => setShowNewReportModal(false)} onNavigate={() => { setShowNewReportModal(false); navigate('/chat'); }} />
     </div>
   );
 };
