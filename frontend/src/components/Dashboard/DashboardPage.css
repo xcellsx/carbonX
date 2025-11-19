@@ -82,7 +82,7 @@ color: rgba(var(--success), 1);
   flex-direction: row;
   gap: 0.5rem;
   justify-content: start;
-  align-items: center;
+  /* align-items: center; */
 }
 
 .metrics-content {

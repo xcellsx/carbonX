@@ -4,13 +4,18 @@ import java.util.List;
 import java.util.Map;
 
 public class DashboardSummary {
+    // --- 1. Total Number of Products (From Backend) ---
     private int productCount;
+    
+    // --- 2. Corresponding Metrics (From Company Info) ---
     private List<String> activeMetrics;
-    private double totalEmissions;
-    private double transportEmissions; // New field for Fleet Management
-    private List<Map<String, Object>> topContributors;
+    
+    // --- 3. Calculated Data (For the Charts) ---
+    private double totalEmissions;      
+    private double transportEmissions;  
+    private List<Map<String, Object>> topContributors; 
 
-    // Updated Constructor
+    // Constructor
     public DashboardSummary(int productCount, List<String> activeMetrics, double totalEmissions, double transportEmissions, List<Map<String, Object>> topContributors) {
         this.productCount = productCount;
         this.activeMetrics = activeMetrics;

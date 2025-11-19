@@ -16,7 +16,7 @@ import com.carbonx.demo.model.CompanyInfo;
 import com.carbonx.demo.model.ProductInventory;
 import com.carbonx.demo.repository.CompanyInfoRepository;
 import com.carbonx.demo.repository.ProductInventoryRepository;
-import com.fasterxml.jackson.databind.JsonNode; // You might need to import Jackson
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -34,26 +34,30 @@ public class DashboardController {
     @GetMapping("/summary/{userId}")
     public DashboardSummary getDashboardSummary(@PathVariable String userId) {
         
-        // 1. Get Active Metrics (User Preferences)
+        // --- REQ 2: Display Corresponding Metrics ---
+        // Fetch the "activeMetrics" list from the CompanyInfo table in the DB.
+        // This ensures the dashboard layout matches the user's specific industry.
         List<String> activeMetrics = companyInfoRepository.findByUserId(userId)
                 .map(CompanyInfo::getActiveMetrics)
                 .orElse(new ArrayList<>());
 
-        // 2. Get Inventory
+        // --- REQ 1: Find Total Number of Products ---
+        // Fetch the inventory list directly from the DB.
         List<ProductInventory> products = productInventoryRepository.findByUserId(userId);
         int productCount = products.size();
 
-        // 3. Calculate Totals (GHG and Transport)
+        // --- CALCULATION LOGIC ---
         double totalLca = 0.0;
         double totalTransportLca = 0.0;
 
         for (ProductInventory p : products) {
-            // Total GHG
+            // 1. Sum Total GHG (Stored in the column 'lcaResult')
             if (p.getLcaResult() != null) {
                 totalLca += p.getLcaResult();
             }
 
-            // Transport GHG (Parse the JSON dppData)
+            // 2. Sum Transport GHG (Deep dive into the stored JSON)
+            // We look for items flagged with "isTransport": true inside the dppData JSON.
             if (p.getDppData() != null && !p.getDppData().isEmpty()) {
                 try {
                     JsonNode root = objectMapper.readTree(p.getDppData());
@@ -67,15 +71,16 @@ public class DashboardController {
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("Error parsing DPP data for product " + p.getProductId() + ": " + e.getMessage());
+                    System.err.println("Dashboard Calc Error: Failed to parse DPP for product " + p.getProductId());
                 }
             }
         }
 
-        // 4. Calculate Top Contributors (Top 5 products by LCA)
+        // --- EXTRA: Top Contributors ---
+        // Sort products by impact to show "Top Polluters"
         List<Map<String, Object>> topContributors = products.stream()
             .filter(p -> p.getLcaResult() != null && p.getLcaResult() > 0)
-            .sorted((p1, p2) -> Double.compare(p2.getLcaResult(), p1.getLcaResult()))
+            .sorted((p1, p2) -> Double.compare(p2.getLcaResult(), p1.getLcaResult())) // Descending
             .limit(5)
             .map(p -> Map.of(
                 "name", (Object) p.getProductName(), 
@@ -83,7 +88,7 @@ public class DashboardController {
             ))
             .collect(Collectors.toList());
 
-        // 5. Return DTO
+        // Return the fully populated object
         return new DashboardSummary(productCount, activeMetrics, totalLca, totalTransportLca, topContributors);
     }
 }
