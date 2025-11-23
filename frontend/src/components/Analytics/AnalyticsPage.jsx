@@ -10,18 +10,19 @@ import {
 
 const API_BASE = 'http://localhost:8080/api';
 
-// --- Mock Data for Pro Analysis Card ---
+// --- UPDATED: Data based on your Inventory Calculation Image ---
 const MOCK_PRODUCT_ANALYSIS = {
   topContributors: [
-    { name: 'Component 1 (Steel)', amount: '1500 kgCO2e' },
-    { name: 'Component 3 (Aluminum)', amount: '920 kgCO2e' },
-    { name: 'Component 2 (PLA)', amount: '180 kgCO2e' },
-    { name: 'Transport', amount: '50 kgCO2e' },
-    { name: 'End-of-Life', amount: '25 kgCO2e' },
+    { name: 'Raw White Sesame Seeds', amount: '0.850 kgCO2e' },
+    { name: 'Plastic Packaging (LDPE)', amount: '0.055 kgCO2e' },
+    { name: 'Cardboard Box', amount: '0.032 kgCO2e' },
+    { name: 'Transport (Truck)', amount: '0.015 kgCO2e' },
+    { name: 'Electricity (Processing)', amount: '0.005 kgCO2e' },
   ],
   suggestions: [
-    'Investigate sourcing lower-carbon steel for Component 1.',
-    'Explore recycled aluminum options for Component 3.'
+    'Source organic sesame seeds to reduce fertilizer-related emissions.',
+    'Switch to recycled or biodegradable materials for plastic packaging.',
+    'Optimize truck transport routes to lower fuel consumption.'
   ]
 };
 
@@ -61,7 +62,7 @@ const AnalyticsPage = () => {
   
   const [products, setProducts] = useState([]);
   
-  // --- UPDATED: Initialize state from sessionStorage ---
+  // --- Initialize state from sessionStorage ---
   const [selectedProductId, setSelectedProductId] = useState(
     sessionStorage.getItem('analytics_selectedProductId') || ''
   );
@@ -69,8 +70,6 @@ const AnalyticsPage = () => {
     parseInt(sessionStorage.getItem('analytics_selectedComponentIndex') || '0', 10)
   );
 
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  
   // Combined data state
   const [analyticsData, setAnalyticsData] = useState({ inputs: [], outputs: [], impacts: [] });
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -150,11 +149,9 @@ const AnalyticsPage = () => {
 
     const weight = selectedComponent.weightKg || 0;
 
-    console.log("Resolved Identifier:", identifier);
-
     if (!identifier) {
       console.error("ERROR: Identifier is missing for component:", selectedComponent);
-      setError(`Selected component (Index: ${componentIndex}) has no process defined. Data: ${JSON.stringify(selectedComponent)}`);
+      setError(`Selected component (Index: ${componentIndex}) has no process defined.`);
       setLoadingAnalytics(false);
       return;
     }
@@ -236,17 +233,14 @@ const AnalyticsPage = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // --- UPDATED: Effect to load stored product when 'products' list arrives ---
+  // --- Effect to load stored product when 'products' list arrives ---
   useEffect(() => {
     if (products.length > 0 && selectedProductId) {
-      // Check if the stored product ID actually exists in the fetched list
       const productExists = products.find(p => p.productId == selectedProductId);
       
       if (productExists) {
-        // It exists! Load the data for it.
         fetchAnalyticsDataForProduct(selectedProductId, selectedComponentIndex, products);
       } else {
-        // Product was deleted or invalid; clear the storage
         setSelectedProductId('');
         sessionStorage.removeItem('analytics_selectedProductId');
         setSelectedComponentIndex(0);
@@ -254,17 +248,17 @@ const AnalyticsPage = () => {
         setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
       }
     }
-  }, [products]); // Only runs when 'products' updates (i.e., after fetch completes)
+  }, [products]); 
 
 
-  // --- UPDATED: Handle Product Selection ---
+  // --- Handle Product Selection ---
   const handleProductChange = (e) => {
     const newProductId = e.target.value;
     setSelectedProductId(newProductId);
-    sessionStorage.setItem('analytics_selectedProductId', newProductId); // Save to storage
+    sessionStorage.setItem('analytics_selectedProductId', newProductId); 
 
     setSelectedComponentIndex(0); 
-    sessionStorage.setItem('analytics_selectedComponentIndex', '0'); // Reset and save index
+    sessionStorage.setItem('analytics_selectedComponentIndex', '0'); 
     
     if (newProductId) {
       const allProducts = products; 
@@ -288,10 +282,10 @@ const AnalyticsPage = () => {
     }
   };
 
-  // --- UPDATED: Handle Component Tab Selection ---
+  // --- Handle Component Tab Selection ---
   const handleComponentSelect = (index) => {
     setSelectedComponentIndex(index);
-    sessionStorage.setItem('analytics_selectedComponentIndex', index); // Save to storage
+    sessionStorage.setItem('analytics_selectedComponentIndex', index); 
     fetchAnalyticsDataForProduct(selectedProductId, index, products);
   };
 
@@ -306,9 +300,7 @@ const AnalyticsPage = () => {
     }
   }
   
-  const isLoading = loadingProfile;
-
-  // --- RENDER TABLE DATA (WITH INLINE STYLES) ---
+  // --- RENDER TABLE DATA ---
   const renderTableData = () => {
     let data;
     let headers;
@@ -319,7 +311,7 @@ const AnalyticsPage = () => {
     } else if (activeAnalysisTab === 'outputs') {
       data = analyticsData.outputs;
       headers = ['Output', 'Category', 'Amount', 'Unit'];
-    } else { // impacts
+    } else { 
       data = analyticsData.impacts;
       headers = ['Impact Category', 'Amount', 'Unit'];
     }
@@ -330,13 +322,11 @@ const AnalyticsPage = () => {
           <thead>
             <tr>
               {headers.map((h, i) => {
-                 // Inline styles for headers to ensure correct width
                  let style = { textAlign: 'left', padding: '12px', backgroundColor: 'rgba(51, 71, 97, 1)', color: 'white' };
-                 
-                 if (i === 0) style = { ...style, width: '40%' }; // First column (Name) - 40%
-                 else if (h === 'Unit') style = { ...style, width: '15%' }; // Unit - 15%
-                 else if (h === 'Amount') style = { ...style, width: '20%', textAlign: 'right', paddingRight: '1.5rem' }; // Amount - 20%
-                 else if (h === 'Category') style = { ...style, width: '25%' }; // Category - 25%
+                 if (i === 0) style = { ...style, width: '40%' }; 
+                 else if (h === 'Unit') style = { ...style, width: '15%' }; 
+                 else if (h === 'Amount') style = { ...style, width: '20%', textAlign: 'right', paddingRight: '1.5rem' };
+                 else if (h === 'Category') style = { ...style, width: '25%' }; 
                  
                  return <th key={h} style={style}>{h}</th>;
               })}
@@ -346,50 +336,18 @@ const AnalyticsPage = () => {
             {data.length > 0 ? (
               data.map((item, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-                  {/* 1. Flow Name (Wraps) */}
-                  <td style={{ 
-                      padding: '12px', 
-                      width: '40%', 
-                      whiteSpace: 'normal', 
-                      wordWrap: 'break-word', 
-                      overflowWrap: 'break-word', 
-                      verticalAlign: 'top' 
-                  }}>
+                  <td style={{ padding: '12px', width: '40%', whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word', verticalAlign: 'top' }}>
                     {item.flowName || item.category}
                   </td>
-                  
-                  {/* 2. Category (Only for Inputs/Outputs) */}
                   {activeAnalysisTab !== 'impacts' && (
-                    <td style={{ 
-                        padding: '12px', 
-                        width: '25%', 
-                        whiteSpace: 'nowrap', 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis', 
-                        verticalAlign: 'top' 
-                    }}>
+                    <td style={{ padding: '12px', width: '25%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', verticalAlign: 'top' }}>
                       {item.category}
                     </td>
                   )}
-                  
-                  {/* 3. Amount */}
-                  <td style={{ 
-                      padding: '12px', 
-                      width: '20%', 
-                      textAlign: 'right', 
-                      paddingRight: '1.5rem', 
-                      verticalAlign: 'top' 
-                  }}>
+                  <td style={{ padding: '12px', width: '20%', textAlign: 'right', paddingRight: '1.5rem', verticalAlign: 'top' }}>
                     {item.amount}
                   </td>
-
-                  {/* 4. Unit */}
-                  <td style={{ 
-                      padding: '12px', 
-                      width: '15%', 
-                      textAlign: 'left', 
-                      verticalAlign: 'top' 
-                  }}>
+                  <td style={{ padding: '12px', width: '15%', textAlign: 'left', verticalAlign: 'top' }}>
                     {item.unit}
                   </td>
                 </tr>
@@ -410,7 +368,6 @@ const AnalyticsPage = () => {
   return (
     <div className="container">
       <div className="sidebar">
-        {/* ... Sidebar (Unchanged) ... */}
         <div className="sidebar-top">
           <button 
             type="button" 
@@ -502,45 +459,49 @@ const AnalyticsPage = () => {
           
           {error && <div className="submit-error" style={{ marginBottom: '15px'}}>{error}</div>}
 
-          {/* --- Product Analysis Section (UI Retained, Mock Data) --- */}
-          <div className = "sub-header">
-            <div className = "header-col">
-              <p className='descriptor-medium'>Product Analysis</p>
-            </div>
-          </div>
-          
-          <div className="product-analysis-card">
-            {!isProUser && (
-              <div className="blur-overlay" onClick={() => setShowProModal(true)}>
-                <Lock />
-                <p className="medium-bold">Unlock CarbonX Pro</p>
-                <p className="normal-regular">to see your product-level analysis.</p>
+          {/* --- Product Analysis Section (Only visible when product selected) --- */}
+          {selectedProductId && (
+            <>
+              <div className = "sub-header">
+                <div className = "header-col">
+                  <p className='descriptor-medium'>Product Analysis</p>
+                </div>
               </div>
-            )}
-            <div className={`product-analysis-content ${!isProUser ? 'blurred' : ''}`}>
-              <div className="analysis-column">
-                <p className="medium-bold">Top 5 Highest Contributors</p>
-                <ul className="analysis-list">
-                  {MOCK_PRODUCT_ANALYSIS.topContributors.map((item, i) => (
-                    <li key={i}>
-                      <span>{item.name}</span>
-                      <span>{item.amount}</span>
-                    </li>
-                  ))}
-                </ul>
+              
+              <div className="product-analysis-card">
+                {!isProUser && (
+                  <div className="blur-overlay" onClick={() => setShowProModal(true)}>
+                    <Lock />
+                    <p className="medium-bold">Unlock CarbonX Pro</p>
+                    <p className="normal-regular">to see your product-level analysis.</p>
+                  </div>
+                )}
+                <div className={`product-analysis-content ${!isProUser ? 'blurred' : ''}`}>
+                  <div className="analysis-column">
+                    <p className="medium-bold">Top 5 Highest Contributors</p>
+                    <ul className="analysis-list">
+                      {MOCK_PRODUCT_ANALYSIS.topContributors.map((item, i) => (
+                        <li key={i}>
+                          <span>{item.name}</span>
+                          <span>{item.amount}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="analysis-column">
+                    <p className="medium-bold">Suggestions</p>
+                    <ul className="analysis-list simple">
+                      {MOCK_PRODUCT_ANALYSIS.suggestions.map((item, i) => (
+                        <li key={i}><span>{item}</span></li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className="analysis-column">
-                <p className="medium-bold">Suggestions</p>
-                <ul className="analysis-list simple">
-                  {MOCK_PRODUCT_ANALYSIS.suggestions.map((item, i) => (
-                    <li key={i}><span>{item}</span></li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
 
-          {/* --- Component Analysis Section (Real Data) --- */}
+          {/* --- Component Analysis Section --- */}
           <div className = "sub-header" style={{marginTop: '2rem'}}>
             <div className = "header-col">
               <p className='descriptor-medium'>Component Analysis</p>
