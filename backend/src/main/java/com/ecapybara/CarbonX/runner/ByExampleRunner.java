@@ -5,7 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.Example;
 
-import com.ecapybara.CarbonX.entity.Character;
+import com.ecapybara.CarbonX.model.Character;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
 
 import java.util.Optional;

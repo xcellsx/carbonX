@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.CarbonX.entity.User;
+import com.ecapybara.CarbonX.model.User;
 
 public interface UserRepository extends ArangoRepository<User, String> {
     

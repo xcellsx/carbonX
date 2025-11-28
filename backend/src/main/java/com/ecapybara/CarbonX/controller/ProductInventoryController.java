@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecapybara.CarbonX.entity.DigitalProductPassport;
-import com.ecapybara.CarbonX.entity.Product;
+import com.ecapybara.CarbonX.model.DigitalProductPassport;
+import com.ecapybara.CarbonX.model.Product;
 import com.ecapybara.CarbonX.repository.ProductInventoryRepository;
 
 import com.fasterxml.jackson.core.type.TypeReference;

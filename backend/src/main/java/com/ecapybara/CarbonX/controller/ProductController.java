@@ -2,12 +2,11 @@ package com.ecapybara.CarbonX.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.CarbonX.entity.Product;
+import com.ecapybara.CarbonX.model.Product;
 import com.ecapybara.CarbonX.repository.ProductRepository;
 
 @RestController

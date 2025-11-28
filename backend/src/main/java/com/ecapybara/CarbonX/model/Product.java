@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.entity;
+package com.ecapybara.CarbonX.model;
 
 import java.util.Properties;
 

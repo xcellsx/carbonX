@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.ecapybara.CarbonX.dto.UserDTO;
-import com.ecapybara.CarbonX.entity.User;
+import com.ecapybara.CarbonX.model.User;
 import com.ecapybara.CarbonX.repository.UserRepository;
 
 import java.time.LocalDateTime;

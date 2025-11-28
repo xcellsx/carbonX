@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.ecapybara.CarbonX.entity.Character;
+import com.ecapybara.CarbonX.model.Character;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
 
 // To find the complete list of part types for derived queries, refer to the link below:

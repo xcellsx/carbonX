@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.ecapybara.CarbonX.entity.Character;
-import com.ecapybara.CarbonX.entity.ChildOf;
+import com.ecapybara.CarbonX.model.Character;
+import com.ecapybara.CarbonX.model.ChildOf;
 import com.ecapybara.CarbonX.repository.CharacterRepository;
 import com.ecapybara.CarbonX.repository.ChildOfRepository;
 
