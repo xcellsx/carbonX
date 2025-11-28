@@ -1,13 +1,13 @@
-package com.ecapybara.CarbonX.controller;
+package com.ecapybara.carbonx.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.ecapybara.CarbonX.dto.UserDTO;
-import com.ecapybara.CarbonX.model.User;
-import com.ecapybara.CarbonX.repository.UserRepository;
+import com.ecapybara.carbonx.dto.UserDTO;
+import com.ecapybara.carbonx.model.User;
+import com.ecapybara.carbonx.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

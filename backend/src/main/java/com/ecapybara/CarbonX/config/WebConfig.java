@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.config;
+package com.ecapybara.carbonx.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

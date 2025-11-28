@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.service.dev.logger;
+package com.ecapybara.carbonx.service.dev.logger;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;

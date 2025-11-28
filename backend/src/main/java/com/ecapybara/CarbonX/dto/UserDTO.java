@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.dto;
+package com.ecapybara.carbonx.dto;
 
 import java.time.LocalDateTime;
 

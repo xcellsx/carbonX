@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.controller;
+package com.ecapybara.carbonx.controller;
 
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -27,10 +27,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecapybara.CarbonX.model.DigitalProductPassport;
-import com.ecapybara.CarbonX.model.Product;
-import com.ecapybara.CarbonX.repository.ProductInventoryRepository;
-
+import com.ecapybara.carbonx.model.DigitalProductPassport;
+import com.ecapybara.carbonx.model.Product;
+import com.ecapybara.carbonx.repository.ProductInventoryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;

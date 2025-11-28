@@ -1,10 +1,11 @@
-package com.ecapybara.CarbonX.repository;
+package com.ecapybara.carbonx.repository;
 
 import java.util.List;
 import java.util.Optional;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.CarbonX.model.User;
+
+import com.ecapybara.carbonx.model.User;
 
 public interface UserRepository extends ArangoRepository<User, String> {
     
