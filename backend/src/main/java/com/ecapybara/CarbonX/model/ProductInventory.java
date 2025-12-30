@@ -19,8 +19,6 @@ public class ProductInventory {
     // Increased length to handle complex DPP JSON data
     @Column(length = 4096) 
     private String dppData; 
-    
-    private Double lcaResult;
 
     @ElementCollection
     @CollectionTable(name = "product_metadata", joinColumns = @JoinColumn(name = "product_id"))

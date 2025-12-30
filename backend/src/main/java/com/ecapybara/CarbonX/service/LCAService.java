@@ -102,7 +102,8 @@ public class LCAService {
     // =================================================================
     // 4. SHARED HELPERS
     // =================================================================
-
+     
+    // to check whether product has process ID
     public String resolveProcessIdentifier(String identifier) {
         if (identifier == null) return null;
         if (identifier.matches(UUID_REGEX)) return identifier;

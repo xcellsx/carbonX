@@ -1,18 +1,16 @@
 package com.ecapybara.carbonx.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.arangodb.springframework.repository.ArangoRepository;
 import com.ecapybara.carbonx.model.Product;
 
 public interface ProductRepository extends ArangoRepository<Product, String>{
   
-  List<Product> findByName(String name);
+  Optional<Product> findByName(String name);
 
-  public List<Product> findAll() {
-    
-    // Hey there! I'm not sure if the findAll() method is implemented or not in the parent class 'ArangoRepository'
-    new List<Product> testList;
-    return testList;
-  }
+  List<Product> findByNameContainingIgnoreCase(String name); //check whether ArangoDB supports this search format criteria by default
+
+  public List<Product> findAll();
 }

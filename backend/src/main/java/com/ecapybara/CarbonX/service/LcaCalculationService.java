@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.ecapybara.carbonx.model.Product;
 import com.ecapybara.carbonx.repository.ProductRepository;
+import com.ecapybara.carbonx.service.LCAService;
 
 @Service
 public class LcaCalculationService {
@@ -80,10 +81,10 @@ public class LcaCalculationService {
             return item; 
         }
 
-        String processId = product.get().getOpenLcaProcessId();
+        String processId = process.getId();
 
         // 3. Request Calculation from OpenLCA Service
-        double calculatedImpact = lcaService.calculateImpact(processId, amountToCalculate);
+        double calculatedImpact = LCAService.calculateImpact(processId, amountToCalculate);
 
         // 4. Update item with results
         item.put("lcaValue", calculatedImpact);

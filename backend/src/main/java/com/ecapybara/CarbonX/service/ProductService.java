@@ -36,7 +36,7 @@ public class ProductService {
       existingProduct.ifPresent(p -> {
           p.setName(updatedProduct.getName());
           // --- MODIFICATION ---
-          p.setLocation(updatedProduct.getLocation());
+          // p.setLocation(updatedProduct.getLocation());
           // --- REMOVED FIELDS ---
           // p.setDescription(updatedProduct.getDescription());
           // p.setUnit(updatedProduct.getUnit());
