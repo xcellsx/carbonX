@@ -1,46 +1,45 @@
 package com.ecapybara.carbonx.model;
 
-import java.util.List;
+import java.util.Collection;
 
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceCreator;
 
-import com.arangodb.springframework.annotation.ArangoId;
+import com.arangodb.springframework.annotation.Document;
+import com.arangodb.springframework.annotation.PersistentIndex;
+import com.arangodb.springframework.annotation.Relations;
 
-public class Process {
-  @Id // db document field: _key
-  private String id;
+@Document("processes")
+@PersistentIndex(fields = {"id","key","name", "type", "serviceProvider"})
+public class Process extends Node {
 
-  @ArangoId // db document field: _id
-  private String arangoId;
+  private String serviceProvider;
 
-  private String name;
-  private String processType;
-  private List<Product> inputs;
-  private List<Product> outputs;
-
+  @Relations(edges = Input.class, lazy = true)
+  private Collection<Product> inputs;
 
   // constructors
-  public Process(String name) {
-    this.name = name;
+  public Process() {
+    super();
   }
 
-  public Process(String name, String processType) {
-    this.name = name;
-    this.processType = processType;
+  public Process(String name) {
+    super();
+    this.setName(name);
+  }
+
+  @PersistenceCreator
+  public Process(String type, String name) {
+    super(type, name);
   }
 
   // setters and getters
-  public String getId() {return id;}
-  public void setId(String id) {this.id = id;}
-  public String getArangoId() {return arangoId;}
-  public void setArangoId(String arangoId) {this.arangoId = arangoId;}
-  public String getName() {return name;}
-  public void setName(String name) {this.name = name;}
-  public String getProcessType() {return processType;}
-  public void setProcessType(String processType) {this.processType = processType;}
-  public List<Product> getInputs() {return inputs;}
-  public void setInputs(List<Product> inputs) {this.inputs = inputs;}
-  public List<Product> getOutputs() {return outputs;}
-  public void setOutputs(List<Product> outputs) {this.outputs = outputs;}
-  
+  public String getServiceProvider() { return serviceProvider; }
+  public void setServiceProvider(String serviceProvider) { this.serviceProvider = serviceProvider; }
+  public Collection<Product> getInputs() { return inputs; }
+  public void setInputs(Collection<Product> inputs) { this.inputs = inputs; }
+
+  @Override
+  public String toString() {
+    return "Process [id= " + this.getId() + ", name= " + this.getName() + ", processType= " + this.getType() + "]";
+  }
 }

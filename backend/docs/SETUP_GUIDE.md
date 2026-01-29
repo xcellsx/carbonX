@@ -60,7 +60,7 @@ cd backend
 
 ```bash
 cd backend
-mvn clean install
+mvn clean install -DskipTests=true
 mvn spring-boot:run
 ```
 

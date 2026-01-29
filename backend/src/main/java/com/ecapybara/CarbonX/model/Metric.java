@@ -11,26 +11,17 @@ public class Metric {
   @ArangoId // db document field: _id
   private String arangoId;
 
-  private String name;
   private String unit;
-  private String unitType;
-  private String value;
+  private Double value;
 
   // constructors
-  public Metric(String name) {
-    this.name = name;
-  }
-  public Metric(String name, String unit, String unitType) {
-    this.name = name;
-    this.unit = unit;
-    this.unitType = unitType;
+  public Metric() {
+    super();
   }
 
-  public Metric(String name, String unit, String unitType, String value) {
+  public Metric(Double value, String unit) {
     super();
-    this.name = name;
     this.unit = unit;
-    this.unitType = unitType;
     this.value = value;
   }
 
@@ -51,14 +42,6 @@ public class Metric {
     this.arangoId = arangoId;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public String getUnit() {
     return unit;
   }
@@ -67,17 +50,11 @@ public class Metric {
     this.unit = unit;
   }
 
-  public String getValue() {
+  public Double getValue() {
     return value;
   }
 
-  public void setValue(String value) {
+  public void setValue(Double value) {
     this.value = value;
-  }
-  public String getUnitType() {
-    return unitType;
-  }
-  public void setUnitType(String unitType) {
-    this.unitType = unitType;
   }
 }

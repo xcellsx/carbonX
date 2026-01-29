@@ -1,83 +1,72 @@
 package com.ecapybara.carbonx.model;
 
+import java.util.Map;
+
 import org.springframework.data.annotation.Id;
 
 import com.arangodb.springframework.annotation.ArangoId;
+import com.arangodb.springframework.annotation.Document;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
+@Document("characterizationFactors")
 public class CharacterizationFactor{
 
-  @Id // db document field: _key
+  @ArangoId // db document field: _id
+  @JsonAlias({"_id"})
   private String id;
 
-  @ArangoId // db document field: _id
-  private String arangoId;
+  @Id // db document field: _key
+  @JsonAlias({"_key"})
+  private String key;
 
-  private String name;
-  private String unit;
-  private String unitType;
-  private String value;
+  private String productName; // e.g "CO2"
+  private ImpactCategory impactCategory; // e.g GlobalWarmingPotential
+  private Map<String,Double> conversions; //eg. {"kg": 2.54, "litres": 3.22}
 
   // constructors
-  public CharacterizationFactor(String name) {
-    this.name = name;
+  public CharacterizationFactor() {
+    super();
   }
-  public CharacterizationFactor(String name, String unit, String unitType) {
-    this.name = name;
-    this.unit = unit;
-    this.unitType = unitType;
+  public CharacterizationFactor(String productName, ImpactCategory impactCategory) {
+    super();
+    this.productName = productName;
+    this.impactCategory = impactCategory;
   }
-
-  public CharacterizationFactor(String name, String unit, String unitType, String value) {
-    this.name = name;
-    this.unit = unit;
-    this.unitType = unitType;
-    this.value = value;
+  public CharacterizationFactor(String productName, ImpactCategory impactCategory, Map<String,Double> conversions) {
+    this.productName = productName;    
+    this.impactCategory = impactCategory;
+    this.conversions = conversions;
   }
 
   // setters and getters
   public String getId() {
     return id;
   }
-
   public void setId(String id) {
     this.id = id;
   }
-
-  public String getArangoId() {
-    return arangoId;
+  public String getKey() {
+    return key;
   }
-
-  public void setArangoId(String arangoId) {
-    this.arangoId = arangoId;
+  public void setKey(String key) {
+    this.key = key;
   }
-
-  public String getName() {
-    return name;
+  public String getProductName() {
+    return productName;
   }
-
-  public void setName(String name) {
-    this.name = name;
+  public void setProductName(String productName) {
+    this.productName = productName;
   }
-
-  public String getUnit() {
-    return unit;
+  public ImpactCategory getImpactCategory() {
+    return impactCategory;
   }
-
-  public void setUnit(String unit) {
-    this.unit = unit;
+  public void setImpactCategory(ImpactCategory impactCategory) {
+    this.impactCategory = impactCategory;
   }
-
-  public String getValue() {
-    return value;
+  public Map<String, Double> getConversions() {
+    return conversions;
   }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-  public String getUnitType() {
-    return unitType;
-  }
-  public void setUnitType(String unitType) {
-    this.unitType = unitType;
+  public void setConversions(Map<String, Double> conversions) {
+    this.conversions = conversions;
   }
 }

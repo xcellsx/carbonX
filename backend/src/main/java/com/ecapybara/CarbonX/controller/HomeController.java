@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
 
+// The home controller's purpose is to serve the appropriate HTML and CSS files to the client
 @Controller
 public class HomeController {
 

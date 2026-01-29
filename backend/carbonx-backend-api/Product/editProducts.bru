@@ -1,0 +1,246 @@
+meta {
+  name: editProducts
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{host}}/api/products
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "arangoId": "products/102758",
+      "id": "102758",
+      "name": "spaghetti",
+      "productNature": "dish",
+      "productOrigin": null,
+      "functionalProperties": null,
+      "procedure": [
+        {
+          "id": "102791",
+          "arangoId": "processes/102791",
+          "name": "combining",
+          "processType": "cooking",
+          "functionalProperties": null,
+          "nonFunctionalProperties": null,
+          "inputs": [
+            {
+              "arangoId": "products/102761",
+              "id": "102761",
+              "name": "tomato sauce",
+              "productNature": "ingredient",
+              "productOrigin": null,
+              "functionalProperties": null,
+              "procedure": [
+                {
+                  "id": "102790",
+                  "arangoId": "processes/102790",
+                  "name": "simmering",
+                  "processType": "cooking",
+                  "functionalProperties": null,
+                  "nonFunctionalProperties": null,
+                  "inputs": [
+                    {
+                      "arangoId": "products/102771",
+                      "id": "102771",
+                      "name": "clean water",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102769",
+                      "id": "102769",
+                      "name": "tomato paste",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102763",
+                      "id": "102763",
+                      "name": "salt",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102765",
+                      "id": "102765",
+                      "name": "sugar",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102764",
+                      "id": "102764",
+                      "name": "pepper",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102766",
+                      "id": "102766",
+                      "name": "garlic",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102767",
+                      "id": "102767",
+                      "name": "onions",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    }
+                  ]
+                }
+              ],
+              "userId": null,
+              "uploadedFile": null,
+              "dpp": null
+            },
+            {
+              "arangoId": "products/102760",
+              "id": "102760",
+              "name": "pasta",
+              "productNature": "ingredient",
+              "productOrigin": null,
+              "functionalProperties": null,
+              "procedure": [
+                {
+                  "id": "102789",
+                  "arangoId": "processes/102789",
+                  "name": "boiling",
+                  "processType": "cooking",
+                  "functionalProperties": null,
+                  "nonFunctionalProperties": null,
+                  "inputs": [
+                    {
+                      "arangoId": "products/102759",
+                      "id": "102759",
+                      "name": "raw pasta",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    },
+                    {
+                      "arangoId": "products/102771",
+                      "id": "102771",
+                      "name": "clean water",
+                      "productNature": "ingredient",
+                      "productOrigin": null,
+                      "functionalProperties": null,
+                      "procedure": [],
+                      "userId": null,
+                      "uploadedFile": null,
+                      "dpp": null
+                    }
+                  ]
+                }
+              ],
+              "userId": null,
+              "uploadedFile": null,
+              "dpp": null
+            },
+            {
+              "arangoId": "products/102762",
+              "id": "102762",
+              "name": "hot dogs",
+              "productNature": "ingredient",
+              "productOrigin": null,
+              "functionalProperties": null,
+              "procedure": [],
+              "userId": null,
+              "uploadedFile": null,
+              "dpp": null
+            },
+            {
+              "arangoId": "products/102768",
+              "id": "102768",
+              "name": "cheese",
+              "productNature": "ingredient",
+              "productOrigin": null,
+              "functionalProperties": null,
+              "procedure": [],
+              "userId": null,
+              "uploadedFile": null,
+              "dpp": null
+            },
+            {
+              "arangoId": "products/102770",
+              "id": "102770",
+              "name": "olive oil",
+              "productNature": "ingredient",
+              "productOrigin": null,
+              "functionalProperties": null,
+              "procedure": [],
+              "userId": null,
+              "uploadedFile": null,
+              "dpp": null
+            }
+          ]
+        }
+      ],
+      "userId": "testCompany",
+      "uploadedFile": null,
+      "dpp": null
+    },
+    {
+      "arangoId": "products/102771",
+      "id": "102771",
+      "name": "clean water",
+      "productNature": "ingredient",
+      "productOrigin": null,
+      "functionalProperties": null,
+      "procedure": [],
+      "userId": "testCompany",
+      "uploadedFile": null,
+      "dpp": null
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
