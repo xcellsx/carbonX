@@ -1,0 +1,67 @@
+meta {
+  name: createInputs
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/inputs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [  
+    {
+      "product": {
+        "arangoId": "products/94630",
+        "id": "94630",
+        "name": "lemon juice",
+        "productNature": "ingredient",
+        "productOrigin": null,
+        "functionalProperties": null,
+        "procedure": [],
+        "userId": null,
+        "uploadedFile": null,
+        "dpp": null
+      },
+      "process": {
+        "id": "94662",
+        "arangoId": "processes/94662",
+        "name": "combining",
+        "processType": "mixing",
+        "functionalProperties": null,
+        "nonFunctionalProperties": null,
+        "inputs": []
+      }
+    },
+    {
+      "product": {
+        "arangoId": "products/94412",
+        "id": "94412",
+        "name": "clean water",
+        "productNature": "ingredient",
+        "productOrigin": null,
+        "functionalProperties": null,
+        "procedure": [],
+        "userId": null,
+        "uploadedFile": null,
+        "dpp": null
+      },
+      "process": {
+        "id": "94662",
+        "arangoId": "processes/94662",
+        "name": "combining",
+        "processType": "mixing",
+        "functionalProperties": null,
+        "nonFunctionalProperties": null,
+        "inputs": []
+      }
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,45 @@
+meta {
+  name: createOutputs
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/outputs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "process": {
+        "id": "94662",
+        "arangoId": "processes/94662",
+        "name": "combining",
+        "processType": "mixing",
+        "functionalProperties": null,
+        "nonFunctionalProperties": null,
+        "inputs": []
+      },
+      "product": {
+        "arangoId": "products/94636",
+        "id": "94636",
+        "name": "lemonade",
+        "productNature": "drink",
+        "productOrigin": null,
+        "functionalProperties": null,
+        "procedure": [],
+        "userId": null,
+        "uploadedFile": null,
+        "dpp": null
+      }
+    }
+  ]
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
