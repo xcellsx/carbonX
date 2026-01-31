@@ -1,9 +1,0 @@
-CREATE DATABASE IF NOT EXISTS carbonx;
-USE carbonx;
-CREATE TABLE IF NOT EXISTS emissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    company_id INT NOT NULL,
-    category VARCHAR(255),
-    emission_value VARBINARY(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
