@@ -1,2 +1,6 @@
-### VS Code ###
-.vscode/
+# Maven / Java build output
+target/
+**/target/
+
+# Accidental nested repo artifacts
+carbonX-misfit-1-3/
