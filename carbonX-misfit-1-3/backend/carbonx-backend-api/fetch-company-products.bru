@@ -1,0 +1,15 @@
+meta {
+  name: getProducts
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/products
+  body: none
+  auth: none
+}
+
+docs {
+  Fetches the list of company product(s)
+}

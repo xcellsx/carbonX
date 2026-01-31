@@ -1,0 +1,325 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+:root {
+  /* --- Colour Palette --- */
+  --primary: 51, 71, 97;
+  --secondary: 89, 165, 178;
+  --info:47, 128, 237;
+  --success: 39, 174, 96;
+  --warning: 226, 185, 59;
+  --danger: 235, 87, 87;
+  --background: 248, 248, 248;
+  --black: 29, 29, 29;
+  --white: 255, 255, 255;
+  --grey: 130, 130, 130;
+
+  /* --- Typography --- */
+  /* Font Weights */
+  --regular: 400;
+  --bold: 700;
+
+  /* Font Sizes (based on 1rem = 16px) */
+  --small: 0.875rem; /* 14px */
+  --normal: 1rem; /* 16px (base) */
+  --medium: 1.125rem; /* 18px */
+  --large: 1.25rem; /* 20px */
+  
+  /* Text Styles */
+  --heading-1: 3.5rem; /* 56px */
+  --heading-2: 3rem; /* 48px */
+  --heading-3: 2.5rem; /* 40px */
+  --heading-4: 2rem; /* 32px */
+  --heading-5: 1.5rem; /* 24px */
+  --heading-6: 1.25rem; /* 20px */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--normal);
+  background-color: rgba(var(--background), 1);
+  color: rgba(var(--black), 1);
+  font-weight: var(--regular);
+}
+
+/* --- Text Styles --- */
+/* Headings */
+h1 {
+  font-size: var(--heading-1);
+  font-weight: var(--bold);
+  line-height: 3.85rem; /* 61.6px */
+  color: rgba(var(--primary), 1);
+}
+
+h2 {
+  font-size: var(--heading-2);
+  font-weight: var(--bold);
+  line-height: 3.3rem; /* 52.8px */
+}
+
+h3 {
+  font-size: var(--heading-3);
+  font-weight: var(--bold);
+  line-height: 2.75rem; /* 44px */
+}
+
+h4 {
+  font-size: var(--heading-4);
+  font-weight: var(--bold);
+  line-height: 2.2rem; /* 35.2px */
+}
+
+h5 {
+  font-size: var(--heading-5);
+  font-weight: var(--bold);
+  line-height: 1.65rem; /* 26.4px */
+}
+
+h6 {
+  font-size: var(--heading-6);
+  font-weight: var(--bold);
+  line-height: 1.375rem; /* 22px */
+}
+
+/* Body Texts */
+.small-bold {
+  font-size: var(--small);
+  font-weight: var(--bold);
+  line-height: 1.225rem; /* 19.6px */
+}
+
+.small-regular {
+  font-size: var(--small);
+  font-weight: var(--regular);
+  line-height: 1.225rem; /* 19.6px */
+}
+
+.normal-bold {
+  font-size: var(--normal);
+  font-weight: var(--bold);
+  line-height: 1.4rem; /* 22.4px */
+}
+
+.normal-regular {
+  font-size: var(--normal);
+  font-weight: var(--regular);
+  line-height: 1.4rem; /* 22.4px */
+}
+
+.medium-bold {
+  font-size: var(--medium);
+  font-weight: var(--bold);
+  line-height: 1.575rem; /* 25.2px */
+}
+
+.medium-regular {
+  font-size: var(--medium);
+  font-weight: var(--regular);
+  line-height: 1.575rem; /* 25.2px */
+}
+
+.large-bold {
+  font-size: var(--large);
+  font-weight: var(--bold);
+  line-height: 1.75rem; /* 28px */
+}
+
+.large-regular {
+  font-size: var(--large);
+  font-weight: var(--regular);
+  line-height: 1.75rem; /* 28px */
+}
+
+.descriptor {
+  font-size: var(--small);
+  font-weight: var(--regular);
+  line-height: 1.225rem; /* 19.6px */
+  color: rgba(var(--black), 0.6);
+  letter-spacing: 0.3em; /* 30% */
+  text-transform: uppercase;
+}
+
+/* --- Buttons --- */
+
+button {
+  font-weight: var(--bold);
+  line-height: 1.4rem; /* 22.4px */
+  padding: 1rem 2rem; /* 16px (H) 32px (W) */
+  border: none;
+  border-radius: 0.5rem; /* 8px */
+  cursor: pointer;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Default Button Style */
+.default {
+  background-color: rgba(var(--primary), 1);
+}
+
+/* Icon Button Style */
+/* !Please import icons as JSX from Lucide React */
+.icon {
+  background-color: rgba(var(--primary), 1);
+  border: none;
+  cursor: pointer;
+  padding: 1rem; /* 8px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outline Button Style */
+.outline {
+  background-color: rgba(var(--primary), 0);
+  color: rgba(var(--primary), 1);
+  outline: rgba(var(--primary), 1) solid 2px;
+}
+
+/* Nav Button Style */
+.nav {
+  background-color: rgba(var(--background), 1);
+  color: rgba(var(--black), 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+}
+
+/* Button States */
+.default:hover, .icon:hover {
+  background-color: rgba(var(--primary), 0.8);
+}
+
+.default:active, .icon:active {
+  background-color: #1D1D1D;
+}
+
+.default:disabled, .icon:disabled {
+  background-color: #82828220;
+  cursor: not-allowed;
+}
+
+.outline:hover {
+  background-color: rgba(var(--primary), 0.8);
+  color: rgba(var(--white), 1);
+  outline: rgba(var(--primary), 1) solid 2px;
+}
+
+.outline:active {
+  background-color: rgba(var(--black), 0.8);
+  color: rgba(var(--white), 1);
+  outline: rgba(var(--black), 1) solid 2px;
+}
+
+.outline:disabled {
+  background-color: rgba(var(--grey), 0.2);
+  outline: rgba(var(--grey), 0.4) solid 2px;
+  color: rgba(var(--white), 1);
+  cursor: not-allowed;
+}
+
+.nav:hover {
+  background-color: rgba(var(--primary), 0.8);
+  color: rgba(var(--white), 1);
+}
+
+.nav:active {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--white), 1);
+}
+
+.nav:disabled {
+  background-color: rgba(var(--background), 1);
+  color: rgba(var(--black), 0.2);
+  cursor: not-allowed;
+}
+
+/* --- Form Inputs --- */
+.input-base {
+  line-height: 1.4rem;
+  padding: 1rem 1.5rem;
+  border: #82828220 solid 1px;
+  border-radius: 0.25rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  color: #1D1D1D;
+  background-color: rgba(var(--background), 1);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Element-Specific Variants */
+
+/* custom arrow for <select> */
+select.input-base {
+  padding-right: 3.5rem;
+    cursor: pointer;
+}
+
+/* Input States (Focus, Placeholder) */
+
+.input-base:focus {
+  border: #1D1D1D60 solid 1px;
+  color: #1D1D1D;
+}
+
+.input-base::placeholder {
+  color: #1D1D1D60;
+}
+
+select.input-base:invalid {
+  color: #1D1D1D60; /* Your placeholder color */
+}
+
+select.input-base option {
+  color: #1D1D1D;
+}
+
+/* Wrapper for Dropdown */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Custom dropdown arrow */
+.select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #1D1D1D60;
+  pointer-events: none; /* Lets you click "through" the icon */
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: rgba(var(--grey), 0.6) solid 1px;
+}
+
+/* Shared Styles Across Multiple Pages */
+.form-header { /* Use for all headings */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+  width: 100%
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 2rem /* 32px */
+}

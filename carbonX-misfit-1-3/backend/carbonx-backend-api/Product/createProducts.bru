@@ -1,0 +1,39 @@
+meta {
+  name: createProducts
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/products
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+    "productNature": "ingredient",
+    "name": "lemon juice",
+    "productOrigin": null,
+    "functionalProperties": null,
+    "dpp": null,
+    "userId": null,
+    "uploadedFile": null
+    },
+    {
+    "productNature": "drink",
+    "name": "lemonade",
+    "productOrigin": null,
+    "functionalProperties": null,
+    "dpp": null,
+    "userId": null,
+    "uploadedFile": null
+  }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
