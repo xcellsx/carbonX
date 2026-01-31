@@ -1,0 +1,279 @@
+/* --- Imports and Variables --- */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap');
+
+:root {
+  --white-ish: #F4F4F4;
+  --main-bg: #EAEAEA;
+  --navy: #334761;
+  --text-dark: #020202;
+  --text-grey: #A9A9A9;
+  --accent-yellow: #FBCC58;
+  --accent-light-blue: #C5E4E7;
+  --accent-red: #e74c3c;
+  --save-navy: #000080;
+}
+
+/* --- Page-Specific Styles --- */
+
+.product-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.product-selector-container label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.product-selector-container select {
+  font-family: 'Figtree', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-dark);
+  background: var(--white-ish);
+  border: 1px solid var(--text-grey);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 300px;
+  cursor: pointer;
+}
+
+.product-selector-container select:disabled {
+  background: var(--main-bg);
+  color: var(--text-grey);
+  cursor: not-allowed;
+}
+
+.analytics-card {
+  width: 100%;
+  background: var(--white-ish);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.network-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  margin-bottom: 16px;
+}
+
+.network-card-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+}
+
+/* --- ADDED: View Toggle Styles --- */
+.view-toggle {
+  display: flex;
+  background-color: var(--main-bg);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.view-toggle-btn {
+  font-family: 'Figtree', sans-serif;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-grey);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle-btn.active {
+  background: var(--white-ish);
+  color: var(--navy);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+/* --- End of View Toggle Styles --- */
+
+.analytics-table-container {
+  width: 100%;
+  overflow: hidden;
+  min-height: 600px; /* Give space for the graph */
+}
+
+.no-data-message, .loading-message {
+  text-align: center;
+  color: var(--text-grey);
+  padding: 40px;
+  font-style: italic;
+  font-size: 16px;
+}
+
+/* --- D3 Graph Styles --- */
+
+.network-graph-container {
+  position: relative; 
+  width: 100%;
+  height: 600px;
+  background: #fdfdfd;
+  border-radius: 6px;
+}
+
+.network-graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.node text {
+  font-size: 11px;
+  font-family: 'Figtree', sans-serif;
+  pointer-events: none;
+  text-anchor: start; 
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: 0.6;
+  stroke-width: 1.5px;
+}
+
+/* --- Tooltip (Positioned by Legend) --- */
+.graph-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Figtree', sans-serif;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  max-width: 300px;
+  z-index: 9; /* Below legend */
+  top: 15px;  /* Align with legend */
+  left: 230px; /* Position to the right of the legend (200px + 15px margin + 15px padding) */
+}
+
+.graph-tooltip hr {
+  border: 0;
+  border-top: 1px solid #555;
+  margin: 4px 0;
+}
+
+/* --- Tooltip for Map (floating) --- */
+.graph-tooltip-map {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Figtree', sans-serif;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  max-width: 300px;
+  z-index: 1000;
+  /* Position is set by D3 */
+}
+
+.graph-tooltip-map hr {
+  border: 0;
+  border-top: 1px solid #555;
+  margin: 4px 0;
+}
+
+/* --- Legend (Top-Left) --- */
+.graph-legend {
+  position: absolute;
+  top: 15px;
+  left: 15px; /* <-- Positioned top-left */
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 10;
+  font-family: 'Figtree', sans-serif;
+  font-size: 12px;
+  width: 200px; /* Fixed width for tooltip alignment */
+}
+
+.graph-legend strong {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--navy);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.graph-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.legend-color-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* --- ADDED: Map Styles --- */
+.map-country {
+  fill: var(--main-bg);
+  stroke: #ccc;
+  stroke-width: 0.5px;
+}
+
+.map-link {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 1.5px;
+  stroke-opacity: 0.6;
+}
+
+.map-node-circle {
+  /* Fill is set by D3 */
+  stroke: #fff;
+  stroke-width: 1.5px;
+  fill-opacity: 0.8;
+}
+
+.map-home-node circle {
+  fill: var(--navy);
+  stroke: #fff;
+  stroke-width: 2px;
+}
+/* --- End of Map Styles --- */
+

@@ -1,0 +1,22 @@
+meta {
+  name: editOutputs
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/api/outputs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
