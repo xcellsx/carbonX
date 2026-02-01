@@ -20,8 +20,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8080/api';
+import { API_BASE } from '../../services/api';
 
 const allMetricDefinitions = [
   { id: 'scope-1', name: 'Scope 1 Emissions', icon: Factory }, 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
-import logoPath from '../../assets/carbonx.png'; 
+import logoPath from '../../assets/carbonx.png';
+import { productAPI } from '../../services/api';
 import {
   LayoutDashboard,
   Archive,
@@ -11,7 +12,6 @@ import {
   Sprout,
   Settings,
   Search,
-  Plus,
   X,
   Triangle,
   CirclePlus,
@@ -19,114 +19,64 @@ import {
   FilePlus
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8080/api';
-
-// --- UPDATED: Smarter CSV parser ---
+// --- CSV parser: name and type only ---
 const parseCsvFile = (file) => {
   return new Promise((resolve, reject) => {
     if (!file) return reject(new Error("No file provided."));
-
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         let text = e.target.result;
-        if (text.charCodeAt(0) === 0xFEFF) {
-          text = text.substring(1);
-        }
-
+        if (text.charCodeAt(0) === 0xFEFF) text = text.substring(1);
         const lines = text.split(/[\r\n]+/).filter(line => line.trim() !== '');
-        if (lines.length < 2) {
-          return reject(new Error("CSV must have a header and at least one data row."));
+        if (lines.length < 2) return reject(new Error("CSV must have a header and at least one data row."));
+        const headerLine = lines[0];
+        const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const lower = headers.map(h => h.toLowerCase());
+        const nameIdx = lower.findIndex(h => h === 'product name' || h === 'name');
+        const typeIdx = lower.findIndex(h => h === 'type');
+        if (nameIdx === -1 || typeIdx === -1) {
+          return reject(new Error('CSV must have columns "Product Name" (or "name") and "Type".'));
         }
-
-        const headerLine = lines[0]; 
-        const headers = [];
-        let inQuote = false;
-        let currentField = '';
-        for (let i = 0; i < headerLine.length; i++) {
-          const char = headerLine[i];
-          if (char === '"' && (i === 0 || headerLine[i-1] !== '\\')) {
-            inQuote = !inQuote;
-          } else if (char === ',' && !inQuote) {
-            headers.push(currentField.trim().replace(/"/g, '')); 
-            currentField = '';
-          } else {
-            if (char !== '"' || inQuote) {
-              currentField += char;
-            }
-          }
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const name = (values[nameIdx] || '').trim();
+          const type = (values[typeIdx] || 'product').trim();
+          if (name) data.push({ name, type });
         }
-        headers.push(currentField.trim().replace(/"/g, '')); 
-
-        const lowerCaseHeaders = headers.map(h => h.toLowerCase());
-
-        // Find required column indices
-        const productNameIndex = lowerCaseHeaders.indexOf('product name');
-        const ingredientIndex = lowerCaseHeaders.indexOf('ingredients'); 
-        const weightIndex = lowerCaseHeaders.indexOf('net weight (kg)');
-        const packagingTypeIndex = lowerCaseHeaders.indexOf('packaging type');
-        const packagingWeightIndex = lowerCaseHeaders.indexOf('packaging weight (g)');
-        const transportModeIndex = lowerCaseHeaders.indexOf('transportation mode');
-        const distanceIndex = lowerCaseHeaders.findIndex(h => h.includes('distance')); 
-
-        const missingColumns = [];
-        if (productNameIndex === -1) missingColumns.push('"Product Name"');
-        if (ingredientIndex === -1) missingColumns.push('"Ingredients"');
-        if (weightIndex === -1) missingColumns.push('"Net Weight (kg)"');
-        if (packagingTypeIndex === -1) missingColumns.push('"Packaging Type"');
-        if (packagingWeightIndex === -1) missingColumns.push('"Packaging Weight (g)"');
-        if (transportModeIndex === -1) missingColumns.push('"Transportation Mode"');
-
-        if (missingColumns.length > 0) {
-          return reject(new Error(`Invalid CSV header. File is missing columns: ${missingColumns.join(', ')}`));
-        }
-        
-        const data = lines.slice(1).map(line => {
-          const values = [];
-          let inQuote = false;
-          let currentField = '';
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
-              inQuote = !inQuote;
-            } else if (char === ',' && !inQuote) {
-              values.push(currentField.trim());
-              currentField = '';
-            } else {
-              currentField += char;
-            }
-          }
-          values.push(currentField.trim());
-
-          if (values.length < headers.length) {
-             console.warn("Skipping malformed CSV line:", line);
-             return null;
-          }
-
-          const rowData = {};
-          headers.forEach((header, index) => {
-            rowData[header] = values[index] ? values[index].replace(/"/g, '') : '';
-          });
-          
-          // Capture distance
-          if (distanceIndex !== -1) {
-             rowData['Distance (km)'] = values[distanceIndex] ? values[distanceIndex].replace(/"/g, '') : '';
-          }
-
-          return {
-            productName: rowData['Product Name'],
-            ingredient: rowData['Ingredients'], 
-            metadata: rowData 
-          };
-
-        }).filter(item => item !== null && item.productName && item.ingredient);
-
         resolve(data);
       } catch (err) {
-        reject(new Error("An error occurred during parsing: " + err.message));
+        reject(new Error("CSV parsing failed: " + err.message));
       }
     };
-    reader.onerror = (e) => reject(new Error("Error reading file: " + e.target.error));
+    reader.onerror = () => reject(new Error("Error reading file."));
+    reader.readAsText(file);
+  });
+};
+
+// --- JSON parser: array of { name, type } or single object ---
+const parseJsonFile = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!file) return reject(new Error("No file provided."));
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        const arr = Array.isArray(json) ? json : [json];
+        const data = arr
+          .map((item) => ({
+            name: (item.name ?? item.productName ?? '').toString().trim(),
+            type: (item.type ?? 'product').toString().trim(),
+          }))
+          .filter((item) => item.name);
+        if (data.length === 0) return reject(new Error("JSON must contain at least one object with \"name\" and optionally \"type\"."));
+        resolve(data);
+      } catch (err) {
+        reject(new Error("JSON parsing failed: " + err.message));
+      }
+    };
+    reader.onerror = () => reject(new Error("Error reading file."));
     reader.readAsText(file);
   });
 };
@@ -174,6 +124,7 @@ const InventoryPage = () => {
   const [productFile, setProductFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+  const productsRef = useRef([]);
   
   const [uploading, setUploading] = useState(false);
   const [showDppModal, setShowDppModal] = useState(false);
@@ -197,16 +148,28 @@ const InventoryPage = () => {
       return;
     }
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${API_BASE}/inventory/user/${userId}`);
-      if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
-      const data = await res.json();
-      setProducts(data);
-      setError('');
+      const res = await productAPI.getAllProducts();
+      const raw = Array.isArray(res?.data) ? res.data : [];
+      const filtered = userId ? raw.filter((p) => p.userId === userId) : raw;
+      const mapped = filtered.map((p) => ({
+        productId: p.id ?? p._id ?? p.key,
+        productName: p.name,
+        dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
+        lcaResult: p.DPP?.carbonFootprint?.total ?? p.lcaResult ?? 0,
+        userId: p.userId,
+        uploadedFile: p.uploadedFile,
+        type: p.type,
+        productOrigin: p.productOrigin,
+        functionalProperties: p.functionalProperties,
+        DPP: p.DPP,
+      }));
+      setProducts(mapped);
     } catch (err) {
       console.error("Failed to fetch products:", err);
-      setError('Could not load inventory data.');
       setProducts([]);
+      // Don't set error so empty state shows: "Click + to add your first product"
     } finally {
       setLoading(false);
     }
@@ -215,6 +178,10 @@ const InventoryPage = () => {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
   
   const autoSaveProduct = async (productId, newDppData, newTotalLca = null) => {
     setProducts(currentProducts =>
@@ -227,16 +194,18 @@ const InventoryPage = () => {
       })
     );
     try {
-      const res = await fetch(`${API_BASE}/inventory/dpp/${productId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: newDppData,
-      });
-  
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to save changes.");
-      }
+      const prod = productsRef.current.find((p) => p.productId === productId);
+      if (!prod) return;
+      const body = {
+        name: prod.productName,
+        type: prod.type || 'product',
+        productOrigin: prod.productOrigin ?? null,
+        functionalProperties: { ...(prod.functionalProperties || {}), dppData: newDppData },
+        userId: prod.userId ?? null,
+        uploadedFile: prod.uploadedFile ?? null,
+        DPP: prod.DPP ?? null,
+      };
+      await productAPI.updateProduct(productId, body);
     } catch (err) {
       console.error("Auto-save Error:", err);
     }
@@ -245,8 +214,9 @@ const InventoryPage = () => {
 
   const handleFileSelect = (file) => {
     if (!file) { setProductFile(null); return; }
-    if (!file.name.endsWith('.csv')) {
-      alert("Please upload a .csv file.");
+    const name = file.name.toLowerCase();
+    if (!name.endsWith('.csv') && !name.endsWith('.json')) {
+      alert("Please select a .csv or .json file.");
       return;
     }
     setProductFile(file);
@@ -261,135 +231,66 @@ const InventoryPage = () => {
     }
   };
 
-  // --- ADD PRODUCT (Uses new distance logic) ---
+  // --- Upload BOM: .csv or .json, name and type only ---
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!userId) return alert("Error: No user is logged in.");
     if (!productFile) return alert("Please select a file first.");
 
     setUploading(true);
-    let parsedData = [];
+    let items = [];
 
     try {
-      if (productFile && productFile.name.endsWith('.csv')) {
-        parsedData = await parseCsvFile(productFile);
+      const name = productFile.name.toLowerCase();
+      if (name.endsWith('.json')) {
+        items = await parseJsonFile(productFile);
+      } else if (name.endsWith('.csv')) {
+        items = await parseCsvFile(productFile);
       } else {
-        throw new Error("Invalid file type. Please upload a .csv file.");
+        alert("Please select a .csv or .json file.");
+        setUploading(false);
+        return;
       }
-
-      if (parsedData.length === 0) {
-        alert("Error: The file was empty or contained no valid data rows.");
+      if (items.length === 0) {
+        alert("No valid products (name and type) found in file.");
         setUploading(false);
         return;
       }
     } catch (err) {
       console.error("Error parsing file:", err);
-      alert(`Error parsing file: ${err.message}`);
+      alert(err.message || "Error parsing file.");
       setUploading(false);
       return;
     }
 
-    const productsMap = new Map();
-    parsedData.forEach(item => {
-      const { productName, ingredient, metadata } = item;
-      
-      if (!productsMap.has(productName)) {
-        const initialDpp = [];
-        const netWeightKg = parseFloat(metadata['Net Weight (kg)']);
-        const packagingWeightG = parseFloat(metadata['Packaging Weight (g)']);
-        const packagingWeightKg = isNaN(packagingWeightG) ? 0 : packagingWeightG / 1000;
-        const packagingType = metadata['Packaging Type'];
-        const transportMode = metadata['Transportation Mode'];
-        
-        // Parse distance
-        let transportDistanceKm = parseFloat(metadata['Distance (km)']);
-        if (isNaN(transportDistanceKm)) transportDistanceKm = 100; // Default 100km
-
-        const ingredientWeightKg = isNaN(netWeightKg) ? 0 : netWeightKg - packagingWeightKg;
-        
-        if (packagingType && !isNaN(packagingWeightKg)) {
-           initialDpp.push({
-            ingredient: packagingType,
-            weightKg: packagingWeightKg, 
-            unit: 'kg',
-            materialId: null, lcaValue: null, emissionFactor: null,
-            isPackaging: true, isTransport: false
-          });
-        }
-        
-        if (transportMode) {
-           initialDpp.push({
-            ingredient: `Transport (${transportMode})`,
-            weightKg: transportDistanceKm, // Use distance
-            unit: 'km',
-            materialId: null, lcaValue: null, emissionFactor: null,
-            isPackaging: false, isTransport: true
-          });
-        }
-        productsMap.set(productName, {
-          dpp: initialDpp, metadata: metadata, calculatedIngredientWeight: ingredientWeightKg 
-        });
-      }
-      
-      const productData = productsMap.get(productName);
-      const ingredients = (ingredient || "").split(';').map(ing => ing.trim()).filter(ing => ing);
-
-      if (ingredients.length > 0) {
-        const weightPerIngredient = ingredients.length > 0 ? productData.calculatedIngredientWeight / ingredients.length : 0;
-        ingredients.forEach(ingName => {
-          productData.dpp.push({
-            ingredient: ingName,
-            weightKg: weightPerIngredient,
-            unit: 'kg',
-            materialId: null, lcaValue: null, emissionFactor: null,
-            isPackaging: false, isTransport: false
-          });
-        });
-      }
-    });
-
     try {
-        const savePromises = Array.from(productsMap.entries()).map(async ([pName, data]) => {
-            delete data.calculatedIngredientWeight;
-            const payload = {
-                userId: userId,
-                productName: pName,
-                uploadedFile: productFile.name,
-                dppData: JSON.stringify(data.dpp),
-                metadata: data.metadata,
-                lcaResult: 0
-            };
-
-            const res = await fetch(`${API_BASE}/inventory`, { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) throw new Error(`Failed to save ${pName}`);
-            return res.json();
-        });
-        await Promise.all(savePromises);
-        setShowAddProduct(false);
-        setProductFile(null);
-        fetchProducts();
+      const productsToCreate = items.map(({ name, type }) => ({
+        name,
+        type: type || 'product',
+        productOrigin: null,
+        functionalProperties: null,
+        userId,
+        uploadedFile: productFile.name,
+        DPP: null,
+      }));
+      await productAPI.createProducts(productsToCreate);
+      setShowAddProduct(false);
+      setProductFile(null);
+      fetchProducts();
     } catch (err) {
-        console.error("Network error during product save:", err);
-        alert('Failed to save one or more products. Check console.');
+      console.error("Network error during product save:", err);
+      alert("Failed to save one or more products. Check console.");
     }
     setUploading(false);
   };
   
   const performActualDeleteProduct = async (productId) => {
     try {
-      const res = await fetch(`${API_BASE}/inventory/${productId}`, { method: 'DELETE' });
-      if (res.ok) {
-        setProducts(prev => prev.filter(p => p.productId !== productId));
-      } else {
-        alert('Failed to delete product.');
-      }
+      await productAPI.deleteProduct(productId);
+      setProducts(prev => prev.filter(p => p.productId !== productId));
     } catch (err) {
       console.error("Delete error:", err);
+      alert('Failed to delete product.');
     }
   };
 
@@ -521,92 +422,45 @@ const InventoryPage = () => {
     autoSaveProduct(productId, JSON.stringify(dpp));
   };
   
-  // --- SINGLE ITEM CALCULATION ---
+  // --- SINGLE ITEM: save weight to backend (LCA calculate not exposed by Java backend)
   const runLcaCalculation = async (productId, subcomponentIndex, weightToUse) => {
     const key = `${productId}_${subcomponentIndex}`;
     setCalculating(prev => ({ ...prev, [key]: true }));
 
-    // 1. Update local state
     const product = products.find(p => p.productId === productId);
     if (!product) {
-         setCalculating(prev => ({ ...prev, [key]: false }));
-         return;
+      setCalculating(prev => ({ ...prev, [key]: false }));
+      return;
     }
-    
     let dpp;
     try { dpp = JSON.parse(product.dppData); } catch (e) { dpp = []; }
     if (!dpp[subcomponentIndex]) {
-        setCalculating(prev => ({ ...prev, [key]: false }));
-        return;
+      setCalculating(prev => ({ ...prev, [key]: false }));
+      return;
     }
-
     dpp[subcomponentIndex].weightKg = weightToUse;
-    
-    // 2. Save updated weight & trigger Backend Calc
+    const newDppJson = JSON.stringify(dpp);
+    setProducts(currentProducts =>
+      currentProducts.map(prod =>
+        prod.productId === productId ? { ...prod, dppData: newDppJson } : prod
+      )
+    );
     try {
-        const newDppJson = JSON.stringify(dpp);
-        
-        // Optimistic UI update
-        setProducts(currentProducts =>
-            currentProducts.map(prod => {
-                if (prod.productId === productId) {
-                    return { ...prod, dppData: newDppJson };
-                }
-                return prod;
-            })
-        );
-        
-        // New Endpoint for single item calc
-        const payload = {
-            itemIndex: subcomponentIndex,
-            weight: weightToUse
-        };
-
-        const res = await fetch(`${API_BASE}/inventory/calculate-item/${productId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-            throw new Error("Failed to calculate item on backend.");
-        }
-
-        const updatedProduct = await res.json();
-
-        // 3. Update state with returned product
-        setProducts(currentProducts =>
-            currentProducts.map(prod => {
-                if (prod.productId === productId) {
-                    return updatedProduct;
-                }
-                return prod;
-            })
-        );
-        
+      await autoSaveProduct(productId, newDppJson);
     } catch (err) {
-        console.error("Error updating weight/calculating:", err);
+      console.error("Error saving weight:", err);
     } finally {
-        setCalculating(prev => ({ ...prev, [key]: false }));
+      setCalculating(prev => ({ ...prev, [key]: false }));
     }
   };
 
-  // --- FULL CALCULATION ---
+  // --- FULL LCA: save DPP to backend (LCA calculate not exposed by Java backend)
   const runFullLcaCalculation = async (productId) => {
     const product = products.find(p => p.productId === productId);
     if (!product) return;
     let dpp;
     try { dpp = JSON.parse(product.dppData); } catch (e) { return; }
     if (!Array.isArray(dpp)) return;
-
-    const needsCalculation = dpp.some(item => 
-      (item.materialId || item.ingredient) &&
-      (item.lcaValue === null || item.lcaValue === undefined)
-    );
-    if (!needsCalculation) {
-      console.log("No calculation needed for product", productId);
-      return;
-    }
 
     const newCalculatingState = {};
     dpp.forEach((_, idx) => {
@@ -615,24 +469,9 @@ const InventoryPage = () => {
     setCalculating(prev => ({ ...prev, ...newCalculatingState }));
 
     try {
-      const res = await fetch(`${API_BASE}/inventory/calculate/${productId}`, {
-        method: 'POST',
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to calculate LCA on backend.");
-      }
-
-      const updatedProduct = await res.json();
-
-      setProducts(currentProducts =>
-        currentProducts.map(p => 
-          p.productId === updatedProduct.productId ? updatedProduct : p
-        )
-      );
-
+      await autoSaveProduct(productId, product.dppData);
     } catch (err) {
-      console.error("Error running full LCA calculation:", err);
+      console.error("Error saving product:", err);
     } finally {
       const finishedCalculatingState = {};
       dpp.forEach((_, idx) => {
@@ -742,11 +581,16 @@ const InventoryPage = () => {
           </div>
           <div className = "sub-header">
             <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} products</p>
-            <div className = "two-row-component-container">
+              <div className = "two-row-component-container">
               <div className = "input-base search-bar"><Search />
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
-              <button className = "icon" onClick={() => setShowAddProduct(true)}><Plus /></button>
+              <button type="button" className="outline" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => navigate('/templates')}>
+                Create Your Own
+              </button>
+              <button type="button" className="default" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => setShowAddProduct(true)}>
+                Upload BOM
+              </button>
             </div>
           </div>
           <div className="inventory-table-container">
@@ -779,7 +623,7 @@ const InventoryPage = () => {
                 {!loading && !error && products.length === 0 && (
                   <tr>
                     <td colSpan={6} className="no-products-message">
-                      No products found. Click the <Plus size={16} style={{ display: 'inline-block', verticalAlign: 'middle', margin: '0 4px' }} /> button to add your first product.
+                      Add a new product. Click Upload BOM or Create Your Own.
                     </td>
                   </tr>
                 )}
@@ -976,14 +820,14 @@ const InventoryPage = () => {
         <div className="modal-overlay active">
           <div className="modal-content">
             <div className="modal-header">
-              <p className = "medium-bold">Add New Products</p>
+              <p className = "medium-bold">Upload BOM</p>
               <button className="close-modal-btn" onClick={() => setShowAddProduct(false)}><X /></button>
             </div>
             <form id="addProductForm" onSubmit={handleAddProduct}>
               <div className = "add-product-form">
                 <div className="input-group-col">
                   <label className="normal-bold">
-                    Upload File <span className='submit-error'>*</span>
+                    Upload File <span className='submit-error'>*</span> (CSV or JSON, name and type only)
                   </label>
                   {productFile && (
                       <div className = "modal-header">
@@ -993,9 +837,9 @@ const InventoryPage = () => {
                         </button>
                       </div>
                   )}
-                  <label htmlFor="fileUpload" className={`file-drop-zone ${isDragging ? 'dragging' : ''}`}onDragOver={handleDragOver}onDragLeave={handleDragLeave}onDrop={handleDrop}>
+                  <label htmlFor="fileUpload" className={`file-drop-zone ${isDragging ? 'dragging' : ''}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
                     <FilePlus />
-                    <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your CSV here</p>
+                    <p className="small-regular" style={{ color: 'rgba(var(--blacks), 0.8)' }}>Drag and drop your CSV or JSON here</p>
                     <span className="outline-browse">
                       Or Browse Files
                     </span>
@@ -1004,13 +848,13 @@ const InventoryPage = () => {
                       id="fileUpload"
                       ref={fileInputRef}
                       className="file-input-hidden" 
-                      accept=".csv" 
+                      accept=".csv,.json" 
                       onChange={(e) => handleFileSelect(e.target.files[0])}
                     />
                   </label>
                 </div>
                 <button type="submit" className="default" disabled={uploading || !productFile}>
-                  {uploading ? "Uploading..." : "Add Products"}
+                  {uploading ? "Uploading..." : "Upload BOM"}
                 </button>
               </div>
             </form>

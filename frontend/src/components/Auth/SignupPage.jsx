@@ -3,67 +3,35 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
-import dashboard from '../../assets/dashboard.png'
+import dashboard from '../../assets/dashboard.png';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Initialize state as an object
-  const [message, setMessage] = useState({ type: '', text: '' }); 
+  const [message, setMessage] = useState({ type: '', text: '' });
   const navigate = useNavigate();
-  
-  const handleSubmit = async (e) => {
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Reset message
     setMessage({ type: '', text: '' });
 
-    // 1. Check for empty fields
     if (!fullName || !email || !password) {
       setMessage({ type: 'error', text: 'Please fill in all fields.' });
       return;
     }
 
-    // 2. Add simple email validation (New Logic)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMessage({ type: 'error', text: 'Please enter a valid email address.' });
       return;
     }
 
-    // Backend Error Handling
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password })
-      });
-
-      if (res.ok) {
-        const result = await res.json();
-        
-        if (result.id) {
-          // 3. Session Cleanup (New Logic)
-          localStorage.removeItem('isProUser');
-          localStorage.removeItem('settingsTab');
-
-          localStorage.setItem('userId', result.id);
-          
-          setMessage({ type: '', text: '' }); // Clear errors
-          navigate('/company-info');
-        } else {
-          setMessage({ type: 'error', text: 'Signup succeeded but no user id returned.' });
-        }
-      } else {
-        // 4. Handle "Email already in use" or other backend errors
-        const data = await res.json();
-        // Ensure your backend returns { message: "Email already in use" } for duplicates
-        setMessage({ type: 'error', text: data.message || 'Sign up failed' });
-      }
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Could not connect to server' });
-    }
+    // Redirect without backend auth for now
+    localStorage.removeItem('isProUser');
+    localStorage.removeItem('settingsTab');
+    localStorage.setItem('userId', `local-${Date.now()}`);
+    navigate('/company-info');
   };
 
   return (

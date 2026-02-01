@@ -1,0 +1,21 @@
+meta {
+  name: getProducts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/products
+  body: none
+  auth: inherit
+}
+
+params:query {
+  name: raw pasta
+  type: ingredient
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

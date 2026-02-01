@@ -12,7 +12,6 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // --- NEW: Load remembered email on component mount ---
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -21,45 +20,19 @@ const LoginPage = () => {
     }
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
-    
-    // Backend validation (from original code)
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (res.ok) {
-        const loggedInUser = await res.json(); 
-        
-        if (loggedInUser && loggedInUser.id) {
-          // --- NEW: Handle "Remember Me" logic on successful login ---
-          if (rememberMe) {
-            localStorage.setItem('rememberedEmail', email);
-          } else {
-            localStorage.removeItem('rememberedEmail');
-          }
-          
-          // --- Original Logic ---
-          localStorage.setItem('userId', loggedInUser.id);
-          setError('');
-          navigate('/dashboard');
-        } else {
-          setError('Login successful but no user ID was returned.');
-        }
-      } else {
-        setError('Incorrect email or password');
-      }
-    } catch (err) {
-      setError('Could not connect to server');
+    if (rememberMe) {
+      localStorage.setItem('rememberedEmail', email);
+    } else {
+      localStorage.removeItem('rememberedEmail');
     }
+    localStorage.setItem('userId', `local-${Date.now()}`);
+    navigate('/dashboard');
   };
 
   return (

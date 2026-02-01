@@ -7,8 +7,7 @@ import {
   FileText, Sprout, Settings, Send,
   File, MessageSquare, ChevronRight
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8080/api';
+import { API_BASE, productAPI } from '../../services/api';
 
 const MOCK_ARCHIVE_DATA = [
   {
@@ -47,12 +46,15 @@ const SproutAiPage = () => {
     }
   }, [messages]);
 
-  // --- Fetch Inventory on Mount ---
+  // --- Fetch products (Java backend: GET /api/products), filter by user ---
   useEffect(() => {
     if (!userId) return;
-    fetch(`${API_BASE}/inventory/user/${userId}`)
-      .then(res => res.json())
-      .then(data => setInventory(data))
+    productAPI.getAllProducts()
+      .then(res => {
+        const raw = Array.isArray(res.data) ? res.data : [];
+        const filtered = raw.filter((p) => p.userId === userId);
+        setInventory(filtered.map((p) => ({ productId: p.id ?? p.key, productName: p.name })));
+      })
       .catch(err => console.error("Failed to load inventory for AI context:", err));
   }, [userId]);
 

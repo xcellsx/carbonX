@@ -1,0 +1,73 @@
+meta {
+  name: editInputs
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/api/inputs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "arangoId": "inputs/103131",
+      "id": "103131",
+      "product": {
+        "arangoId": "products/102765",
+        "id": "102765",
+        "name": "sugar",
+        "productNature": "ingredient",
+        "productOrigin": null,
+        "functionalProperties": null,
+        "procedure": [],
+        "userId": null,
+        "uploadedFile": null,
+        "dpp": null
+      },
+      "productName": "clean water",
+      "process": {
+        "id": "102999",
+        "arangoId": "processes/102999",
+        "name": "combining",
+        "processType": "drink mixing",
+        "functionalProperties": null,
+        "nonFunctionalProperties": null,
+        "inputs": [
+          {
+            "arangoId": "products/102983",
+            "id": "102983",
+            "name": "lemon juice",
+            "productNature": "ingredient",
+            "productOrigin": null,
+            "functionalProperties": null,
+            "procedure": [],
+            "userId": null,
+            "uploadedFile": null,
+            "dpp": null
+          },
+          {
+            "arangoId": "products/102771",
+            "id": "102771",
+            "name": "clean water",
+            "productNature": "ingredient",
+            "productOrigin": null,
+            "functionalProperties": null,
+            "procedure": [],
+            "userId": "testCompany",
+            "uploadedFile": null,
+            "dpp": null
+          }
+        ]
+      },
+      "processName": "combining"
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

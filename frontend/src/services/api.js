@@ -1,35 +1,39 @@
 import axios from 'axios';
 
-// Base URL for your backend API
-const API_BASE_URL = 'http://localhost:8080/api';
+// Base URL for the Java backend (matches Bruno carbonx-backend-local: http://localhost:8080)
+export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE = `${API_BASE_URL}/api`;
 
-// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// API endpoints
+// Product API – matches Java backend ProductController & Bruno carbonx-backend-api
 export const productAPI = {
-  // Get all products
-  getAllProducts: () => api.get('/products'),
-  
-  // Get product by ID
+  // GET /api/products (optional query: name, type)
+  getAllProducts: (params = {}) => api.get('/products', { params }),
+
+  // GET /api/products/:id
   getProductById: (id) => api.get(`/products/${id}`),
-  
-  // Create new product
-  createProduct: (productData) => api.post('/products', productData),
-  
-  // Update product
+
+  // POST /api/products – body: array of Product (see Bruno createProducts.bru)
+  createProducts: (productsList) => api.post('/products', productsList),
+
+  // PUT /api/products – body: array of Product (bulk edit)
+  updateProducts: (productsList) => api.put('/products', productsList),
+
+  // PUT /api/products/:id – body: single Product
   updateProduct: (id, productData) => api.put(`/products/${id}`, productData),
-  
-  // Delete product
+
+  // DELETE /api/products/:id
   deleteProduct: (id) => api.delete(`/products/${id}`),
 };
 
-// Health check
-export const healthCheck = () => api.get('/health');
+// Health: Java backend uses Actuator on port 9000; no /api/health on 8080.
+// Use only when backend exposes a health endpoint on the same host.
+export const healthCheck = () => api.get('/health').catch(() => ({ status: 404 }));
 
 export default api;

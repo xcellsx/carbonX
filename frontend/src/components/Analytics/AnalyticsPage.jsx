@@ -7,8 +7,7 @@ import {
   FileText, Sprout, Settings, ChevronDown, Sparkles, Lock,
   X, CircleCheck
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8080/api';
+import { API_BASE, productAPI } from '../../services/api';
 
 // --- UPDATED: Data based on your Inventory Calculation Image ---
 const MOCK_PRODUCT_ANALYSIS = {
@@ -98,9 +97,15 @@ const AnalyticsPage = () => {
   const fetchProducts = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`${API_BASE}/inventory/user/${userId}`);
-      if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
-      const data = await res.json();
+      const res = await productAPI.getAllProducts();
+      const raw = Array.isArray(res.data) ? res.data : [];
+      const filtered = userId ? raw.filter((p) => p.userId === userId) : raw;
+      const data = filtered.map((p) => ({
+        productId: p.id ?? p._id ?? p.key,
+        productName: p.name,
+        dppData: (p.functionalProperties && p.functionalProperties.dppData) || '[]',
+        lcaResult: p.DPP?.carbonFootprint?.total ?? 0,
+      }));
       setProducts(data);
       setError('');
     } catch (err) {

@@ -10,6 +10,7 @@ import NetworkPage from './components/Network/NetworkPage';
 import SettingsPage from './components/Settings/SettingsPage';
 import ReportPage from './components/Report/ReportPage';
 import SproutAiPage from './components/SproutAI/SproutAIPage';
+import TemplatesPage from './components/Templates/TemplatesPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/network" element={<NetworkPage />} />
         <Route path="/settings" element={<SettingsPage />} />

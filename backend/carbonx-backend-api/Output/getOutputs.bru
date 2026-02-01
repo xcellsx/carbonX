@@ -1,0 +1,21 @@
+meta {
+  name: getOutputs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/outputs?to=lemonade
+  body: none
+  auth: inherit
+}
+
+params:query {
+  to: lemonade
+  ~from: combining
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -11,9 +11,8 @@ import { useCompanyForm } from '../../hooks/useCompanyForm';
 // Make sure this path is correct for your project structure
 import CompanyForm from '../../components/Company/CompanyForm';
 import BillingSubscriptions from './BillingSubscriptions'; 
-import BillingHistory from './BillingHistory'; 
-
-const API_BASE = 'http://localhost:8080/api';
+import BillingHistory from './BillingHistory';
+import { API_BASE } from '../../services/api';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 

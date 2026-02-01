@@ -16,7 +16,7 @@ const CompanyInfoPage = () => {
 
   const isFormComplete = Object.values(form).every(val => val && val.trim().length > 0);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const userId = localStorage.getItem('userId');
@@ -26,44 +26,16 @@ const CompanyInfoPage = () => {
     }
     setError('');
 
-    const payload = { ...form, userId };
+    // Save company info locally (backend company-info not set up yet)
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
+    allCompanyData[userId] = form;
+    localStorage.setItem('companyData', JSON.stringify(allCompanyData));
 
-    try {
-      const res = await fetch('http://localhost:8080/api/company-info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+    const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};
+    allMetricsData[userId] = allMetricsData[userId] || {};
+    localStorage.setItem('metricsData_v2', JSON.stringify(allMetricsData));
 
-      if (res.ok) {
-        // 1. Get the REAL data calculated by the backend
-        const savedData = await res.json(); 
-
-        // 2. Save Company Info locally
-        const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-        allCompanyData[userId] = form;
-        localStorage.setItem('companyData', JSON.stringify(allCompanyData));
-
-        // 3. Save the METRICS returned by the backend
-        // We trust the backend completely now.
-        const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};
-        const userMetrics = allMetricsData[userId] || {}; 
-        
-        // USE THE RESPONSE FROM JAVA
-        userMetrics.metricList = savedData.activeMetrics; 
-        
-        allMetricsData[userId] = userMetrics;
-        localStorage.setItem('metricsData_v2', JSON.stringify(allMetricsData));
-
-        navigate('/inventory');
-      } else {
-        const msg = await res.text();
-        setError('Submission failed!\n' + msg);
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Error connecting to server');
-    }
+    navigate('/inventory');
   };
 
   return (
