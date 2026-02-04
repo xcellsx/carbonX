@@ -1,0 +1,117 @@
+/* Add Products page uses .container, .sidebar, .content-section-main from global/Inventory */
+
+.add-products-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  color: rgba(var(--greys), 1);
+  min-width: 12.5rem;
+}
+
+/* --- Customize your own (top section) --- */
+.customize-section {
+  margin-bottom: 0;
+}
+
+.customize-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.customize-subtext {
+  font-size: var(--small);
+  color: rgba(var(--greys), 1);
+  margin: 0 0 1rem 0;
+}
+
+.customize-area {
+  background: rgba(var(--greys), 0.08);
+  border: 1px dashed rgba(var(--greys), 0.4);
+  border-radius: 8px;
+  min-height: 120px;
+  padding: 1.5rem;
+}
+
+.customize-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  color: rgba(var(--greys), 1);
+  font-size: var(--normal);
+  text-align: center;
+}
+
+.customize-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+/* --- Available Product Templates --- */
+.templates-section {
+  margin-top: 2rem;
+}
+
+.templates-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* --- Accordion (food groups) --- */
+.template-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.template-accordion-item {
+  border-bottom: 1px solid rgba(var(--greys), 0.2);
+}
+
+.template-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.template-accordion-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: var(--bold);
+  color: rgba(var(--blacks), 1);
+  text-align: left;
+  text-transform: none; /* let .template-accordion-label control transform */
+}
+
+.template-accordion-trigger:hover {
+  color: rgba(var(--primary), 1);
+}
+
+/* Accordion label: change font-size here; text-transform affects e.g. "pasta" → "Pasta" */
+.template-accordion-label {
+  font-size: var(--medium);
+}
+
+.template-accordion-item .template-cards-grid {
+  padding-bottom: 1.5rem;
+  padding-left: 1.75rem;
+}
+
+.template-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}

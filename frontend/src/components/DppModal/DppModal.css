@@ -1,0 +1,16 @@
+.dpp-modal-pre {
+  max-width: 650px;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--main-bg);
+  padding: 16px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.dpp-modal-content {
+  width: 600px;
+  max-width: 90%;
+}

@@ -30,6 +30,9 @@ export const productAPI = {
 
   // DELETE /api/products/:id
   deleteProduct: (id) => api.delete(`/products/${id}`),
+
+  // POST /api/products/:id/calculate – Calculate LCA and generate/update DPP
+  calculateProduct: (id) => api.post(`/products/${id}/calculate`),
 };
 
 // Health: Java backend uses Actuator on port 9000; no /api/health on 8080.

@@ -1,0 +1,186 @@
+.edit-template-field {
+  margin-bottom: 1.5rem;
+}
+
+.edit-template-name-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.edit-template-name-row .edit-template-field-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.edit-template-label {
+  display: block;
+  font-size: var(--small);
+  font-weight: var(--bold);
+  color: rgba(var(--blacks), 1);
+  margin-bottom: 0.5rem;
+}
+
+/* Inputs use global .input-base; name input gets bold */
+.edit-template-name-input {
+  font-weight: var(--bold);
+}
+
+/* Table cell inputs: keep input-base styling, compact padding for rows */
+.edit-template-table .input-base.edit-template-cell-input {
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+}
+
+.edit-template-section {
+  margin-bottom: 2rem;
+}
+
+.edit-template-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.edit-template-section-header .edit-template-label {
+  margin-bottom: 0;
+}
+
+.edit-template-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.edit-template-add-btn:hover {
+  background: rgba(var(--primary), 0.85);
+}
+
+.edit-template-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(var(--greys), 0.25);
+  border-radius: 8px;
+}
+
+.edit-template-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Same column layout for both tables: name | amount | unit | action */
+.edit-template-col-name { width: 37%; }
+.edit-template-col-amount { width: 25%; }
+.edit-template-col-unit { width: 30%; }
+.edit-template-col-action { width: 8%; min-width: 56px; }
+
+.edit-template-table th,
+.edit-template-table td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  vertical-align: middle;
+}
+
+.edit-template-table thead tr {
+  background: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+}
+
+.edit-template-table th {
+  font-size: var(--small);
+  font-weight: var(--bold);
+}
+
+.edit-template-table tbody tr {
+  background: rgba(var(--whites), 1);
+  border-bottom: 1px solid rgba(var(--greys), 0.15);
+}
+
+.edit-template-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.edit-template-cell-input {
+  width: 100%;
+  min-width: 100px;
+}
+
+.edit-template-th-action,
+.edit-template-td-action {
+  width: 56px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Action column: icon class + danger background */
+.edit-template-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: rgba(var(--whites), 1);
+}
+
+.edit-template-action-btn:hover {
+  filter: brightness(0.9);
+}
+
+.edit-template-empty-row {
+  color: rgba(var(--greys), 0.8);
+  font-size: var(--small);
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+.edit-template-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+.edit-template-btn {
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  font-size: var(--small);
+  font-weight: var(--bold);
+  cursor: pointer;
+  border: none;
+}
+
+.edit-template-cancel {
+  background: rgba(var(--greys), 0.15);
+  color: rgba(var(--greys), 1);
+}
+
+.edit-template-cancel:hover {
+  background: rgba(var(--greys), 0.25);
+}
+
+.edit-template-save {
+  background: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+}
+
+.edit-template-save:hover {
+  background: rgba(var(--primary), 0.85);
+}

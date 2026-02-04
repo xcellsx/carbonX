@@ -1,0 +1,55 @@
+/* Reusable template card - width fits buttons; text center-aligned with buttons */
+.template-card {
+  background: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--greys), 0.2);
+  border-radius: 8px;
+  padding: 1.25rem;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.template-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.template-card-name {
+  font-size: var(--medium);
+  font-weight: var(--bold);
+  color: rgba(var(--blacks), 1);
+  text-align: center;
+  width: 100%;
+}
+
+.template-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.template-card-meta {
+  font-size: var(--small);
+  color: rgba(var(--greys), 1);
+  margin: 0.35rem 0;
+  line-height: 1.4;
+  text-align: center;
+  width: 100%;
+}
+
+.template-card .ingredient-link {
+  color: rgba(var(--primary), 1);
+  font-weight: var(--regular);
+}

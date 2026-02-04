@@ -1,16 +1,17 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import SignupPage from './components/Auth/SignupPage';
-import LoginPage from './components/Auth/LoginPage';
-import CompanyInfoPage from './components/Company/CompanyInfoPage';
-import DashboardPage from './components/Dashboard/DashboardPage';
-import InventoryPage from './components/Inventory/InventoryPage';
-import AnalyticsPage from './components/Analytics/AnalyticsPage';
-import NetworkPage from './components/Network/NetworkPage';
-import SettingsPage from './components/Settings/SettingsPage';
-import ReportPage from './components/Report/ReportPage';
-import SproutAiPage from './components/SproutAI/SproutAIPage';
-import TemplatesPage from './components/Templates/TemplatesPage';
+import SignupPage from './pages/Auth/SignupPage';
+import LoginPage from './pages/Auth/LoginPage';
+import CompanyInfoPage from './pages/Company/CompanyInfoPage';
+import DashboardPage from './pages/Dashboard/DashboardPage';
+import InventoryPage from './pages/Inventory/InventoryPage';
+import AnalyticsPage from './pages/Analytics/AnalyticsPage';
+import NetworkPage from './pages/Network/NetworkPage';
+import SettingsPage from './pages/Settings/SettingsPage';
+import ReportPage from './pages/Report/ReportPage';
+import SproutAiPage from './pages/SproutAI/SproutAIPage';
+import AddProductsPage from './pages/AddProducts/AddProductsPage';
+import EditTemplatePage from './pages/AddProducts/EditTemplatePage';
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
-        <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/add-products" element={<AddProductsPage />} />
+        <Route path="/add-products/edit/:id" element={<EditTemplatePage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/network" element={<NetworkPage />} />
         <Route path="/settings" element={<SettingsPage />} />

@@ -460,6 +460,28 @@ select.input-base option {
   gap: 1rem;
 }
 
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.navbar-sub {
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-sub {
+  font-size: var(--small);
+  text-align: left;
+}
+
+.nav-sub.active {
+  opacity: 0.8;
+}
+
 .sidebar-bottom {
   padding-top: 1rem;
   border-top: rgba(var(--greys), 0.6) solid 1px;
@@ -479,6 +501,19 @@ select.input-base option {
 }
 
 /* Modals */
+.modal-overlay.active {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(var(--blacks), 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
 .modal-content {
   background: rgba(var(--background), 1);
   padding: 1.5rem;
@@ -502,4 +537,17 @@ select.input-base option {
   cursor: pointer;
   line-height: 1;
   padding: 0;
+}
+
+.confirm-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.button-modal {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 1rem;
 }
