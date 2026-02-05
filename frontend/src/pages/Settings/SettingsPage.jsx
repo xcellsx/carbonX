@@ -9,6 +9,7 @@ import CompanyForm from '../Company/CompanyForm';
 import BillingSubscriptions from './BillingSubscriptions'; 
 import BillingHistory from './BillingHistory';
 import { API_BASE } from '../../services/api';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 
@@ -18,9 +19,7 @@ const SettingsPage = () => {
     localStorage.getItem('settingsTab') || 'account'
   );
 
-  const [isProUser, setIsProUser] = useState(
-    localStorage.getItem('isProUser') === 'true'
-  ); 
+  const { isProUser, refreshSubscription } = useProSubscription(); 
   
   const [password, setPassword] = useState(''); 
   const [saveMessage, setSaveMessage] = useState('');
@@ -45,6 +44,13 @@ const SettingsPage = () => {
     isDirty: isCompanyFormDirty, 
     resetForm: resetCompanyForm 
   } = useCompanyForm();
+
+  // Handle navigation to billing tab (e.g., from ProGate upgrade button)
+  useEffect(() => {
+    if (location.state?.tab === 'billing') {
+      setActiveTab('billing');
+    }
+  }, [location.state]);
 
   // Save the active tab to localStorage whenever it changes
   useEffect(() => {
@@ -219,7 +225,7 @@ const SettingsPage = () => {
           </form>
         );
       case 'billing':
-        return <BillingSubscriptions onPlanSave={() => setIsProUser(true)} />;
+        return <BillingSubscriptions onPlanSave={refreshSubscription} />;
       case 'history':
         return <BillingHistory />;
       default:

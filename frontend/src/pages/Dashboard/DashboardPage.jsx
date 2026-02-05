@@ -10,6 +10,7 @@ import {
   Factory, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { API_BASE } from '../../services/api';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 const allMetricDefinitions = [
   { id: 'scope-1', name: 'Scope 1 Emissions', icon: Factory }, 
@@ -260,7 +261,7 @@ const generateInitialMetrics = () => {
 };
 
 const DashboardPage = () => {
-  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true'); 
+  const { isProUser } = useProSubscription(); 
   const navigate = useNavigate();
   const location = useLocation(); 
   const [metrics, setMetrics] = useState(null); 

@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown } from 'lucide-react';
 import './NetworkPage.css';
 import { API_BASE, productAPI } from '../../services/api';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- IMPACT CATEGORIES (CORRECTED UUIDs) ---
 const IMPACT_CATEGORIES = [
@@ -252,7 +253,7 @@ const NetworkGraph = ({ data, viewMode, productName, selectedCategory }) => {
 // --- Main Page Component ---
 const NetworkPage = () => {
   const [userId] = useState(localStorage.getItem('userId') || '');
-  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
+  const { isProUser } = useProSubscription();
   const navigate = useNavigate();
   const location = useLocation();
 

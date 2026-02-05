@@ -12,6 +12,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import logoPath from '../../assets/carbonx.png';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 /**
  * Shared app sidebar/navbar. Use inside a layout with class "container".
@@ -20,7 +21,7 @@ import logoPath from '../../assets/carbonx.png';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isProUser = localStorage.getItem('isProUser') === 'true';
+  const { isProUser } = useProSubscription();
 
   return (
     <div className="sidebar">

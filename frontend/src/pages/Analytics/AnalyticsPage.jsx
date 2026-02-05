@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown, Sparkles, Lock, X } from 'lucide-react';
 import { API_BASE, productAPI } from '../../services/api';
 import ProModal from '../../components/ProModal/ProModal';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- Same data source as Inventory: localStorage templates + API products ---
 const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
@@ -119,7 +120,7 @@ const AiSuggestionsModal = ({ isOpen, onClose }) => {
 const AnalyticsPage = () => {
   // --- State for User Profile & Logic ---
   const [userId] = useState(localStorage.getItem('userId') || '');
-  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
+  const { isProUser } = useProSubscription();
   const navigate = useNavigate();
   
   

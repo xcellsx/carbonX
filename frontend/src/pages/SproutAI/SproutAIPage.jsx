@@ -4,6 +4,7 @@ import './SproutAIPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import { Send, File, MessageSquare, ChevronRight } from 'lucide-react';
 import { API_BASE, productAPI } from '../../services/api';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 const MOCK_ARCHIVE_DATA = [
   {
@@ -24,7 +25,7 @@ const MOCK_ARCHIVE_DATA = [
 
 const SproutAiPage = () => {
   const [userId] = useState(localStorage.getItem('userId') || '');
-  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true'); 
+  const { isProUser } = useProSubscription();
   const navigate = useNavigate();
   const location = useLocation(); 
 

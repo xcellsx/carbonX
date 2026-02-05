@@ -156,6 +156,9 @@ const BillingSubscriptions = ({ onPlanSave }) => {
     
     const isPro = billingInfo.plan === 'pro';
     localStorage.setItem('isProUser', isPro ? 'true' : 'false');
+    
+    // Dispatch custom event to notify other components of subscription change
+    window.dispatchEvent(new Event('subscriptionUpdated'));
 
     if (isPro) {
       onPlanSave(); 

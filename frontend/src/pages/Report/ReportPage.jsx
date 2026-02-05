@@ -11,6 +11,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
+import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- Generate Report Modal ---
 const GenerateReportModal = ({ isOpen, onClose, onNavigate }) => {
@@ -178,7 +179,7 @@ const ReportContent = ({ data, onBack }) => {
 const ReportPage = () => {
   const navigate = useNavigate();
   
-  const [isProUser] = useState(localStorage.getItem('isProUser') === 'true');
+  const { isProUser } = useProSubscription();
 
   const [reportsList, setReportsList] = useState([]);
   const [loading, setLoading] = useState(true);
