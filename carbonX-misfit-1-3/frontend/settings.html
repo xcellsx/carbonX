@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarbonX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Hammersmith+One&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/CarbonX-icon(dark).png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="assets/CarbonX-icon(light).png" type="image/png" media="(prefers-color-scheme: light)">
+<style>
+    :root {
+        color-scheme: light dark;
+        --navy: #223f43;
+        --blue: #59A5B2;
+        --light-blue: #c5e4e7;
+        --cream: #f1e0ce;
+        --yellow: #fbcc58;
+        --black: #020202;
+        --white: #f4f4f4;
+        --grey: #eaeaea;
+        --dark-grey: #a9a9a9;
+        --body-bg: light-dark(var(--grey), var(--black));
+        --card-bg: light-dark(var(--white), var(--black));
+        --border-color: var(--dark-grey);
+        --text-dark: light-dark(var(--black), var(--white));
+        --text-muted: var(--dark-grey);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Figtree', sans-serif;
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 80px;
+        background-color: var(--card-bg);
+        padding: 30px 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-right: 1px solid var(--border-color);
+        flex-shrink: 0;
+        transition: width 0.3s ease;
+        overflow-x: hidden;
+    }
+    .sidebar.expanded {
+        width: 240px;
+    }
+
+    .sidebar-top, .sidebar-bottom {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 50px;
+        flex-shrink: 0;
+        height: 30px;
+        justify-content: center;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+        font-weight: 500;
+        color: var(--text-dark);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .nav-item.active {
+    background-color: transparent; /* Remove the block of color */
+    color: light-dark(var(--navy), var(--blue)); /* Make icon/text colored */
+    border: 1.5px solid var(--dark-grey); /* Add the outline */
+    padding: 10.5px; /* Adjust padding to keep alignment */
+}
+    .nav-item:not(.active):hover {
+       background-color: var(--border-color);
+    }
+    .nav-item svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        margin-right: 18px;
+    }
+    .nav-item span {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .sidebar.expanded .nav-item span {
+        opacity: 1;
+    }
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content by default */
+    padding: 10.5px;
+    border-radius: 8px;
+    margin-top: 20px;
+    text-decoration: none;
+    color: inherit;
+    border: 1.5px solid var(--dark-grey);
+    background-color: transparent;
+    gap: 0; /* Remove gap when collapsed */
+}
+
+/* Add this new rule */
+.sidebar.expanded .user-profile {
+    justify-content: flex-start; /* Re-align to the left */
+    gap: 10px; /* Restore the gap */
+}
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--dark-grey);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+.user-info {
+    display: none; /* Hide completely when collapsed */
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.sidebar.expanded .user-info {
+    display: block; /* Make it visible again */
+    opacity: 1;
+}
+.user-info .name {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.user-info .company {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+    .main-content {
+        flex-grow: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    header .title h1 {
+        font-family: 'Hammersmith One', sans-serif;
+        font-size: 36px;
+        color: var(--text-dark);
+        font-weight: 400;
+        margin-bottom: 8px;
+    }
+    header .title p {
+        color: var(--text-dark);
+    }
+
+    .search-bar {
+        position: relative;
+    }
+    .search-bar input {
+        padding: 10px 15px 10px 40px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        width: 250px;
+        background-color: var(--card-bg);
+        color: var(--text-dark);
+    }
+    .search-bar svg {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .settings-accordion {
+        max-width: 100%;
+    }
+    .accordion-item {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .accordion-header svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s;
+    }
+    .accordion-item.active .accordion-header svg {
+        transform: rotate(180deg);
+    }
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        padding: 0 25px;
+    }
+    .accordion-content p {
+        padding: 20px 0;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 30px;
+        padding: 20px 0 30px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-bottom: 30px;
+    }
+    .save-btn {
+        background-color: var(--yellow);
+        color: var(--black);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .save-btn:hover {
+        background-color: var(--cream);
+    }
+    .save-feedback {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--blue);
+        margin-left: 20px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+</style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <div class="logo">
+                <picture>
+                    <source srcset="assets/CarbonX-icon(dark).png" media="(prefers-color-scheme: dark)">
+                    <img src="assets/CarbonX-icon(light).png" alt="Logo" width="30">
+                </picture>
+            </div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Inventory</span>
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analytics</span>
+                </a>
+                <a href="network.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Network</span>
+                </a>
+                <a href="report.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Report</span>
+                </a>
+                <a href="chat.html" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>AI Chat</span>
+                </a>
+            </nav>
+        </div>
+        <div class="sidebar-bottom">
+            <nav class="nav-menu"></nav>
+            <a href="settings.html" class="user-profile">
+                <div class="user-avatar" id="user-avatar"></div>
+                <div class="user-info">
+                    <div class="name" id="user-name"></div>
+                    <div class="company" id="user-company"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <main class="main-content">
+        <header>
+            <div class="title">
+                <h1>Settings</h1>
+                <p>View all your settings here.</p>
+            </div>
+            <div class="search-bar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" placeholder="Search">
+            </div>
+        </header>
+
+        <div class="settings-accordion">
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span>Account Settings</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content">
+                    <form id="accountSettingsForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="accountName">Full Name</label>
+                                <input type="text" id="accountName">
+                            </div>
+                            <div class="form-group">
+                                <label for="accountEmail">Email</label>
+                                <input type="email" id="accountEmail">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="accountPassword">New Password</label>
+                                <input type="password" id="accountPassword" placeholder="Leave blank to keep current password">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <span class="save-feedback">Changes saved!</span>
+                            <button type="submit" class="save-btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <span>Company Information</span>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div class="accordion-content">
+                     <form id="companyInfoForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="companyName">Company Name</label>
+                                <input type="text" id="companyName">
+                            </div>
+                            <div class="form-group">
+                                <label for="sector">Sector</label>
+                                <input type="text" id="sector">
+                            </div>
+                            <div class="form-group">
+                                <label for="industry">Industry</label>
+                                <input type="text" id="industry">
+                            </div>
+                            <div class="form-group">
+                                <label for="subIndustry">Sub-industry</label>
+                                <input type="text" id="subIndustry">
+                            </div>
+                             <div class="form-group">
+                                <label for="headquarters">Headquarters</label>
+                                <input type="text" id="headquarters">
+                            </div>
+                            <div class="form-group">
+                                <label for="reportingYear">Reporting Year</label>
+                                <input type="text" id="reportingYear">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <span class="save-feedback">Changes saved!</span>
+                            <button type="submit" class="save-btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+            sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+
+            // User Profile Hydration
+            const userName = localStorage.getItem('signupFullName') || 'John Doe';
+            const companyName = localStorage.getItem('companyName') || 'Company Name';
+            let initials = 'JD';
+            if (userName) {
+                const nameParts = userName.split(' ');
+                initials = nameParts[0].charAt(0) + (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '');
+            }
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = initials.toUpperCase();
+            document.getElementById('user-company').textContent = companyName;
+
+            // Accordion Logic
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                header.addEventListener('click', () => {
+                    const content = item.querySelector('.accordion-content');
+                    const isActive = item.classList.toggle('active');
+                    content.style.maxHeight = isActive ? content.scrollHeight + 'px' : null;
+                });
+            });
+
+            // Company Info Form Logic
+            const companyForm = document.getElementById('companyInfoForm');
+            const companyFields = ['companyName', 'sector', 'industry', 'subIndustry', 'headquarters', 'reportingYear'];
+            
+            // Load data into form
+            companyFields.forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                const savedValue = localStorage.getItem(fieldId);
+                if (input && savedValue) {
+                    input.value = savedValue;
+                }
+            });
+
+            // Save data from form
+            companyForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                companyFields.forEach(fieldId => {
+                    const input = document.getElementById(fieldId);
+                    if (input) {
+                        localStorage.setItem(fieldId, input.value);
+                    }
+                });
+                
+                // Show feedback message
+                const feedback = companyForm.querySelector('.save-feedback');
+                feedback.style.opacity = 1;
+                setTimeout(() => {
+                    feedback.style.opacity = 0;
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
+
