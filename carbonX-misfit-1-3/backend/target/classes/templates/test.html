@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backend Dashboard for CarbonX</title>
+  <link th:href="@{styles/test.css}" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Left pane: Buttons playground -->
+    <aside class="window" id="play-window">
+      <div class="titlebar">
+        <div class="title">Button Playground</div>
+      </div>
+
+      <div class="play-body">
+        <div class="buttons-grid">
+          <!-- For testing purposes, ensure that the number of buttons, tally with the number of defined functions under testFunction.js -->
+          <button th:text="${btn1Text}" class="btn" id="btn-1" th:onclick="function1()">Text for Button 1</button>
+          <button th:text="${btn2Text}" class="btn" id="btn-2" th:onclick="function2()">Text for Button 2</button>
+          <button th:text="${btn3Text}" class="btn" id="btn-3" th:onclick="function3()">Text for Button 3</button>
+          <button th:text="${btn4Text}" class="btn" id="btn-4" th:onclick="function4()">Text for Button 4</button>
+          <button class="btn big" id="btn-upload">Insert random sample JSON</button>
+        </div>
+
+        <div>
+          <div style="margin-bottom:6px;font-size:13px;color:#000000;font-weight:bold;">Activity log</div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right pane: JSON viewer -->
+    <section class="window" id="json-window">
+      <div class="titlebar">
+        <div class="title">JSON Viewer</div>
+        <div class="controls">
+          <button class="btn" id="open-sample">Load sample</button>
+          <label class="btn" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+            <input id="file" type="file" accept="application/json" style="display:none">Open file
+          </label>
+          <button class="btn primary" id="copy-raw">Copy</button>
+        </div>
+      </div>
+
+      <div class="json-body">
+        <div class="toolbar">
+          <div id="drop" class="file-drop">Drop JSON file here or click Open file</div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn" id="pretty">Pretty print</button>
+            <button class="btn" id="minify">Minify</button>
+            <button class="btn" id="validate">Validate</button>
+            <button class="btn" id="download">Download</button>
+          </div>
+        </div>
+
+        <div th:text="${inputRequest}" class="viewer" id="viewer" aria-live="polite"><pre id="code"></pre></div>
+        <div th:text="${outputResponse}" class="viewer" id="viewer" aria-live="polite"><pre id="code"></pre></div>
+        <footer id="status">No file loaded</footer>
+      </div>
+    </section>
+
+  </div>
+
+  <script th:src="@{/js/testFunctions.js}"></script>
+</body>
+</html>
