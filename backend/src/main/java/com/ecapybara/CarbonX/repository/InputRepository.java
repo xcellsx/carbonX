@@ -9,10 +9,9 @@ import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.annotation.Query;
 import com.arangodb.springframework.repository.ArangoRepository;
-
-import com.ecapybara.carbonx.model.Input;
-import com.ecapybara.carbonx.model.Process;
-import com.ecapybara.carbonx.model.Product;
+import com.ecapybara.carbonx.model.issb.Input;
+import com.ecapybara.carbonx.model.issb.Process;
+import com.ecapybara.carbonx.model.issb.Product;
 
 public interface InputRepository extends ArangoRepository<Input, String> {
 

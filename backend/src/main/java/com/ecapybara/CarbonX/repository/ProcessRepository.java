@@ -8,8 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-
-import com.ecapybara.carbonx.model.Process;
+import com.ecapybara.carbonx.model.issb.Process;
 
 public interface ProcessRepository extends ArangoRepository<Process, String>{
   

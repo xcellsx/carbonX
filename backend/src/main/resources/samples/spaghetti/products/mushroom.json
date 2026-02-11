@@ -1,0 +1,168 @@
+{
+  "name": "mushroom",
+  "type": "ingredient",
+  "productOrigin": null,
+  "quantifiableUnit": "kg",
+  "quantityValue": 1.0,
+  "emissionInformation":  {
+                            "Scope 1": null,
+                            "Scope 2": null,
+                            "Scope 3":  {
+                                          "Category 1": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 2": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 3": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 4": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 5": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 6": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 7": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 8": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 9": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 10": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 11": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 12": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 13": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 14": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ],
+                                          "Category 15": [
+                                                          {
+                                                            "name": "C02",
+                                                            "metric": {"value": 2.0, "unit": "kg"}
+                                                          },
+                                                          {
+                                                            "name": "CH4",
+                                                            "metric": {"value": 4.0, "unit": "kg"}
+                                                          }                                         
+                                                        ]
+                                        }
+                          },
+  "functionalProperties": null,
+  "dpp":  null,
+  "procedure": null,
+  "userId": null,
+  "uploadedFile":null
+}

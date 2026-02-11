@@ -2,8 +2,10 @@ package com.ecapybara.carbonx.controller;
 
 import java.util.List;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -21,11 +23,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.ecapybara.carbonx.config.AppLogger;
-import com.ecapybara.carbonx.model.Product;
+import com.ecapybara.carbonx.model.issb.Product;
 import com.ecapybara.carbonx.repository.ProductRepository;
 import com.ecapybara.carbonx.service.DocumentService;
 import com.ecapybara.carbonx.service.GraphService;
+import com.ecapybara.carbonx.service.ImportExportService;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
@@ -34,17 +38,20 @@ import reactor.core.publisher.Mono;
 public class ProductController {
   
   @Autowired
+  private ImportExportService importService;
+  @Autowired
   private DocumentService documentService;
   @Autowired
   private GraphService graphService;
   @Autowired
   private ProductRepository productRepository;
+  
 
   private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
   final Sort sort = Sort.by(Direction.DESC, "id");
 
   @GetMapping
-  public Iterable<Product> getProducts(@RequestParam(name = "name", required = false) String name,@RequestParam(name = "type", required = false) String type) {
+  public List<Product> getProducts(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "type", required = false) String type) {
     if (name != null && !name.isEmpty() && type!=null && !type.isEmpty()) {
       return productRepository.findByNameAndType(sort, name, type);
     }
@@ -55,7 +62,7 @@ public class ProductController {
       return productRepository.findByType(sort, type);
     }
     else {
-      return productRepository.findAll();
+      return IterableUtils.toList(productRepository.findAll());
     }
   }
 
@@ -86,8 +93,8 @@ public class ProductController {
   }
 
   @GetMapping("/{id}")
-  public Mono<Product> getProduct(@PathVariable String id) {
-    return documentService.getDocuments("products", id)
+  public Mono<Product> getProduct(@PathVariable String key) {
+    return documentService.getDocument("products", key)
             .bodyToMono(Product.class)
             .doOnNext(body -> log.info("API Response:\n{}", body));
   }
@@ -100,7 +107,6 @@ public class ProductController {
       product.setName(revisedProduct.getName());
       product.setType(revisedProduct.getType());
       product.setProductOrigin(revisedProduct.getProductOrigin());
-      product.setFunctionalProperties(revisedProduct.getFunctionalProperties());
       product.setDPP(revisedProduct.getDPP());
       product.setUserId(revisedProduct.getUserId());
       product.setUploadedFile(revisedProduct.getUploadedFile());
@@ -123,4 +129,15 @@ public class ProductController {
     return LCAService.calculate(product);
   }
   */
+
+  // Experimental endpoint to call for backend import function for products
+  @PostMapping("/import")
+  public Mono<?> testImport() {
+    List<String> files = List.of("templates.csv");
+    
+    return Flux.fromIterable(files)
+        .flatMap(filename -> importService.importCSV("products", filename))
+        .then(Mono.just("Successfully imported JSON files!"))
+        .onErrorReturn("Import failed - check logs");
+  }
 }

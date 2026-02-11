@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecapybara.carbonx.config.AppLogger;
-import com.ecapybara.carbonx.model.Process;
+import com.ecapybara.carbonx.model.issb.Process;
 import com.ecapybara.carbonx.repository.ProcessRepository;
 import com.ecapybara.carbonx.service.DocumentService;
 import com.ecapybara.carbonx.service.GraphService;
@@ -87,7 +87,7 @@ public class ProcessController {
 
   @GetMapping("/{id}")
   public Mono<Process> getProcess(@PathVariable String id) {
-    return documentService.getDocuments("processes", id)
+    return documentService.getDocument("processes", id)
             .bodyToMono(Process.class)
             .doOnNext(body -> log.info("API Response:\n{}", body));
   }
@@ -99,7 +99,6 @@ public class ProcessController {
     if (process != null) {
       process.setName(revisedProcess.getName());
       process.setType(revisedProcess.getType());
-      process.setFunctionalProperties(revisedProcess.getFunctionalProperties());
       process.setDPP(revisedProcess.getDPP());
       processRepository.save(process);
     }

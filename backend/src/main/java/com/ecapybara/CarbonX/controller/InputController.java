@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.Input;
+import com.ecapybara.carbonx.model.issb.Input;
 import com.ecapybara.carbonx.repository.InputRepository;
 import org.springframework.web.bind.annotation.PutMapping;
 
