@@ -1,6 +1,7 @@
 package com.ecapybara.carbonx.model.ipcc;
 
-import com.ecapybara.carbonx.model.basic.Emission;
+import java.util.Map;
+
 import com.opencsv.bean.CsvRecurse;
 
 import lombok.Data;
@@ -9,20 +10,20 @@ import lombok.NoArgsConstructor;
 @Data @NoArgsConstructor
 public class ChlorofluorocarbonChart{
   @CsvRecurse
-  private Emission CFC_11;
+  private Map<String,Object> CFC_11;
 
   @CsvRecurse
-  private Emission CFC_12;
+  private Map<String,Object> CFC_12;
 
   @CsvRecurse
-  private Emission CFC_13;
+  private Map<String,Object> CFC_13;
 
   @CsvRecurse
-  private Emission CFC_113;
+  private Map<String,Object> CFC_113;
 
   @CsvRecurse
-  private Emission CFC_114;
+  private Map<String,Object> CFC_114;
 
   @CsvRecurse
-  private Emission CFC_115;
+  private Map<String,Object> CFC_115;
 }

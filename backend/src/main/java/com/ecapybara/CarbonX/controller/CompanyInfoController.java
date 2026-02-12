@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecapybara.carbonx.model.basic.Company;
-import com.ecapybara.carbonx.model.basic.User;
-import com.ecapybara.carbonx.model.issb.Product;
 import com.ecapybara.carbonx.repository.CompanyRepository;
 
 import org.apache.commons.collections4.IterableUtils;

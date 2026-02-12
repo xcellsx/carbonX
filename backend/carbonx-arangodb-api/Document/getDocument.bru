@@ -1,0 +1,26 @@
+meta {
+  name: getDocument
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/_db/{{databaseName}}/_api/document/:collection/:key
+  body: none
+  auth: basic
+}
+
+params:path {
+  key: 1
+  collection: products
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

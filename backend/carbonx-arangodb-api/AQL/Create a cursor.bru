@@ -10,11 +10,6 @@ post {
   auth: basic
 }
 
-headers {
-  username: "root"
-  password: "test"
-}
-
 auth:basic {
   username: root
   password: test
@@ -22,9 +17,15 @@ auth:basic {
 
 body:json {
   {
-    "query" : "FOR product IN products FILTER product._id NOT IN (FOR output IN outputs RETURN output._to) RETURN product",
+    "query" : "FOR v IN 1..100 INBOUND @startNode GRAPH @graphName FILTER v._class == @vertexClass COLLECT AGGREGATE s1 = SUM(v.DPP.carbonFootprint.scope1.kgCO2e), s2 = SUM(v.DPP.carbonFootprint.scope2.kgCO2e), s3 = SUM(v.DPP.carbonFootprint.scope3.kgCO2e) RETURN {s1,s2,s3}",
+    "bindVars": 
+    {
+      "startNode": "products/1",
+      "graphName": "default",
+      "vertexClass": "com.ecapybara.carbonx.model.issb.Process"
+    },
     "count" : true,
-    "batchSize" : 5
+    "batchSize" : 10
   }
 }
 

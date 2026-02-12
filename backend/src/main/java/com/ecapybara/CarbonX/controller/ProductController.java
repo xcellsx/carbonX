@@ -1,6 +1,7 @@
 package com.ecapybara.carbonx.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
@@ -25,9 +26,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.ecapybara.carbonx.config.AppLogger;
 import com.ecapybara.carbonx.model.issb.Product;
 import com.ecapybara.carbonx.repository.ProductRepository;
-import com.ecapybara.carbonx.service.DocumentService;
+import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
 import com.ecapybara.carbonx.service.GraphService;
 import com.ecapybara.carbonx.service.ImportExportService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,11 +42,13 @@ public class ProductController {
   @Autowired
   private ImportExportService importService;
   @Autowired
-  private DocumentService documentService;
+  private ArangoDocumentService documentService;
   @Autowired
   private GraphService graphService;
   @Autowired
   private ProductRepository productRepository;
+  @Autowired
+  private ObjectMapper objectMapper;
   
 
   private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
@@ -92,11 +96,12 @@ public class ProductController {
     return revisedProducts;
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{key}")
   public Mono<Product> getProduct(@PathVariable String key) {
-    return documentService.getDocument("products", key)
-            .bodyToMono(Product.class)
-            .doOnNext(body -> log.info("API Response:\n{}", body));
+    Map<String,Object> rawDocument = documentService.getDocument("products", key, null, null)
+                                                    .block();
+    Product product = objectMapper.convertValue(rawDocument, Product.class);
+    return Mono.just(product);
   }
 
   @PutMapping("/{id}")

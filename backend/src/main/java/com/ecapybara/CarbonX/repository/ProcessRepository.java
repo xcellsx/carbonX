@@ -14,6 +14,8 @@ public interface ProcessRepository extends ArangoRepository<Process, String>{
   
   @NonNull Optional<Process> findById(@NonNull String id);
 
+  @NonNull Optional<Process> findByKey(@NonNull String key);
+
   List<Process> findByName(Sort sort, String name);
 
   List<Process> findByType(Sort sort, String type);

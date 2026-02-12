@@ -23,7 +23,7 @@ public class ArangoQueryService extends BaseArangoService {
      * Execute an AQL query (create cursor)
      * POST /_api/cursor
      */
-    public Mono<Map> executeQuery(String query, Map<String, Object> bindVars, 
+    public Mono<Map> executeQuery(String query, Map<String, String> bindVars, 
                                    Integer batchSize, Integer ttl, Boolean count,
                                    Map<String, Object> options) {
         log.info("Executing AQL query: {}", query);

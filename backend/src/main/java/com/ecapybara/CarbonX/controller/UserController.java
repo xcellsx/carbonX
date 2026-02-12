@@ -1,6 +1,7 @@
 package com.ecapybara.carbonx.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ecapybara.carbonx.config.AppLogger;
 import com.ecapybara.carbonx.model.basic.User;
 import com.ecapybara.carbonx.repository.UserRepository;
-import com.ecapybara.carbonx.service.DocumentService;
+import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Mono;
 
@@ -33,7 +35,9 @@ public class UserController {
   @Autowired
   private UserRepository userRepository;
   @Autowired
-  private DocumentService documentService;
+  private ArangoDocumentService documentService;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
   final Sort sort = Sort.by(Direction.DESC, "id");
@@ -56,9 +60,10 @@ public class UserController {
 
   @GetMapping("/{key}")
   public Mono<User> getUser(@PathVariable String key) {
-    return documentService.getDocument("users", key)
-            .bodyToMono(User.class)
-            .doOnNext(body -> log.info("API Response:\n{}", body));
+    Map<String,Object> rawDocument = documentService.getDocument("users", key, null, null)
+                                                    .block();
+    User user = objectMapper.convertValue(rawDocument, User.class);                                             
+    return Mono.just(user);
   }
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

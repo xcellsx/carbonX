@@ -116,9 +116,6 @@ public class ImportExportService {
                                           .withIgnoreEmptyLine(true)
                                           .build()
                                           .parse();
-
-          inputList.forEach(input -> inputRepository.save(input)); // save each document into the correct repo
-
           return Mono.just(String.format("Import successful for '%s' into INPUT repository!", filename));
 
         case "outputs":
