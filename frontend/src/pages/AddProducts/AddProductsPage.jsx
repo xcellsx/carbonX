@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Plus, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import Navbar from '../../components/Navbar/Navbar';
 import TemplateCard from '../../components/TemplateCard/TemplateCard';
+import { productAPI } from '../../services/api';
 import './AddProductsPage.css';
 
 const STORAGE_KEY = 'carbonx-custom-templates';
@@ -44,19 +46,47 @@ const FOOD_GROUPS = [
   },
 ];
 
+const ADD_PRODUCTS_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Browse Templates', description: 'Find product templates by category (Pasta, Bowls, Soup) or use Raw materials—the list of items from your backend. Add any template to "Customize your own" to edit and use it in your inventory.', icon: <Layers size={40} /> },
+  { title: 'Customize your own', description: 'Templates you add appear at the top under Customize your own. Edit them to change name, quantity, elements, and processes. Your custom templates are saved and will show on the Inventory page.', icon: <Plus size={40} /> },
+  { title: 'Search & add', description: 'Use the search bar to filter templates by name or ingredient. Click "Add" on a card to copy it to your custom list, or click "Edit" to open the template editor before adding.', icon: <Search size={40} /> },
+];
+
 const AddProductsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [templateSearch, setTemplateSearch] = useState('');
-  const [accordionOpen, setAccordionOpen] = useState({ pasta: true, bowls: false, soup: false });
+  const [accordionOpen, setAccordionOpen] = useState({ pasta: true, bowls: false, soup: false, 'raw-materials': false });
   const [customTemplates, setCustomTemplates] = useState(() => getStoredTemplates());
+  const [rawMaterials, setRawMaterials] = useState([]);
 
-  // Refresh from localStorage when route is Browse Templates
+  const fetchRawMaterials = useCallback(async () => {
+    try {
+      const res = await productAPI.getAllProducts();
+      const raw = Array.isArray(res?.data) ? res.data : [];
+      const normalized = raw.map((p) => {
+        const fromDpp = p.dpp;
+        const name = (p.name ?? fromDpp?.name ?? '').toString().trim() || '—';
+        const key = p.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+        return {
+          id: `raw-${key ?? name}`,
+          name,
+          quantityValue: p.quantityValue ?? p.quantity ?? null,
+          quantifiableUnit: p.quantifiableUnit ?? 'kg',
+        };
+      });
+      setRawMaterials(normalized);
+    } catch (_) {
+      setRawMaterials([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (location.pathname === '/add-products') {
       setCustomTemplates(getStoredTemplates());
+      fetchRawMaterials();
     }
-  }, [location.pathname]);
+  }, [location.pathname, fetchRawMaterials]);
 
   // Reflect template edits from Inventory or other tabs
   useEffect(() => {
@@ -109,6 +139,17 @@ const AddProductsPage = () => {
     saveCustomTemplates([...customTemplates, newTemplate]);
   };
 
+  const addRawMaterialToCustom = (rm) => {
+    const newTemplate = {
+      id: `custom-${Date.now()}`,
+      name: rm.name,
+      ingredients: [],
+      processes: [],
+      quantity: rm.quantityValue != null && rm.quantityValue !== '' ? String(rm.quantityValue) : '',
+    };
+    saveCustomTemplates([...customTemplates, newTemplate]);
+  };
+
   const handleDeleteCustom = (id, e) => {
     e?.stopPropagation?.();
     saveCustomTemplates(customTemplates.filter((t) => t.id !== id));
@@ -138,6 +179,7 @@ const AddProductsPage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="add-products" slides={ADD_PRODUCTS_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">
@@ -238,6 +280,38 @@ const AddProductsPage = () => {
                   </div>
                 );
               })}
+
+              {/* Raw materials: 16 from backend only, weight-only templates */}
+              {rawMaterials.length > 0 && (
+                <div key="raw-materials" className="template-accordion-item">
+                  <button
+                    type="button"
+                    className="template-accordion-trigger"
+                    onClick={() => toggleAccordion('raw-materials')}
+                    aria-expanded={accordionOpen['raw-materials']}
+                  >
+                    {accordionOpen['raw-materials'] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    <span className="template-accordion-label">Raw materials</span>
+                    <span className="raw-materials-count">({rawMaterials.length})</span>
+                  </button>
+                  {accordionOpen['raw-materials'] && (
+                    <div className="template-cards-grid">
+                      {rawMaterials
+                        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+                        .map((rm) => (
+                          <TemplateCard
+                            key={rm.id}
+                            name={rm.name}
+                            quantity={rm.quantityValue != null && rm.quantityValue !== '' ? rm.quantityValue : ''}
+                            weightOnly
+                            weightUnit={rm.quantifiableUnit || 'kg'}
+                            onAdd={() => addRawMaterialToCustom(rm)}
+                          />
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         </div>

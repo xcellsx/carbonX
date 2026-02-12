@@ -105,6 +105,13 @@
   font-size: var(--medium);
 }
 
+.raw-materials-count {
+  font-weight: 400;
+  color: rgba(var(--greys), 1);
+  font-size: 0.9rem;
+  margin-left: 0.25rem;
+}
+
 .template-accordion-item .template-cards-grid {
   padding-bottom: 1.5rem;
   padding-left: 1.75rem;

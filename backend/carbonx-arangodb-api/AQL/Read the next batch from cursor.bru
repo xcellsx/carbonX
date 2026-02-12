@@ -1,0 +1,29 @@
+meta {
+  name: Read the next batch from cursor
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/_db/{{databaseName}}/_api/cursor/:cursor-identifier
+  body: none
+  auth: basic
+}
+
+params:path {
+  cursor-identifier: 162718
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+vars:pre-request {
+  cursor-identifier: 162620
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

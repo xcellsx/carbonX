@@ -6,33 +6,33 @@
   "quantityValue": 1.0,
   "emissionInformation": null,
   "functionalProperties": null,
-  "DPP":  {
-            "name": null,
-            "manufacturer" : null,
-            "serialNumber" : null,
-            "batchNumber": null,
-            "carbonFootprint":  {
-                                  "Scope 1": {"value": 0.3, "unit": "kgCO2e"},
-                                  "Scope 2": {"value": 0.15, "unit": "kgCO2e"},
-                                  "Scope 3":  {
-                                                "Category 1": {"value": null, "unit": null},
-                                                "Category 2": {"value": null, "unit": null},
-                                                "Category 3": {"value": null, "unit": null},
-                                                "Category 4": {"value": null, "unit": null},
-                                                "Category 5": {"value": null, "unit": null},
-                                                "Category 6": {"value": null, "unit": null},
-                                                "Category 7": {"value": null, "unit": null},
-                                                "Category 8": {"value": null, "unit": null},
-                                                "Category 9": {"value": null, "unit": null},
-                                                "Category 10": {"value": null, "unit": null},
-                                                "Category 11": {"value": null, "unit": null},
-                                                "Category 12": {"value": null, "unit": null},
-                                                "Category 13": {"value": null, "unit": null},
-                                                "Category 14": {"value": null, "unit": null},
-                                                "Category 15": {"value": null, "unit": null}
-                                              }              
-                                }    
-          },
+  "DPP": {
+    "name": null,
+    "manufacturer" : null,
+    "serialNumber" : null,
+    "batchNumber": null,
+    "carbonFootprint": {
+      "scope1": {"value": 0.3, "unit": "kgCO2e"},
+      "scope2": {"value": 0.15, "unit": "kgCO2e"},
+      "scope3": {
+        "Category 1": {"value": null, "unit": null},
+        "Category 2": {"value": null, "unit": null},
+        "Category 3": {"value": null, "unit": null},
+        "Category 4": {"value": null, "unit": null},
+        "Category 5": {"value": null, "unit": null},
+        "Category 6": {"value": null, "unit": null},
+        "Category 7": {"value": null, "unit": null},
+        "Category 8": {"value": null, "unit": null},
+        "Category 9": {"value": null, "unit": null},
+        "Category 10": {"value": null, "unit": null},
+        "Category 11": {"value": null, "unit": null},
+        "Category 12": {"value": null, "unit": null},
+        "Category 13": {"value": null, "unit": null},
+        "Category 14": {"value": null, "unit": null},
+        "Category 15": {"value": null, "unit": null}
+      }
+    }    
+  },
   "procedure": null,
   "userId": null,
   "uploadedFile":null

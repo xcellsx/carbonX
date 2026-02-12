@@ -2,7 +2,7 @@ package com.ecapybara.carbonx.service;
 
 import org.springframework.stereotype.Service;
 
-import com.ecapybara.carbonx.model.Node;
+import com.ecapybara.carbonx.model.basic.Node;
 
 @Service
 public class LCAService {

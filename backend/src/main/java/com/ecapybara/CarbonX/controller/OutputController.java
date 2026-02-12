@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.Output;
+import com.ecapybara.carbonx.model.issb.Output;
 import com.ecapybara.carbonx.repository.OutputRepository;
 
 @RestController

@@ -115,6 +115,53 @@
   min-width: 100px;
 }
 
+/* Element searchable dropdown (raw materials) */
+.edit-template-element-dropdown-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.edit-template-element-dropdown-wrap .edit-template-cell-input {
+  padding-right: 2rem;
+}
+.edit-template-element-chevron {
+  position: absolute;
+  right: 0.5rem;
+  pointer-events: none;
+  color: rgba(var(--greys), 0.8);
+  flex-shrink: 0;
+}
+.edit-template-element-dropdown-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--greys), 0.3);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.edit-template-element-dropdown-item {
+  padding: 0.4rem 0.75rem;
+  font-size: var(--small);
+  cursor: pointer;
+}
+.edit-template-element-dropdown-item:hover {
+  background: rgba(var(--primary), 0.1);
+}
+.edit-template-element-dropdown-item.empty {
+  cursor: default;
+  color: rgba(var(--greys), 0.9);
+  font-style: italic;
+}
+
 .edit-template-th-action,
 .edit-template-td-action {
   width: 56px;

@@ -1,41 +1,76 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import './SproutAIPage.css';
 import Navbar from '../../components/Navbar/Navbar';
-import { Send, File, MessageSquare, ChevronRight } from 'lucide-react';
-import { API_BASE, productAPI } from '../../services/api';
+import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
+import { Send, FileText, MessageSquare, Sprout, PlusCircle, Trash2, Sparkles } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
+import { chatCompletion, reportSummaryForChat, generateStructuredReport } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
-const MOCK_ARCHIVE_DATA = [
-  {
-    id: 'arc_001',
-    type: 'prompt',
-    title: 'Explanation of Scope 3 Emissions',
-    date: '2025-11-14',
-    icon: MessageSquare
-  },
-  {
-    id: 'arc_002',
-    type: 'prompt',
-    title: 'Low-carbon packaging alternatives',
-    date: '2025-11-12',
-    icon: MessageSquare
-  }
+const MarkdownMessage = ({ content }) => (
+  <div className="message-markdown">
+    <ReactMarkdown>{content || ''}</ReactMarkdown>
+  </div>
+);
+
+const SESSIONS_KEY = 'sproutai_sessions';
+const CURRENT_MESSAGES_KEY = 'sproutai_current_messages';
+
+const SYSTEM_PROMPT = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You answer questions about Scope 1/2/3 emissions, life cycle assessment (LCA), carbon reporting, and general sustainability. When a user asks you to generate or write a report, give a brief acknowledgment only (e.g. that you're generating it); the full report is produced separately. For normal chat questions, be concise and helpful.`;
+
+function summarizeSessionTitle(messages) {
+  const firstUser = messages.find(m => m.sender === 'user');
+  const text = (firstUser?.text || firstUser?.content || 'Chat').trim();
+  const oneLine = text.replace(/\s+/g, ' ').trim();
+  if (oneLine.length <= 56) return oneLine;
+  const firstSentence = oneLine.match(/^[^.!?]+[.!?]?/)?.[0]?.trim() || oneLine.slice(0, 56);
+  return firstSentence.length <= 56 ? firstSentence : firstSentence.slice(0, 53) + '…';
+}
+
+const SPROUTAI_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Sprout AI', description: 'Sprout AI is your sustainability assistant. Ask questions about emissions, LCA, carbon reporting, or your data. You can also request AI-generated reports—they will appear in the Report page.', icon: <Sprout size={40} /> },
+  { title: 'Chat & History', description: 'Send messages in the chat. Your conversations are saved—switch to the History tab to see past sessions and reopen any chat. Start a new chat with the + button.', icon: <MessageSquare size={40} /> },
+  { title: 'Generate reports', description: 'Ask Sprout to "generate a sustainability report" or "write a carbon report". The report will be created and saved; open the Report page to view and download it as PDF or DOCX.', icon: <FileText size={40} /> },
 ];
 
+function loadSessions() {
+  try {
+    const s = localStorage.getItem(SESSIONS_KEY);
+    if (s) {
+      const p = JSON.parse(s);
+      return Array.isArray(p) ? p : [];
+    }
+  } catch (e) {}
+  return [];
+}
+
+function loadCurrentMessages() {
+  try {
+    const s = localStorage.getItem(CURRENT_MESSAGES_KEY);
+    if (s) {
+      const p = JSON.parse(s);
+      return Array.isArray(p) ? p : [];
+    }
+  } catch (e) {}
+  return [];
+}
+
 const SproutAiPage = () => {
-  const [userId] = useState(localStorage.getItem('userId') || '');
   const { isProUser } = useProSubscription();
   const navigate = useNavigate();
-  const location = useLocation(); 
 
-  const [activeTab, setActiveTab] = useState('chat');
-  const [messages, setMessages] = useState([]);
+  const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'history'
+  const [sessions, setSessions] = useState(loadSessions);
+  const [messages, setMessages] = useState(loadCurrentMessages);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [deleteConfirmSessionId, setDeleteConfirmSessionId] = useState(null);
   const chatHistoryRef = useRef(null);
-
-  const [inventory, setInventory] = useState([]);
+  const lastSentRef = useRef({ text: '', time: 0 });
+  /* If user opened a session from History but hasn't sent any message, don't create a duplicate on tab switch */
+  const viewingSessionIdRef = useRef(null);
 
   useEffect(() => {
     if (chatHistoryRef.current) {
@@ -43,163 +78,181 @@ const SproutAiPage = () => {
     }
   }, [messages]);
 
-  // --- Fetch products (Java backend: GET /api/products), filter by user ---
   useEffect(() => {
-    if (!userId) return;
-    productAPI.getAllProducts()
-      .then(res => {
-        const raw = Array.isArray(res.data) ? res.data : [];
-        const filtered = raw.filter((p) => p.userId === userId);
-        setInventory(filtered.map((p) => ({ productId: p.id ?? p.key, productName: p.name })));
-      })
-      .catch(err => console.error("Failed to load inventory for AI context:", err));
-  }, [userId]);
+    try {
+      localStorage.setItem(CURRENT_MESSAGES_KEY, JSON.stringify(messages));
+    } catch (e) {}
+  }, [messages]);
 
-  // --- Handle Sending Messages ---
-  const handleSend = (overrideText = null) => {
-    const textToSend = overrideText || input;
-    if (textToSend.trim() === '' || isSending) return;
+  useEffect(() => {
+    try {
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+    } catch (e) {}
+  }, [sessions]);
 
+  /* When user switches to History tab: only add a new entry if they actually sent a message (edited).
+     If they only opened a session from History and didn't send anything, keep it in the original – no duplicate. */
+  useEffect(() => {
+    if (activeTab !== 'history') return;
+    if (viewingSessionIdRef.current !== null) {
+      viewingSessionIdRef.current = null;
+      return;
+    }
+    if (messages.length > 0) {
+      const title = summarizeSessionTitle(messages);
+      const newSession = {
+        id: `sess_${Date.now()}`,
+        title,
+        messages: [...messages],
+        createdAt: new Date().toISOString(),
+      };
+      setSessions(prev => [newSession, ...prev]);
+      setMessages([]);
+    }
+  }, [activeTab]);
+
+  const startNewChat = () => {
+    if (messages.length === 0) return;
+    viewingSessionIdRef.current = null;
+    const title = summarizeSessionTitle(messages);
+    const newSession = {
+      id: `sess_${Date.now()}`,
+      title,
+      messages: [...messages],
+      createdAt: new Date().toISOString(),
+    };
+    setSessions(prev => [newSession, ...prev]);
+    setMessages([]);
+  };
+
+  const deleteSession = (sessionId) => {
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
+  };
+
+  const handleConfirmDeleteSession = () => {
+    if (deleteConfirmSessionId) {
+      deleteSession(deleteConfirmSessionId);
+      setDeleteConfirmSessionId(null);
+    }
+  };
+
+  const openSessionInChat = (session) => {
+    viewingSessionIdRef.current = session.id;
+    setMessages(session.messages);
+    setActiveTab('chat');
+  };
+
+  const isReportRequest = (text) => {
+    const lower = text.toLowerCase();
+    return /\b(report|generate a report|write a report|create a report|draft a report)\b/.test(lower);
+  };
+
+  function buildReportRequestWithContext(currentText) {
+    const recent = messages.slice(-6);
+    if (recent.length === 0) return currentText;
+    const lines = recent.map((m) => {
+      const label = m.sender === 'user' ? 'User' : 'Assistant';
+      const body = m.sender === 'user' ? (m.text || m.content) : (m.type === 'report_success' ? '[Generated a report]' : (m.content || m.text || ''));
+      return `${label}: ${(body || '').slice(0, 200)}`;
+    });
+    return `Conversation context:\n${lines.join('\n')}\n\nLatest request: ${currentText}\n\nGenerate the report based on the full conversation (e.g. if the user asked to change company or scope, use that).`;
+  }
+
+  const handleSend = async (overrideText = null) => {
+    const textToSend = (overrideText || input).trim();
+    if (textToSend === '' || isSending) return;
+
+    const now = Date.now();
+    if (textToSend === lastSentRef.current.text && now - lastSentRef.current.time < 2500) {
+      return;
+    }
+    lastSentRef.current = { text: textToSend, time: now };
+
+    viewingSessionIdRef.current = null;
     const newMessages = [...messages, { sender: 'user', text: textToSend }];
     setMessages(newMessages);
     setInput('');
     setIsSending(true);
 
-    // Mock AI response delay
-    setTimeout(() => {
-      let aiResponse = { type: 'text', content: "I'm sorry, I can only help with specific carbon analysis tasks at the moment." };
-      
-      const lowerInput = textToSend.toLowerCase();
+    const historyForApi = messages.slice(-20).map((msg) => ({
+      role: msg.sender === 'user' ? 'user' : 'assistant',
+      content: msg.sender === 'user' ? msg.text : (msg.content || (msg.type === 'report_success' ? 'I generated a report for the user.' : '')),
+    })).filter(m => m.content && m.content.trim());
+    const openRouterMessages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...historyForApi,
+      { role: 'user', content: textToSend },
+    ];
 
-      // --- Logic for "Report Generation" ---
-      if (lowerInput.includes("report")) {
-        
-        // --- UPDATED SMART MATCHING LOGIC ---
-        // 1. Try to find a product where at least 2 words from its name appear in the input
-        // e.g. "Dried Sesame" input will match "Dried White Sesame" product
-        const targetProduct = inventory.find(p => {
-            const nameParts = p.productName.toLowerCase().split(/[\s-]+/).filter(w => w.length > 3); // Split by space or dash, ignore short words
-            if (nameParts.length === 0) return false;
-            
-            // Check how many parts are in the user input
-            const matches = nameParts.filter(part => lowerInput.includes(part));
-            
-            // Match if we found at least 2 keywords (or 1 if the name is very short)
-            return matches.length >= Math.min(2, nameParts.length);
-        });
-        
-        if (targetProduct) {
-             // --- DYNAMIC REPORT GENERATION (Unchanged) ---
-             
-             // Parse components
-             let components = [];
-             try { components = JSON.parse(targetProduct.dppData || '[]'); } catch(e) {}
-
-             // Calculate Total
-             const totalLca = targetProduct.lcaResult || components.reduce((sum, c) => sum + (c.lcaValue || 0), 0);
-
-             // Find hotspots
-             const sortedComponents = [...components].sort((a, b) => (b.lcaValue || 0) - (a.lcaValue || 0));
-             const topComponent = sortedComponents[0] || { component: 'None', lcaValue: 0 };
-
-             // Generate Highlights
-             const dynamicHighlights = [
-                { 
-                    label: "Total Product Footprint", 
-                    value: `${totalLca.toFixed(2)} kg CO2e`, 
-                    change: "N/A", 
-                    type: "neutral", 
-                    source: "Inventory Calc" 
-                }
-             ];
-
-             if (topComponent.lcaValue) {
-                 const share = totalLca > 0 ? ((topComponent.lcaValue / totalLca) * 100).toFixed(1) : 0;
-                 dynamicHighlights.push({
-                     label: `${topComponent.component || topComponent.ingredient} (Top Contributor)`,
-                     value: `${(topComponent.lcaValue || 0).toFixed(2)} kg CO2e`,
-                     change: `${share}%`,
-                     type: "negative",
-                     source: "Component Share"
-                 });
-             }
-
-             // Build Report
-             const newReport = {
-                id: `rpt_${Date.now()}`,
-                reportName: `Analysis: ${targetProduct.productName}`,
-                description: `Automated sustainability report based on inventory data for ${targetProduct.productName}.`,
-                date: new Date().toISOString().split('T')[0],
-                fullData: {
-                    productName: targetProduct.productName,
-                    boardStatement: `This report details the life cycle analysis of our '${targetProduct.productName}' product, derived directly from our CarbonX inventory data. It highlights key hotspots and emission drivers.`,
-                    frameworks: ["GRI Standards", "GHG Protocol"],
-                    performanceHighlights: dynamicHighlights,
-                    materialFactors: [
-                        {
-                            title: "Primary Hotspot: " + (topComponent.component || topComponent.ingredient || "Main Ingredient"),
-                            commitment: "To investigate lower-emission alternatives for our primary inputs.",
-                            performanceSummary: `This component accounts for the majority of the product's footprint. Reducing its impact is critical.`,
-                            metrics: [
-                                { label: "Global Warming", value: `${(topComponent.lcaValue || 0).toFixed(2)} kg CO2e`, change: "contribution" }
-                            ]
-                        }
-                    ],
-                    targetSummary: [
-                        { target: "Reduce total product carbon footprint by 10%", status: "On Track", performance: "Inventory baseline established." },
-                        { target: "Engage top suppliers on emission data", status: "In Progress", performance: "Data collection phase." }
-                    ]
-                }
-            };
-
-            // Save to LocalStorage
-            const existingReports = JSON.parse(localStorage.getItem('carbonx_reports') || '[]');
-            const exists = existingReports.find(r => r.reportName === newReport.reportName);
-            if (!exists) {
-                localStorage.setItem('carbonx_reports', JSON.stringify([newReport, ...existingReports]));
-            }
-
-            aiResponse = { 
-                type: 'report_success', 
-                content: `I have generated a dynamic sustainability report for '${targetProduct.productName}' based on your real-time inventory data.`
-            };
-        } else {
-            // Fallback if matching fails
-            aiResponse = { 
-                type: 'text', 
-                content: "I couldn't find a matching product in your inventory. Please try including specific keywords from your product name (e.g., 'Sesame' or 'Golden Lion')." 
-            };
-        }
-      
-      } else if (lowerInput.includes("scope 3")) {
-        aiResponse = { type: 'text', content: "Scope 3 emissions are all indirect emissions (not included in scope 2) that occur in the value chain of the reporting company, both upstream and downstream." };
-      } else if (lowerInput.includes("plastic pouch")) {
-        aiResponse = { type: 'text', content: "Based on typical inventory data, plastic packaging often contributes significantly to fossil resource depletion. I recommend exploring bioplastic alternatives like PLA or recycled LDPE." };
+    try {
+      if (isReportRequest(textToSend)) {
+        const fullRequest = buildReportRequestWithContext(textToSend);
+        const [chatSummary, fullData] = await Promise.all([
+          reportSummaryForChat(fullRequest),
+          generateStructuredReport(fullRequest).catch(() => null),
+        ]);
+        const fallbackTitle = textToSend.slice(0, 60) + (textToSend.length > 60 ? '…' : '');
+        const reportName = fullData?.reportTitle || fallbackTitle;
+        const description = fullData?.reportSummary || (fullData ? 'AI-generated sustainability report.' : 'AI-generated report based on your request.');
+        const newReport = {
+          id: `rpt_${Date.now()}`,
+          reportName,
+          description,
+          date: new Date().toISOString().split('T')[0],
+          fullData: fullData || {
+            productName: fallbackTitle,
+            boardStatement: chatSummary,
+            frameworks: ['AI Generated'],
+            aiGenerated: true,
+          },
+        };
+        const existingReports = JSON.parse(localStorage.getItem('carbonx_reports') || '[]');
+        localStorage.setItem('carbonx_reports', JSON.stringify([newReport, ...existingReports]));
+        setMessages(prev => [...prev, { sender: 'assistant', type: 'report_success', content: chatSummary, reportId: newReport.id }]);
+      } else {
+        const reply = await chatCompletion(openRouterMessages);
+        setMessages(prev => [...prev, { sender: 'assistant', type: 'text', content: reply }]);
       }
-
-      setMessages(prev => [...prev, { sender: 'assistant', ...aiResponse }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'assistant', type: 'text', content: `Sorry, I couldn't complete that: ${err.message}` }]);
+    } finally {
       setIsSending(false);
-    }, 1500);
-  };
-
-  const handleArchiveClick = (item) => {
-      alert(`Loading chat history for: "${item.title}"`);
+    }
   };
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="sproutai" slides={SPROUTAI_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
       <div className="content-section-main" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         
-        <div className="content-container-main" style={{ paddingBottom: '0' }}> 
+        <div className="content-container-main sproutai-header" style={{ paddingBottom: '0' }}> 
           <div className="header-group">
-            <h1>Sprout AI</h1>
-            <p className = "medium-regular">Your generative AI assistant.</p>
+            <h1>SproutAI</h1>
+            <p className="medium-regular">{activeTab === 'chat' ? 'Your Friendly Assistant to Help You Out!' : 'Collection of Chat Histories.'}</p>
           </div>
           
-          <div className="chip-group" style={{ marginTop: '1rem' }}>
-            <button className={`chip ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>Chat</button>
-            <button className={`chip ${activeTab === 'archive' ? 'active' : ''}`} onClick={() => setActiveTab('archive')}>Archive</button>
+          <div className="sub-header">
+            <div className="chip-group">
+              <button type="button" className={`chip ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>Chat</button>
+              <button type="button" className={`chip ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>History</button>
+            </div>
+            <button
+                  type="button"
+                  className="default"
+                  style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }}
+                  onClick={() => {
+                  if (activeTab === 'history') {
+                    setMessages([]);
+                    setActiveTab('chat');
+                  } else {
+                    startNewChat();
+                  }
+                }}
+                  disabled={activeTab === 'chat' && messages.length === 0}
+                  title="Start a new chat">
+                  New Chat
+            </button>
           </div>
         </div>
         
@@ -207,69 +260,68 @@ const SproutAiPage = () => {
           <div className="chat-container">
             {messages.length === 0 ? (
               <div className="chat-welcome-container">
-                <Sprout size={48} style={{ color: 'rgba(var(--primary), 1)', marginBottom: '1rem' }} />
-                <p className="large-bold">Hi there!</p>
-                <p className="medium-regular" style={{color: 'rgba(var(--greys), 1)'}}>
-                  What can I help you with today?
-                </p>
+                <Sprout size={48} className="sproutai-welcome-icon" />
+                <p className="large-bold">What can I help you with today?</p>
               </div>
             ) : (
-              <div className="chat-history-container" ref={chatHistoryRef}>
-                {messages.map((msg, index) => (
-                  <div key={index} className={`chat-message ${msg.sender}`}>
-                    <div className="message-content">
-                      {msg.type === 'report_success' ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                              <p>{msg.content}</p>
-                              <button 
-                                className="default" 
-                                style={{ backgroundColor: 'rgba(var(--whites), 1)', color: 'rgba(var(--primary), 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                onClick={() => navigate('/report')}
-                              >
-                                <FileText size={18} />
-                                View Generated Report
-                              </button>
+              <div className="chat-output-wrapper">
+                <div className="chat-history-container chat-output-box" ref={chatHistoryRef}>
+                  {messages.map((msg, index) => (
+                    <div key={index} className={`chat-message ${msg.sender}`}>
+                      <div className="message-content">
+                        {msg.type === 'report_success' ? (
+                          <div className="message-report-block">
+                            <MarkdownMessage content={msg.content} />
+                            <button
+                              className="default report-view-btn"
+                              onClick={() => navigate('/report', { state: { openReportId: msg.reportId } })}
+                            >
+                              <FileText size={18} />
+                              View Generated Report
+                            </button>
                           </div>
-                      ) : (
-                          msg.text || msg.content
-                      )}
+                        ) : msg.sender === 'assistant' ? (
+                          <MarkdownMessage content={msg.text || msg.content} />
+                        ) : (
+                          (msg.text || msg.content)
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {isSending && (
-                  <div className="chat-message assistant">
-                    <div className="message-content typing-indicator">
-                      <span></span><span></span><span></span>
+                  ))}
+                  {isSending && (
+                    <div className="chat-message assistant">
+                      <div className="message-content typing-indicator">
+                        <span></span><span></span><span></span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
             <div className="chat-footer">
               {messages.length === 0 && (
                 <div className="suggestion-cards-grid">
-                  <div className="suggestion-card" onClick={() => handleSend('Explain Scope 3 emissions')}>
-                    <MessageSquare size={18} />
-                    <p>Explain Scope 3 emissions</p>
+                  <div className="suggestion-card" onClick={() => handleSend('Generate a plan to increase efficiency for Product X.')}>
+                    <Sparkles size={18} />
+                    <p>Generate a plan to increase efficiency for Product X.</p>
                   </div>
-                  {/* --- SUGGESTION CARD FOR REPORT --- */}
-                  <div className="suggestion-card" onClick={() => handleSend('Write a report on the carbon emissions from my Dried Sesame product')}>
-                    <FileText size={18} />
-                    <p>Write a report on the carbon emissions from my Dried Sesame product</p>
+                  <div className="suggestion-card" onClick={() => handleSend('Write a report on the carbon emissions from Product 2.')}>
+                    <Sparkles size={18} />
+                    <p>Write a report on the carbon emissions from Product 2.</p>
                   </div>
-                  <div className="suggestion-card" onClick={() => handleSend('Analyze the carbon emissions for my "Plastic pouch"')}>
-                    <Archive size={18} />
-                    <p>Analyze the carbon emissions for my "Plastic pouch"</p>
+                  <div className="suggestion-card" onClick={() => handleSend('Analyze the carbon emissions for Product 2.')}>
+                    <Sparkles size={18} />
+                    <p>Analyze the carbon emissions for Product 2.</p>
                   </div>
                 </div>
               )}
 
               <div className="chat-input-container">
-                <input 
-                  type="text" 
-                  className="chat-input" 
-                  placeholder="Ask a question or make a request..."
+                <input
+                  type="text"
+                  className="chat-input"
+                  placeholder="What can I help you with today?"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isSending && handleSend()}
@@ -283,23 +335,56 @@ const SproutAiPage = () => {
           </div>
         )}
         
-        {activeTab === 'archive' && (
-          <div className="archive-container">
-            {MOCK_ARCHIVE_DATA.map(item => (
-              <div key={item.id} className="archive-item" onClick={() => handleArchiveClick(item)}>
-                <div className="archive-item-icon">{React.createElement(item.icon, { size: 20 })}</div>
-                <div className="archive-item-text">
-                  <p className="normal-bold">{item.title}</p>
-                  <p className="small-regular" style={{color: 'rgba(var(--greys), 1)'}}>
-                    {item.type === 'report' ? 'Report' : 'Prompt'} • Modified: {item.date}
-                  </p>
-                </div>
-                <ChevronRight size={20} style={{ marginLeft: 'auto', color: 'rgba(var(--greys), 1)' }} />
-              </div>
-            ))}
+        {activeTab === 'history' && (
+          <div className="sproutai-history-container" style={{ marginTop: '1rem' }}>
+            {sessions.length === 0 ? (
+              <p className="sproutai-history-empty">
+                No chat histories yet. Start a conversation in the Chat tab, then use &quot;New chat&quot; to save it here.
+              </p>
+            ) : (
+              <ul className="sproutai-history-list">
+                {sessions.map((session) => (
+                  <li key={session.id} className="sproutai-history-item">
+                    <button
+                      type="button"
+                      className="sproutai-history-item-title"
+                      onClick={() => openSessionInChat(session)}
+                    >
+                      <MessageSquare size={18} className="sproutai-history-icon" />
+                      <span className="sproutai-history-item-text">{session.title}</span>
+                      {session.createdAt && (
+                        <span className="sproutai-history-item-date">
+                          {new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="icon" style={{ backgroundColor: 'rgba(var(--danger), 1)' }}
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmSessionId(session.id); }}
+                      title="Delete this chat"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={deleteConfirmSessionId != null}
+        onClose={() => setDeleteConfirmSessionId(null)}
+        onConfirm={handleConfirmDeleteSession}
+        title="Delete chat"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        confirmVariant="danger"
+      >
+        Delete this chat from history?
+      </ConfirmationModal>
     </div>
   );
 };

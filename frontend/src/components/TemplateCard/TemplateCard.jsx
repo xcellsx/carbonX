@@ -25,8 +25,10 @@ function processName(item) {
  * ingredients: string[] or { ingredient, weight }[]
  * processes: string[] or { process, description }[]
  * quantity: optional main product quantity (you can add editing in Edit Template later)
+ * weightOnly: when true, show only Weight (quantity + weightUnit), hide Elements/Processes (for raw materials).
+ * weightUnit: unit for weight display when weightOnly (e.g. 'kg').
  */
-const TemplateCard = ({ name, ingredients = [], processes = [], quantity, onEdit, onAdd, onDelete }) => {
+const TemplateCard = ({ name, ingredients = [], processes = [], quantity, weightOnly, weightUnit = 'kg', onEdit, onAdd, onDelete }) => {
   const ingList = Array.isArray(ingredients) ? ingredients : [];
   const procList = Array.isArray(processes) ? processes : [];
   const elements = ingList.map(elementName).filter(Boolean);
@@ -54,28 +56,37 @@ const TemplateCard = ({ name, ingredients = [], processes = [], quantity, onEdit
           )}
         </div>
       </div>
-      {quantity != null && quantity !== '' && (
+      {weightOnly ? (
         <p className="template-card-meta">
-          <strong>Quantity:</strong> {quantity}
+          <strong>Weight:</strong>{' '}
+          {quantity != null && quantity !== '' ? `${quantity} ${weightUnit}` : '—'}
         </p>
+      ) : (
+        <>
+          {quantity != null && quantity !== '' && (
+            <p className="template-card-meta">
+              <strong>Quantity:</strong> {quantity}
+            </p>
+          )}
+          <p className="template-card-meta">
+            <strong>Elements:</strong>{' '}
+            {elements.length ? (
+              elements.map((el, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && ', '}
+                  <span className="ingredient-link">{el}</span>
+                </React.Fragment>
+              ))
+            ) : (
+              '—'
+            )}
+          </p>
+          <p className="template-card-meta">
+            <strong>Processes:</strong>{' '}
+            {processNamesList.length ? processNamesList.join(', ') : '—'}
+          </p>
+        </>
       )}
-      <p className="template-card-meta">
-        <strong>Elements:</strong>{' '}
-        {elements.length ? (
-          elements.map((el, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && ', '}
-              <span className="ingredient-link">{el}</span>
-            </React.Fragment>
-          ))
-        ) : (
-          '—'
-        )}
-      </p>
-      <p className="template-card-meta">
-        <strong>Processes:</strong>{' '}
-        {processNamesList.length ? processNamesList.join(', ') : '—'}
-      </p>
     </div>
   );
 };

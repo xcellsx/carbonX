@@ -3,13 +3,16 @@ import './DashboardPage.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
 import ProModal from '../../components/ProModal/ProModal';
+import AIChatPopup from '../../components/AIChatPopup/AIChatPopup';
 import {
   Utensils, Leaf, Droplet, ArrowRight, Zap, X,
   Sparkles, CircleCheck, ShieldUser, Wheat, Earth, Dna, Plus,
   Database, Car, Recycle, ShieldAlert, HeartPulse, Tags, Users, Globe, Lock,
-  Factory, ChevronLeft, ChevronRight
+  Factory, ChevronLeft, ChevronRight, LayoutDashboard
 } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import { API_BASE } from '../../services/api';
+import { chatCompletion } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 const allMetricDefinitions = [
@@ -247,6 +250,12 @@ const METRIC_BREAKDOWN_DATA = {
   },
 };
 
+const DASHBOARD_CAROUSEL_SLIDES = [
+  { title: 'Welcome to the Dashboard', description: 'Your sustainability metrics at a glance. The dashboard shows key ESG and carbon metrics (Scope 1 & 2, energy, waste, supply chain, and more) based on your inventory and local data.', icon: <LayoutDashboard size={40} /> },
+  { title: 'Metric cards', description: 'Click a metric card to expand and see its breakdown. Each metric can have sub-metrics, targets, and a Pro Insight section with AI-generated analysis when available.', icon: <Database size={40} /> },
+  { title: 'Pro Insight & AI', description: 'Pro users get AI-generated insights at the top of the breakdown. You can also open the chat popup (sparkles button) to ask questions about your dashboard or get a summary.', icon: <Sparkles size={40} /> },
+];
+
 const generateInitialMetrics = () => {
   const data = {};
   for (const key in ALL_METRIC_DATA_DEFINITIONS) {
@@ -266,10 +275,16 @@ const DashboardPage = () => {
   const location = useLocation(); 
   const [metrics, setMetrics] = useState(null); 
   const [showProModal, setShowProModal] = useState(false);
+  const [showChatPopup, setShowChatPopup] = useState(false);
   const [activeMetricId, setActiveMetricId] = useState(null);
   const [hasProducts, setHasProducts] = useState(false);
+  const [proInsightText, setProInsightText] = useState('');
+  const [proInsightLoading, setProInsightLoading] = useState(false);
+  const [proInsightError, setProInsightError] = useState('');
   
   const metricsScrollRef = useRef(null);
+  const proInsightReqKeyRef = useRef('');
+  const proInsightDebounceRef = useRef(null);
 
   const scrollMetrics = (direction) => {
     if (metricsScrollRef.current) {
@@ -306,79 +321,82 @@ const DashboardPage = () => {
     
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch(`${API_BASE}/dashboard/summary/${currentUserId}`);
-        if (!response.ok) throw new Error("Failed to fetch dashboard data");
-        const summaryData = await response.json();
-        setHasProducts(summaryData.productCount > 0);
+        // Product count: optional backend; metrics are no longer stored in the backend
+        let productCount = 0;
+        try {
+          const productsRes = await fetch(`${API_BASE}/products`);
+          if (productsRes.ok) {
+            const body = await productsRes.json();
+            const list = Array.isArray(body) ? body : body?.content ?? body?.data ?? [];
+            productCount = Array.isArray(list) ? list.length : 0;
+          }
+        } catch (_) {
+          // Backend/products unavailable – dashboard still works with local metrics
+        }
+        const hasAnyProducts = productCount > 0;
+        setHasProducts(hasAnyProducts);
 
         let baseData = generateInitialMetrics();
-
         const savedMetricsStr = localStorage.getItem('carbonx_dashboard_metrics');
         if (savedMetricsStr) {
-            try {
-                const savedMetrics = JSON.parse(savedMetricsStr);
-                Object.keys(savedMetrics).forEach(key => {
-                  if (baseData[key]) {
-                    baseData[key].value = savedMetrics[key].value;
-                  }
-                });
-                
-                const transportEmissions = summaryData.transportEmissions || 0;
-                if (baseData['CALC_TRANSPORT_GHG']) {
-                  // baseData['CALC_TRANSPORT_GHG'].value = transportEmissions.toFixed(3);
-                }
-            } catch (e) {
-                console.error("Failed to load saved metrics", e);
-            }
+          try {
+            const savedMetrics = JSON.parse(savedMetricsStr);
+            Object.keys(savedMetrics).forEach(key => {
+              if (baseData[key] && savedMetrics[key]?.value !== undefined) {
+                baseData[key].value = savedMetrics[key].value;
+              }
+            });
+          } catch (e) {
+            console.error("Failed to load saved metrics", e);
+          }
         } else {
-            const transportEmissions = summaryData.transportEmissions || 0;
-            if (baseData['CALC_TRANSPORT_GHG']) {
-               baseData['CALC_TRANSPORT_GHG'].value = transportEmissions.toFixed(3);
-            }
-            if (baseData['FB-FR-110a.1']) {
-               const correlatedFuel = transportEmissions * 15;
-               if (transportEmissions > 0) {
-                 baseData['FB-FR-110a.1'].value = correlatedFuel.toFixed(2);
-               }
-            }
-            if (baseData['FB-FR-130a.1']) {
-                baseData['FB-FR-130a.1'].value = "1.00";
-            }
+          // Defaults when no saved metrics (no backend-derived values)
+          if (baseData['FB-FR-130a.1']) baseData['FB-FR-130a.1'].value = "1.00";
         }
 
-        let activeMetricList = summaryData.activeMetrics || [];
+        // If there are no products, show zeros instead of demo defaults.
+        // (User can still edit values; edits persist via carbonx_dashboard_metrics.)
+        if (!hasAnyProducts) {
+          Object.keys(baseData).forEach((k) => {
+            const v = baseData[k]?.value;
+            if (v === null || v === undefined || v === '' || v === 'User Input') {
+              baseData[k].value = 0;
+              return;
+            }
+            if (typeof v === 'number') {
+              baseData[k].value = 0;
+              return;
+            }
+            if (typeof v === 'string' && !Number.isNaN(Number(v))) {
+              baseData[k].value = 0;
+            }
+          });
+        }
+
         const standardList = [
-            "scope-1", 
-            "scope-2",
-            "fleet-fuel-management",
-            "energy-management",
-            "food-waste-management",
-            "data-security",
-            "food-safety",
-            "product-health-nutrition",
-            "product-labelling-marketing",
-            "labour-practices",
-            "supply-chain-impacts",
-            "gmo"
+          "scope-1",
+          "scope-2",
+          "fleet-fuel-management",
+          "energy-management",
+          "food-waste-management",
+          "data-security",
+          "food-safety",
+          "product-health-nutrition",
+          "product-labelling-marketing",
+          "labour-practices",
+          "supply-chain-impacts",
+          "gmo"
         ];
 
-        if (activeMetricList.length < 2) {
-           activeMetricList = standardList;
-        } else {
-           if(!activeMetricList.includes("scope-1")) activeMetricList.unshift("scope-1");
-           if(!activeMetricList.includes("scope-2")) activeMetricList.splice(1, 0, "scope-2");
-        }
-
         setMetrics({
-          metricList: activeMetricList,
+          metricList: standardList,
           data: baseData,
-          topContributors: summaryData.topContributors
+          topContributors: []
         });
 
-        if (activeMetricList.length > 0) {
-          setActiveMetricId(prevId => prevId || activeMetricList[0]);
+        if (standardList.length > 0) {
+          setActiveMetricId(prevId => prevId || standardList[0]);
         }
-
       } catch (error) {
         console.error("Error loading dashboard:", error);
       }
@@ -389,11 +407,99 @@ const DashboardPage = () => {
   
   const handleSparkleClick = () => {
     if (isProUser) {
-      alert("AI Feature placeholder!");
+      setShowChatPopup(true);
     } else {
       setShowProModal(true);
     }
   };
+
+  const activeBreakdownTemplate = activeMetricId ? METRIC_BREAKDOWN_DATA[activeMetricId] : null;
+
+  // --- Real-time Pro Insight (AI generated) ---
+  // Must be declared before any early return to avoid hook order errors.
+  useEffect(() => {
+    if (!isProUser) {
+      setProInsightText('');
+      setProInsightLoading(false);
+      setProInsightError('');
+      return;
+    }
+    if (!activeMetricId || !activeBreakdownTemplate || !metrics?.data) return;
+
+    const snapshot = activeBreakdownTemplate.subMetrics
+      .filter((s) => s && s.dataKey)
+      .map((s) => {
+        const d = metrics.data[s.dataKey];
+        return {
+          name: s.name,
+          type: s.type,
+          sasbCategory: s.sasbCategory || null,
+          value: d?.value ?? null,
+          unit: d?.unit ?? null,
+        };
+      });
+
+    const reqKey = JSON.stringify({
+      metricId: activeMetricId,
+      snapshot,
+    });
+
+    if (reqKey === proInsightReqKeyRef.current) return;
+    proInsightReqKeyRef.current = reqKey;
+
+    if (proInsightDebounceRef.current) clearTimeout(proInsightDebounceRef.current);
+
+    proInsightDebounceRef.current = setTimeout(async () => {
+      const CACHE_KEY = 'carbonx_pro_insights_cache_v1';
+      let cache = {};
+      try {
+        cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {};
+      } catch (_) {}
+
+      if (cache[reqKey]) {
+        setProInsightText(cache[reqKey]);
+        setProInsightLoading(false);
+        setProInsightError('');
+        return;
+      }
+
+      setProInsightLoading(true);
+      setProInsightError('');
+
+      const SYSTEM = `You are Sprout AI for CarbonX. Generate a concise, real-time \"Pro Insight\" based ONLY on the metric values provided. 
+Return 2–4 short bullet points. Each bullet should be actionable and specific (e.g. what to investigate, what lever reduces emissions, what target to set). 
+Do not mention that you are an AI. Do not ask questions. Do not include citations or links.`;
+
+      const USER = `Metric: ${activeBreakdownTemplate.title}\n\nValues:\n${snapshot
+        .map((x) => `- ${x.name}: ${x.value ?? 'N/A'}${x.unit ? ` ${x.unit}` : ''}`)
+        .join('\n')}\n\nGenerate the Pro Insight bullets now.`;
+
+      try {
+        const reply = await chatCompletion(
+          [
+            { role: 'system', content: SYSTEM },
+            { role: 'user', content: USER },
+          ],
+          { max_tokens: 220, temperature: 0.4 }
+        );
+        const cleaned = (reply || '').trim();
+        setProInsightText(cleaned);
+        try {
+          cache[reqKey] = cleaned;
+          localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+        } catch (_) {}
+      } catch (e) {
+        setProInsightError('Unable to generate Pro Insight right now.');
+        setProInsightText('');
+      } finally {
+        setProInsightLoading(false);
+      }
+    }, 650);
+
+    return () => {
+      if (proInsightDebounceRef.current) clearTimeout(proInsightDebounceRef.current);
+    };
+  }, [isProUser, activeMetricId, activeBreakdownTemplate, metrics]);
 
   if (!metrics) {
     return (
@@ -411,8 +517,6 @@ const DashboardPage = () => {
   const metricsForIndustry = allMetricDefinitions.filter(m => 
     metrics.metricList.includes(m.id)
   );
-  
-  const activeBreakdownTemplate = activeMetricId ? METRIC_BREAKDOWN_DATA[activeMetricId] : null;
 
   const getTopLevelData = (metricId) => {
     const breakdown = METRIC_BREAKDOWN_DATA[metricId];
@@ -480,6 +584,7 @@ const DashboardPage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="dashboard" slides={DASHBOARD_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
 
       <div className="content-section-main">
@@ -525,7 +630,6 @@ const DashboardPage = () => {
             </button>
             
             <div className = "metrics-container" ref={metricsScrollRef} style={{ flex: 1, overflowX: 'auto', scrollBehavior: 'smooth' }}>
-                {hasProducts ? (
                 <>
                     {metricsForIndustry.map((metric) => {
                     const isLocked = metric.isPro && !isProUser;
@@ -591,11 +695,6 @@ const DashboardPage = () => {
                     );
                     })}
                 </>
-                ) : (
-                <p className="dashboard-empty-text">
-                    Please add a product into inventory to see your key metrics.
-                </p>
-                )}
             </div>
 
             <button 
@@ -615,13 +714,32 @@ const DashboardPage = () => {
 
           {/* --- METRIC BREAKDOWN SECTION --- */}
           <div>
-            {hasProducts ? (
-              activeBreakdownTemplate ? (
+            {activeBreakdownTemplate ? (
                 <div className="metric-breakdown-card">
                   <div className="metrics-card-header large-bold" style={{color: 'rgba(var(--primary), 1)'}}>
                     {React.createElement(activeBreakdownTemplate.icon, { size: 24 })}
                     <p>{activeBreakdownTemplate.title}</p>
                   </div>
+
+                  {/* Pro Insight (real-time, AI-generated) */}
+                  {isProUser && (
+                    <div className="analysis-content" style={{marginTop: '1rem', backgroundColor: 'rgba(var(--secondary), 0.1)', padding: '1rem', borderRadius: '8px'}}>
+                      <div className="pro-analysis-content">
+                        <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
+                          <Sparkles size={16} color="rgba(var(--secondary), 1)" />
+                          <p className="small-bold" style={{color: 'rgba(var(--secondary), 1)'}}>Pro Insight</p>
+                        </div>
+                        {proInsightLoading ? (
+                          <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)' }}>Updating insight…</p>
+                        ) : proInsightError ? (
+                          <p className="normal-regular" style={{ color: 'rgba(var(--danger), 1)' }}>{proInsightError}</p>
+                        ) : (
+                          <p className="normal-regular" style={{ whiteSpace: 'pre-line' }}>{proInsightText || 'Adjust values above to generate an insight.'}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="metric-breakdown-list">
                     
                     {activeBreakdownTemplate.subMetrics.map((sub, idx) => {
@@ -716,31 +834,14 @@ const DashboardPage = () => {
                               )}
                             </div>
 
-                            {/* Pro Content / Analysis */}
-                            {isProUser && sub.proContent && (
-                              <div className="analysis-content" style={{marginTop: '1rem', backgroundColor: 'rgba(var(--secondary), 0.1)', padding: '1rem', borderRadius: '8px'}}>
-                                <div className="pro-analysis-content">
-                                   <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
-                                     <Sparkles size={16} color="rgba(var(--secondary), 1)" />
-                                     <p className="small-bold" style={{color: 'rgba(var(--secondary), 1)'}}>Pro Insight</p>
-                                   </div>
-                                   <p className="normal-regular">{sub.proContent}</p>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
-              ) : (
-                <p className="dashboard-empty-text">Select a metric above to see the breakdown.</p>
-              )
             ) : (
-              <p className="dashboard-empty-text">
-                Please add a product into inventory to see your key metrics.
-              </p>
+              <p className="dashboard-empty-text">Select a metric above to see the breakdown.</p>
             )}
           </div>
           
@@ -754,6 +855,12 @@ const DashboardPage = () => {
           setShowProModal(false);
           navigate('/settings');
         }}
+      />
+
+      <AIChatPopup
+        isOpen={showChatPopup}
+        onClose={() => setShowChatPopup(false)}
+        pageContext="Dashboard"
       />
     </div>
   );

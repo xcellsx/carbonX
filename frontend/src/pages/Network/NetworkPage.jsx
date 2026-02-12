@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as d3 from 'd3';
 import Navbar from '../../components/Navbar/Navbar';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Network } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import './NetworkPage.css';
 import { API_BASE, productAPI } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
@@ -55,6 +56,12 @@ const cleanNodeName = (rawName) => {
 
   return customMappings[rawName] || rawName;
 };
+
+const NETWORK_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Network', description: 'Visualise your product supply chain and impact flows. Select a product and an impact category to see how processes and materials connect and contribute to that impact.', icon: <Network size={40} /> },
+  { title: 'Product & impact category', description: 'Use the dropdowns to choose a product from your inventory and an impact category (e.g. Climate Change, Land Use). The graph updates to show the network for that combination.', icon: <Network size={40} /> },
+  { title: 'Consolidated vs component view', description: 'Toggle between Consolidated View (single graph) and Component View (per-component breakdown) to explore the supply chain at different levels of detail.', icon: <Network size={40} /> },
+];
 
 // --- D3 Network Graph Component ---
 const NetworkGraph = ({ data, viewMode, productName, selectedCategory }) => {
@@ -518,6 +525,7 @@ const NetworkPage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="network" slides={NETWORK_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">

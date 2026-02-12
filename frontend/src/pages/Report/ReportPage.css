@@ -1,3 +1,11 @@
+.report-back-btn:hover {
+  color: rgba(var(--greys), 1);
+}
+
+.report-table-description-col {
+  max-width: 220px;
+}
+
 .search-bar {
   position: relative;
   display: flex;

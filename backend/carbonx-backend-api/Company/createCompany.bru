@@ -1,0 +1,24 @@
+meta {
+  name: createCompany
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/company
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name":"testCompany",
+    "sector":"FnB",
+    "applicableMetrics": ["kgCO2e", "kWh", "m3", "kg", "safety score", "% agricultural product"]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

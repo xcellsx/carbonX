@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, ChevronDown } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import Navbar from '../../components/Navbar/Navbar';
 import ErrorModal from '../../components/ErrorModal/ErrorModal';
+import { productAPI } from '../../services/api';
 import './EditTemplatePage.css';
 
 const STORAGE_KEY = 'carbonx-custom-templates';
@@ -53,6 +55,12 @@ function fromCanonicalTime(canonicalSec, unit) {
   return v === Math.floor(v) ? String(v) : String(Number(v.toFixed(6)));
 }
 
+const EDIT_TEMPLATE_CAROUSEL_SLIDES = [
+  { title: 'Edit Template', description: 'Set the product name and quantity for this template. Use the Elements table to add ingredients with amounts and units (e.g. kg). Use the Processes table to add cooking or other processes with duration.', icon: <Pencil size={40} /> },
+  { title: 'Elements & processes', description: 'Each element is an ingredient with an optional weight and unit. Each process has a name and duration (e.g. 5 min). These feed into the product\'s DPP and LCA when the template is used in Inventory.', icon: <Pencil size={40} /> },
+  { title: 'Save & use', description: 'Click Save to store your changes. The template will appear in Browse Templates under Customize your own and can be added to Inventory. Cancel returns you to Browse Templates without saving.', icon: <Pencil size={40} /> },
+];
+
 /** Normalize to { ingredient, weight, weightUnit }[] */
 function normalizeIngredients(val) {
   if (!Array.isArray(val)) return [];
@@ -96,6 +104,32 @@ const EditTemplatePage = () => {
   const [ingredients, setIngredients] = useState([]);
   const [processes, setProcesses] = useState([]);
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
+  const [rawMaterials, setRawMaterials] = useState([]);
+  const [elementDropdownOpen, setElementDropdownOpen] = useState(null);
+  const elementDropdownBlurRef = useRef(null);
+
+  const fetchRawMaterials = useCallback(async () => {
+    try {
+      const res = await productAPI.getAllProducts();
+      const raw = Array.isArray(res?.data) ? res.data : [];
+      const names = raw
+        .map((p) => (p.name ?? p.dpp?.name ?? '').toString().trim())
+        .filter(Boolean);
+      setRawMaterials([...new Set(names)].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })));
+    } catch (_) {
+      setRawMaterials([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRawMaterials();
+  }, [fetchRawMaterials]);
+
+  useEffect(() => {
+    return () => {
+      if (elementDropdownBlurRef.current) clearTimeout(elementDropdownBlurRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (isNew) {
@@ -228,6 +262,7 @@ const EditTemplatePage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="edit-template" slides={EDIT_TEMPLATE_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">
@@ -292,16 +327,64 @@ const EditTemplatePage = () => {
                       </td>
                     </tr>
                   ) : (
-                    ingredients.map((row, i) => (
+                    ingredients.map((row, i) => {
+                      const query = (row.ingredient || '').trim().toLowerCase();
+                      const filteredRaw = query
+                        ? rawMaterials.filter((name) => name.toLowerCase().includes(query))
+                        : rawMaterials;
+                      const isDropdownOpen = elementDropdownOpen === i;
+                      return (
                       <tr key={i}>
                         <td>
-                          <input
-                            type="text"
-                            className="input-base edit-template-cell-input"
-                            value={row.ingredient}
-                            onChange={(e) => updateIngredient(i, 'ingredient', e.target.value)}
-                            placeholder="e.g. Spaghetti"
-                          />
+                          <div
+                            className="edit-template-element-dropdown-wrap"
+                            onBlur={() => {
+                              elementDropdownBlurRef.current = setTimeout(() => setElementDropdownOpen(null), 150);
+                            }}
+                            onFocus={() => clearTimeout(elementDropdownBlurRef.current)}
+                          >
+                            <input
+                              type="text"
+                              className="input-base edit-template-cell-input"
+                              value={row.ingredient}
+                              onChange={(e) => updateIngredient(i, 'ingredient', e.target.value)}
+                              onFocus={() => setElementDropdownOpen(i)}
+                              placeholder="Search or type element..."
+                              autoComplete="off"
+                              aria-expanded={isDropdownOpen}
+                              aria-autocomplete="list"
+                              aria-controls={isDropdownOpen ? `element-list-${i}` : undefined}
+                              id={`element-input-${i}`}
+                            />
+                            <ChevronDown size={16} className="edit-template-element-chevron" aria-hidden />
+                            {isDropdownOpen && (
+                              <ul
+                                id={`element-list-${i}`}
+                                className="edit-template-element-dropdown-list"
+                                role="listbox"
+                                aria-labelledby={`element-input-${i}`}
+                              >
+                                {filteredRaw.length === 0 ? (
+                                  <li className="edit-template-element-dropdown-item empty">No raw materials match. Type to add custom.</li>
+                                ) : (
+                                  filteredRaw.slice(0, 12).map((name) => (
+                                    <li
+                                      key={name}
+                                      role="option"
+                                      className="edit-template-element-dropdown-item"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        updateIngredient(i, 'ingredient', name);
+                                        setElementDropdownOpen(null);
+                                      }}
+                                    >
+                                      {name}
+                                    </li>
+                                  ))
+                                )}
+                              </ul>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <input
@@ -336,7 +419,8 @@ const EditTemplatePage = () => {
                           </button>
                         </td>
                       </tr>
-                    ))
+                    );
+                    })
                   )}
                 </tbody>
               </table>

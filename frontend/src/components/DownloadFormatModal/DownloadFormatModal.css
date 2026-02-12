@@ -1,0 +1,48 @@
+.download-format-modal-content {
+  max-width: 380px;
+}
+
+.download-format-modal-body {
+  padding: 0.5rem 0 1rem;
+}
+
+.download-format-modal-body .normal-regular {
+  margin-bottom: 1.25rem;
+  color: rgba(var(--greys), 1);
+}
+
+.download-format-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.download-format-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  min-width: 120px;
+  border: 2px solid rgba(var(--primary), 0.3);
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(var(--primary), 1);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.download-format-option:hover {
+  background: rgba(var(--primary), 0.08);
+  border-color: rgba(var(--primary), 0.6);
+}
+
+.download-format-option:active {
+  transform: scale(0.98);
+}
+
+.download-format-option span {
+  font-family: inherit;
+}

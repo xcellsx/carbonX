@@ -3,9 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
 import { productAPI } from '../../services/api';
 import Navbar from '../../components/Navbar/Navbar';
-import { Search, X, Triangle, CirclePlus, Trash2, FilePlus } from 'lucide-react';
+import { Search, X, Triangle, CirclePlus, Trash2, FilePlus, Package, ListOrdered, FileUp } from 'lucide-react';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
 import DppModal from '../../components/DppModal/DppModal';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 
 // --- CSV parser: name and type only ---
 const parseCsvFile = (file) => {
@@ -127,6 +128,25 @@ function templateToProduct(template) {
   };
 }
 
+// Instructional carousel slides for Inventory (first-time visit)
+const INVENTORY_CAROUSEL_SLIDES = [
+  {
+    title: 'Welcome to Inventory',
+    description: 'This is your product inventory. Here you can see all your products, their quantities, and total carbon footprint (LCA). Use the search bar to find products quickly.',
+    icon: <Package size={40} />,
+  },
+  {
+    title: 'Product table',
+    description: 'Each row is a product. Expand a row with the arrow to see its breakdown (elements and processes). You can edit names, quantities, and add or remove components. Click "View DPP" to see the Digital Product Passport.',
+    icon: <ListOrdered size={40} />,
+  },
+  {
+    title: 'Add products',
+    description: 'Use "Browse Templates" to pick from Pasta, Bowls, Soup, or Raw materials. Use "Upload BOM" to add products from a CSV or JSON file. New products will appear in the table above.',
+    icon: <FileUp size={40} />,
+  },
+];
+
 // --- SI units: canonical = kg (weight), seconds (time for processes) ---
 const WEIGHT_UNITS = [
   { unit: 'kg', label: 'kg', toCanonical: 1 },
@@ -229,24 +249,38 @@ const InventoryPage = () => {
     setError('');
     try {
       const res = await productAPI.getAllProducts();
+      // Log raw backend response to inspect structure (not segregated like frontend)
+      console.log('[getProducts] raw backend response:', res?.data);
+      console.log('[getProducts] type:', typeof res?.data, Array.isArray(res?.data) ? `array length ${res.data.length}` : '');
       const raw = Array.isArray(res?.data) ? res.data : [];
-      const filtered = userId ? raw.filter((p) => p.userId === userId) : raw;
+      // Normalize items that have nested dpp (e.g. DPP/emission view): use dpp.name/key when top-level missing
+      const normalized = raw.map((p) => {
+        const fromDpp = p.dpp;
+        const name = p.name ?? fromDpp?.name ?? '';
+        const key = p.key ?? fromDpp?.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+        const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
+        return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
+      });
+      const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
       const mapped = filtered.map((p) => {
-        // Calculate total LCA from DPP carbon footprint scopes
+        // Calculate total LCA from DPP carbon footprint scopes, or from emissionInformation if present
         let lcaResult = p.lcaResult ?? 0;
         if (p.DPP?.carbonFootprint) {
           const cf = p.DPP.carbonFootprint;
-          lcaResult = 
+          lcaResult =
             (cf.scope1?.value ?? cf.Scope1?.value ?? 0) +
             (cf.scope2?.value ?? cf.Scope2?.value ?? 0) +
             (Object.values(cf.scope3 || cf.Scope3 || {}).reduce((sum, m) => sum + (m?.value ?? 0), 0));
+        } else if (p.emissionInformation && lcaResult === 0) {
+          // Fallback: sum scope1/2/3 kg from emissionInformation (e.g. backend DPP view)
+          const ei = p.emissionInformation;
+          const sumScope = (s) => (s && typeof s === 'object' ? Object.values(s).reduce((acc, cat) => acc + (typeof cat === 'object' && cat?.CO2?.kg != null ? cat.CO2.kg : 0) + (cat?.CH4?.kg ?? 0) + (cat?.N2O?.kg ?? 0), 0) : 0);
+          lcaResult = sumScope(ei.scope1) + sumScope(ei.scope2) + sumScope(ei.scope3);
         }
-        
-        // Backend delete/update use document key; prefer key over full _id
         const apiKey = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id) ?? p._id ?? p.id;
         return {
           productId: apiKey,
-          productName: p.name,
+          productName: p.name ?? '',
           productQuantity: p.quantityValue ?? p.quantity ?? null,
           productQuantifiableUnit: p.quantifiableUnit ?? null,
           dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
@@ -254,7 +288,7 @@ const InventoryPage = () => {
           userId: p.userId,
           uploadedFile: p.uploadedFile,
           type: p.type,
-          productOrigin: p.productOrigin,
+          productOrigin: p.productOrigin ?? p.productorigin,
           functionalProperties: p.functionalProperties,
           DPP: p.DPP,
         };
@@ -798,6 +832,11 @@ function dppDataToTemplate(dppJson) {
 
   return (
     <div className="container">
+      <InstructionalCarousel
+        pageId="inventory"
+        slides={INVENTORY_CAROUSEL_SLIDES}
+        newUserOnly={false}
+      />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main"> 

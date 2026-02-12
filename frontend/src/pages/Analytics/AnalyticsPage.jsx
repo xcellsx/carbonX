@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AnalyticsPage.css';
 import Navbar from '../../components/Navbar/Navbar';
-import { ChevronDown, Sparkles, Lock, X } from 'lucide-react';
+import { ChevronDown, Sparkles, Lock, X, BarChart3 } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import { API_BASE, productAPI } from '../../services/api';
 import ProModal from '../../components/ProModal/ProModal';
+import AIChatPopup from '../../components/AIChatPopup/AIChatPopup';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- Same data source as Inventory: localStorage templates + API products ---
@@ -70,6 +72,12 @@ function templateToDppData(template) {
   });
   return dpp;
 }
+
+const ANALYTICS_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Analytics', description: 'Here you can analyse environmental impacts and life cycle data. Analytics uses your inventory products and their DPP data to show impacts by category (e.g. climate change, land use).', icon: <BarChart3 size={40} /> },
+  { title: 'Impact categories', description: 'Select an impact category (Climate Change, Land Use, Ozone Depletion, etc.) to see how your products contribute. Data is derived from your product breakdowns and LCA calculations.', icon: <BarChart3 size={40} /> },
+  { title: 'AI summary', description: 'Use the sparkles button to open the AI assistant and ask for a summary of your analytics or to explore your impact data in plain language.', icon: <Sparkles size={40} /> },
+];
 
 function templateToProduct(template) {
   const dpp = templateToDppData(template);
@@ -143,6 +151,7 @@ const AnalyticsPage = () => {
   const [activeAnalysisTab, setActiveAnalysisTab] = useState('inputs');
   const [showProModal, setShowProModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showChatPopup, setShowChatPopup] = useState(false);
 
   // --- Helper to sort "Values" before "No Values" ---
   const sortDataValuesFirst = (dataArray) => {
@@ -478,6 +487,7 @@ const AnalyticsPage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="analytics" slides={ANALYTICS_CAROUSEL_SLIDES} newUserOnly={false} />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">
@@ -512,11 +522,11 @@ const AnalyticsPage = () => {
             <div className = "button-container">
               <button 
                 className = "icon"
-                title={isProUser ? "Get AI Suggestions" : "Unlock CarbonX Pro for AI Suggestions"}
+                title={isProUser ? "Open AI assistant" : "Unlock CarbonX Pro for AI"}
                 style={!isProUser ? { backgroundColor: 'rgba(var(--greys), 0.2)' } : {}}
                 onClick={() => {
                   if (isProUser) {
-                    setShowAiModal(true);
+                    setShowChatPopup(true);
                   } else {
                     setShowProModal(true);
                   }
@@ -641,6 +651,12 @@ const AnalyticsPage = () => {
         }}
       />
       <AiSuggestionsModal isOpen={showAiModal} onClose={() => setShowAiModal(false)} />
+
+      <AIChatPopup
+        isOpen={showChatPopup}
+        onClose={() => setShowChatPopup(false)}
+        pageContext="Analytics"
+      />
     </div>
   );
 };

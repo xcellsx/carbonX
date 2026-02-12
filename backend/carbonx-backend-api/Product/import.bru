@@ -1,0 +1,16 @@
+meta {
+  name: import
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host}}/api/products/import
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './ReportPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import {
   ChevronDown, Plus, Search, Trash2, Eye, Pencil, Download, ChevronLeft,
   ArrowUp, ArrowDown, Minus, CircleCheck, RefreshCw, BookOpen,
-  Target, Users, ShieldCheck, Leaf
+  Target, Users, ShieldCheck, Leaf, X, Sprout, FileText
 } from 'lucide-react';
+import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
+import DownloadFormatModal from '../../components/DownloadFormatModal/DownloadFormatModal';
+import { exportReportToDocxBlob } from '../../utils/reportToDocx';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- Generate Report Modal ---
@@ -47,12 +51,30 @@ const ReportSection = ({ icon: Icon, title, children }) => (
 );
 
 // --- Report Content Display (Web View) ---
-const ReportContent = ({ data, onBack }) => {
-  if (!data) return <div className="report-container"><p>Loading...</p></div>;
+const ReportContent = ({ data, onBack, onGoToSproutAI }) => {
+  if (!data) {
+    return (
+      <div className="report-container">
+        <button type="button" onClick={onBack} className="nav report-back-btn" style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}>
+          <ChevronLeft size={18} />
+          <span style={{ fontSize: '1rem' }}>Back to all reports</span>
+        </button>
+        <div className="report-container" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+          <p className="medium-regular" style={{ marginBottom: '1rem' }}>No report content available.</p>
+          <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)', marginBottom: '1.5rem' }}>Generate this report in SproutAI to view and download it.</p>
+          {onGoToSproutAI && (
+            <button type="button" className="default" onClick={onGoToSproutAI}>Go to Sprout AI</button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const isAiGenerated = data.aiGenerated || !data.companyProfile;
 
   return (
     <div className="report-container">
-      <button type="button" onClick={onBack} className="nav" style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}>
+      <button type="button" onClick={onBack} className="nav report-back-btn" style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}>
         <ChevronLeft size={18} />
         <span style={{fontSize: '1rem'}}>Back to all reports</span>
       </button>
@@ -60,13 +82,26 @@ const ReportContent = ({ data, onBack }) => {
       <div className="report-header-section" style={{textAlign: 'center', paddingBottom: '3rem', borderBottom: '1px solid #eee', marginBottom: '3rem'}}>
         <h1 style={{fontSize: '2.5rem', marginBottom: '0.5rem'}}>Carbon Report</h1>
         <p className="medium-regular" style={{fontSize: '1.25rem', color: '#666'}}>Reporting Year: <span className="medium-bold">FY2025</span></p>
-        <p className="medium-regular" style={{color: '#666'}}>Company: <span className="medium-bold">Golden Lion</span></p>
-        <p className="medium-regular" style={{color: '#666'}}>Product Scope: <span className="medium-bold">{data.productName}</span></p>
+        <p className="medium-regular" style={{color: '#666'}}>Scope: <span className="medium-bold">{data.productName || '—'}</span></p>
         <div className="framework-tags" style={{justifyContent: 'center', marginTop: '1.5rem'}}>
           {data.frameworks?.map(f => <span key={f} className="framework-tag">{f}</span>)}
         </div>
       </div>
 
+      {/* AI-generated report: single content block */}
+      {isAiGenerated && (
+        <ReportSection icon={BookOpen} title="Report">
+          <div className="board-statement-box" style={{padding: '2rem', backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '6px solid rgba(var(--primary), 1)'}}>
+            <p className="normal-regular" style={{whiteSpace: 'pre-line', lineHeight: 1.8}}>
+              {data.boardStatement}
+            </p>
+          </div>
+        </ReportSection>
+      )}
+
+      {/* Full report layout (publication-style) */}
+      {!isAiGenerated && (
+        <>
       {/* 1. BOARD STATEMENT */}
       <ReportSection icon={BookOpen} title="1. Board Statement">
         <div className="board-statement-box" style={{padding: '2rem', backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '6px solid rgba(var(--primary), 1)'}}>
@@ -74,13 +109,13 @@ const ReportContent = ({ data, onBack }) => {
                 {data.boardStatement}
             </p>
             <div style={{marginTop: '1.5rem', fontStyle: 'italic', fontWeight: 'bold'}}>
-                - On behalf of the Board of Directors, Golden Lion
+                - On behalf of the Board of Directors, {data.companyName || data.productName || 'the Company'}
             </div>
         </div>
       </ReportSection>
 
       {/* 2. ORGANISATIONAL PROFILE */}
-      <ReportSection icon={Users} title="2. About Golden Lion">
+      <ReportSection icon={Users} title={`2. About ${data.companyName || data.productName || 'the Company'}`}>
          <p className="normal-regular" style={{marginBottom: '1rem', lineHeight: 1.7}}>{data.companyProfile}</p>
          
          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem'}}>
@@ -172,9 +207,22 @@ const ReportContent = ({ data, onBack }) => {
             </table>
           </div>
       </ReportSection>
+        </>
+      )}
     </div>
   );
 };
+
+const REPORT_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Report', description: 'View and manage your sustainability reports. Reports are AI-generated from Sprout AI—request a report in chat and it will appear here with a name and description.', icon: <FileText size={40} /> },
+  { title: 'Report list', description: 'Search and sort your reports. Click a report to open it and read the full content. Use "Back to all reports" to return to the list.', icon: <FileText size={40} /> },
+  { title: 'Download', description: 'Open a report and click Download to save it as PDF or DOCX. Generate new reports by going to Sprout AI and asking for a sustainability or carbon report.', icon: <Download size={40} /> },
+];
+
+const REPORT_VIEW_CAROUSEL_SLIDES = [
+  { title: 'Viewing a report', description: 'This is the full report content. Scroll to read the board statement, company profile, environmental and social analysis, and future targets.', icon: <BookOpen size={40} /> },
+  { title: 'Download', description: 'Click Download to choose PDF or DOCX and save the report to your device. Use "Back to all reports" to return to the list.', icon: <Download size={40} /> },
+];
 
 const ReportPage = () => {
   const navigate = useNavigate();
@@ -189,6 +237,7 @@ const ReportPage = () => {
   const [selectedReportData, setSelectedReportData] = useState(null); 
   const [deleteConfirm, setDeleteConfirm] = useState({isOpen: false, title: '', message: '', onConfirm: () => {},});
   const [showNewReportModal, setShowNewReportModal] = useState(false);
+  const [downloadModalReport, setDownloadModalReport] = useState(null);
 
   // --- EXTENSIVE PUBLICATION-READY DATA (Golden Lion Brand) ---
   const FULL_SAMPLE_REPORT = {
@@ -284,24 +333,15 @@ const ReportPage = () => {
     ]
   };
 
+  const location = useLocation();
+  const openReportIdFromState = location.state?.openReportId;
+
   const fetchReportsList = () => {
     setLoading(true);
     setTimeout(() => {
       const stored = localStorage.getItem('carbonx_reports');
-      let parsed = stored ? JSON.parse(stored) : [];
-      
-      // Force update to new structure if missing 'companyProfile'
-      if (parsed.length === 0 || (parsed[0] && !parsed[0].fullData?.companyProfile)) {
-         parsed = [{
-           id: 1,
-           reportName: "FY2025 Carbon Disclosure",
-           description: "Annual carbon footprint & sustainability analysis.",
-           date: "2025-11-23",
-           fullData: FULL_SAMPLE_REPORT
-         }];
-         localStorage.setItem('carbonx_reports', JSON.stringify(parsed));
-      }
-      setReportsList(parsed);
+      const parsed = stored ? JSON.parse(stored) : [];
+      setReportsList(Array.isArray(parsed) ? parsed : []);
       setLoading(false);
     }, 500);
   };
@@ -309,6 +349,16 @@ const ReportPage = () => {
   useEffect(() => {
     fetchReportsList();
   }, []);
+
+  useEffect(() => {
+    if (!openReportIdFromState || reportsList.length === 0) return;
+    const report = reportsList.find(r => r.id === openReportIdFromState);
+    if (report) {
+      setSelectedReportData(report.fullData || null);
+      setCurrentView('detail');
+    }
+    window.history.replaceState({}, '', location.pathname);
+  }, [openReportIdFromState, reportsList, location.pathname]);
 
   const resetToSample = () => {
       const parsed = [{
@@ -341,34 +391,35 @@ const ReportPage = () => {
   const closeDeleteModal = () => setDeleteConfirm({isOpen: false, title: '', message: '', onConfirm: () => {}});
 
   const handleViewReport = (report) => {
-    const data = report.fullData || FULL_SAMPLE_REPORT;
-    setSelectedReportData(data);
+    setSelectedReportData(report.fullData || null);
     setCurrentView('detail');
   };
 
-  // --- ADVANCED PDF GENERATION ---
+  const safeFileName = (name) => (name || 'report').replace(/[^a-zA-Z0-9-_.\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
+
+  // --- PDF GENERATION (report content only; no hardcoded template) ---
   const handleDownloadReport = (report) => {
+    if (!report.fullData || !report.fullData.boardStatement) {
+      alert('No report content to download. Generate this report in SproutAI first.');
+      return;
+    }
+    const data = report.fullData;
     const doc = new jsPDF();
-    const data = report.fullData || FULL_SAMPLE_REPORT;
     let finalY = 0;
 
     // --- PAGE 1: COVER PAGE ---
-    doc.setFillColor(51, 71, 97); // Brand Blue
-    doc.rect(0, 0, 210, 297, 'F'); // Full page bg
-    
+    doc.setFillColor(51, 71, 97);
+    doc.rect(0, 0, 210, 297, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(36);
     doc.text("SUSTAINABILITY", 20, 100);
     doc.text("REPORT 2025", 20, 115);
-    
     doc.setFontSize(14);
     doc.text("Driving Decarbonization & Value Creation", 20, 130);
-    
     doc.setFontSize(20);
-    doc.text("GOLDEN LION", 20, 230);
-    
+    doc.text((data.productName || 'Sustainability Report').slice(0, 40), 20, 230);
     doc.setFontSize(12);
-    doc.text(`Product Scope: ${data.productName}`, 20, 250);
+    doc.text(`Scope: ${(data.productName || '').slice(0, 50)}`, 20, 250);
     doc.text("Generated by CarbonX Platform", 20, 260);
     
     doc.addPage();
@@ -387,26 +438,20 @@ const ReportPage = () => {
     
     doc.setFontSize(16);
     doc.setTextColor(0);
-    doc.text("2. About Golden Lion", 14, finalY);
-    
+    doc.text(`2. About ${data.companyName || data.productName || 'the Company'}`, 14, finalY);
     doc.setFontSize(10);
     doc.setTextColor(60);
-    const profile = doc.splitTextToSize(data.companyProfile, 180);
+    const profile = doc.splitTextToSize(data.companyProfile || '', 180);
     doc.text(profile, 14, finalY + 10);
-    
     finalY += (profile.length * 5) + 20;
-    
-    // Approaches side by side
     doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text("Our Sustainability Approach", 14, finalY);
     doc.text("Stakeholder Engagement", 110, finalY);
-    
     doc.setFontSize(9);
     doc.setTextColor(80);
-    const approach = doc.splitTextToSize(data.sustainabilityApproach, 90);
-    const stakeholders = doc.splitTextToSize(data.stakeholderEngagement, 90);
-    
+    const approach = doc.splitTextToSize((data.sustainabilityApproach || ''), 90);
+    const stakeholders = doc.splitTextToSize((data.stakeholderEngagement || ''), 90);
     doc.text(approach, 14, finalY + 7);
     doc.text(stakeholders, 110, finalY + 7);
     
@@ -426,51 +471,46 @@ const ReportPage = () => {
         finalY += 20;
         
         items.forEach(item => {
-             if(finalY > 240) { doc.addPage(); finalY = 20; }
-             
-             // Item Title & Key Data
+             if (!item || typeof item !== 'object') return;
+             if (finalY > 240) { doc.addPage(); finalY = 20; }
+             const titleStr = item.title || '';
+             const keyStr = item.keyData || '';
+             const stratStr = item.strategy || '';
+             const perfStr = item.performance || '';
+             const outStr = item.outlook || '';
              doc.setFontSize(12);
              doc.setTextColor(0);
              doc.setFont("helvetica", "bold");
-             doc.text(item.title, 14, finalY);
-             
+             doc.text(titleStr, 14, finalY);
              doc.setFontSize(10);
-             doc.setTextColor(22, 163, 74); // Green
-             doc.text(item.keyData, 196, finalY, { align: 'right' });
-             
+             doc.setTextColor(22, 163, 74);
+             doc.text(keyStr, 196, finalY, { align: 'right' });
              finalY += 6;
-             
-             // Strategy
              doc.setFontSize(9);
              doc.setTextColor(80);
              doc.setFont("helvetica", "italic");
-             const strat = doc.splitTextToSize(`"${item.strategy}"`, 182);
+             const strat = doc.splitTextToSize(stratStr ? `"${stratStr}"` : '', 182);
              doc.text(strat, 14, finalY);
              finalY += (strat.length * 4) + 4;
-             
-             // Performance
              doc.setFont("helvetica", "normal");
              doc.setTextColor(0);
              doc.text("Performance:", 14, finalY);
              doc.setTextColor(60);
-             const perf = doc.splitTextToSize(item.performance, 160);
+             const perf = doc.splitTextToSize(perfStr, 160);
              doc.text(perf, 38, finalY);
              finalY += (perf.length * 4) + 4;
-             
-             // Outlook
              doc.setTextColor(0);
              doc.text("Outlook:", 14, finalY);
              doc.setTextColor(60);
-             const out = doc.splitTextToSize(item.outlook, 160);
+             const out = doc.splitTextToSize(outStr, 160);
              doc.text(out, 38, finalY);
              finalY += (out.length * 4) + 10;
         });
     };
 
-    // Print Pillars
-    printSection("3. Environmental Stewardship", data.environmentalAnalysis);
-    printSection("4. Social Responsibility", data.socialAnalysis);
-    printSection("5. Governance & Ethics", data.governanceAnalysis);
+    printSection("3. Environmental Stewardship", data.environmentalAnalysis || []);
+    printSection("4. Social Responsibility", data.socialAnalysis || []);
+    printSection("5. Governance & Ethics", data.governanceAnalysis || []);
 
     doc.addPage();
     finalY = 20;
@@ -491,8 +531,20 @@ const ReportPage = () => {
         styles: { fontSize: 10, cellPadding: 3 }
     });
 
-    const fileName = `GoldenLion_Sustainability_Report_FY2025.pdf`;
-    doc.save(fileName);
+    doc.save(`${safeFileName(report.reportName || data.productName)}.pdf`);
+  };
+
+  const handleDownloadDocx = async (report) => {
+    if (!report.fullData || !report.fullData.boardStatement) {
+      alert('No report content to download. Generate this report in SproutAI first.');
+      return;
+    }
+    try {
+      const blob = await exportReportToDocxBlob(report.fullData);
+      saveAs(blob, `${safeFileName(report.reportName || report.fullData.productName)}.docx`);
+    } catch (e) {
+      alert('Failed to generate Word document. Try again or download as PDF.');
+    }
   };
 
   const handleBackToList = () => {
@@ -506,6 +558,10 @@ const ReportPage = () => {
 
   return (
     <div className="container">
+      <InstructionalCarousel pageId="report" slides={REPORT_CAROUSEL_SLIDES} newUserOnly={false} />
+      {currentView === 'detail' && (
+        <InstructionalCarousel pageId="report-view" slides={REPORT_VIEW_CAROUSEL_SLIDES} newUserOnly={false} />
+      )}
       <Navbar />
       <div className="content-section-main">
         {error && (
@@ -539,7 +595,7 @@ const ReportPage = () => {
                     <thead className = "normal-bold">
                       <tr>
                         <th>Report Name</th>
-                        <th>Description</th>
+                        <th className="report-table-description-col">Description</th>
                         <th>Date</th>
                         <th>Actions</th>
                       </tr>
@@ -565,14 +621,14 @@ const ReportPage = () => {
                         return (
                           <tr key={report.id}>
                             <td className="normal-bold">{report.reportName}</td>
-                            <td>{report.description}</td>
-                            <td>{report.date}</td>
+                            <td className="report-table-description-col">{report.description}</td>
+                            <td>{report.date ? new Date(report.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
                             <td>
                               <div className='two-row-component-container' style={{ gap: '0.5rem' }}>
                                 <button className="icon" title="View Report" onClick={() => handleViewReport(report)} style={{ backgroundColor: 'rgba(var(--info), 1)' }}>
                                   <Eye size={16} />
                                 </button>
-                                <button className="icon" title="Download PDF" onClick={() => handleDownloadReport(report)} style={{ backgroundColor: 'rgba(var(--success), 1)' }}>
+                                <button className="icon" title="Download" onClick={() => setDownloadModalReport(report)} style={{ backgroundColor: 'rgba(var(--success), 1)' }}>
                                   <Download size={16} />
                                 </button>
                                 <button className="icon" title="Delete Report" onClick={() => handleDelete(report.id)} style={{ backgroundColor: 'rgba(var(--danger), 1)' }}>
@@ -592,7 +648,7 @@ const ReportPage = () => {
         ) : (
           <div className="content-container-main">
             <div className="analytics-card"> 
-              <ReportContent data={selectedReportData} onBack={handleBackToList} />
+              <ReportContent data={selectedReportData} onBack={handleBackToList} onGoToSproutAI={() => navigate('/chat')} />
             </div>
           </div>
         )}
@@ -603,6 +659,14 @@ const ReportPage = () => {
       </ConfirmationModal>
 
       <GenerateReportModal isOpen={showNewReportModal} onClose={() => setShowNewReportModal(false)} onNavigate={() => { setShowNewReportModal(false); navigate('/chat'); }} />
+
+      <DownloadFormatModal
+        isOpen={!!downloadModalReport}
+        onClose={() => setDownloadModalReport(null)}
+        reportName={downloadModalReport?.reportName}
+        onSelectPdf={() => downloadModalReport && handleDownloadReport(downloadModalReport)}
+        onSelectDocx={() => downloadModalReport && handleDownloadDocx(downloadModalReport)}
+      />
     </div>
   );
 };

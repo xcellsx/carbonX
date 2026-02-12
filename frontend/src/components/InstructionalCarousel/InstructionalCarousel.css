@@ -1,0 +1,156 @@
+.instructional-carousel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: instructionalCarouselFadeIn 0.2s ease-out;
+}
+
+@keyframes instructionalCarouselFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.instructional-carousel-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--blacks), 0.5);
+  cursor: pointer;
+}
+
+.instructional-carousel-card {
+  position: relative;
+  background: rgba(var(--whites), 1);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: instructionalCarouselSlideUp 0.25s ease-out;
+}
+
+@keyframes instructionalCarouselSlideUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.instructional-carousel-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem;
+  border: none;
+  background: transparent;
+  color: rgba(var(--greys), 1);
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instructional-carousel-close:hover {
+  color: rgba(var(--blacks), 1);
+  background: rgba(var(--greys), 0.15);
+}
+
+.instructional-carousel-content {
+  padding: 2rem 2rem 1rem;
+  padding-right: 2.75rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.instructional-carousel-icon {
+  margin-bottom: 1rem;
+  color: rgba(var(--primary), 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instructional-carousel-title {
+  font-size: var(--heading-6);
+  font-weight: var(--bold);
+  color: rgba(var(--primary), 1);
+  margin: 0 0 0.75rem;
+  line-height: 1.35;
+}
+
+.instructional-carousel-description {
+  font-size: var(--normal);
+  color: rgba(var(--blacks), 0.85);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.instructional-carousel-footer {
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid rgba(var(--greys), 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.instructional-carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.instructional-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(var(--greys), 0.35);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.instructional-carousel-dot:hover {
+  background: rgba(var(--greys), 0.6);
+}
+
+.instructional-carousel-dot.active {
+  background: rgba(var(--primary), 1);
+  transform: scale(1.2);
+}
+
+.instructional-carousel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.instructional-carousel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  font-size: var(--small);
+  white-space: nowrap;
+}
+
+.instructional-carousel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

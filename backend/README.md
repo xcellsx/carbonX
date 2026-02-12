@@ -9,40 +9,9 @@ The initial plan is to use [ArangoDB's free community edition](https://docs.aran
 - Is shipped with Docker, which makes it very usable for various operating systems
 
 ### > Requirements
-* JDK 17+ (project uses 17)
-* Maven 3.9+
+* JDK 25 (LTS)
+* Maven 3.9.11
 * Spring Boot 3.5.7
-* **ArangoDB** (required; see below)
----
-### > ArangoDB setup (required before running the app)
-
-The backend expects ArangoDB at **localhost:8529** with:
-- **Database:** `testCompany`
-- **User:** `root`
-- **Password:** `test`
-
-**Option A – Docker (recommended)**
-
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if needed.
-2. Start ArangoDB with the password your app uses:
-   ```bash
-   docker run -e ARANGO_ROOT_PASSWORD=test -p 8529:8529 -d --name carbonx-arango arangodb/arangodb:latest
-   ```
-3. Create the database (one-time). Open **http://localhost:8529** in a browser, log in with username `root` and password `test`, then in the **Databases** tab click **Create database** and name it `testCompany`.  
-   Or from the host (with ArangoDB running):
-   ```bash
-   docker exec -it carbonx-arango arangosh --server.username root --server.password test --javascript.execute-string "db._createDatabase('testCompany');"
-   ```
-   (Use `--javascript.execute-string` for inline code; `--javascript.execute` is for file paths.)
-4. Restart your backend; it will connect to ArangoDB and listen on port 8080.
-
-**Option B – Native install**
-
-1. Download the community server: https://www.arangodb.com/download/
-2. Install and start the ArangoDB service (port 8529).
-3. Set the root password to `test` (or change `arangodb.spring.data.password` in `src/main/resources/application.properties` to match).
-4. In the ArangoDB web UI (http://localhost:8529) or with `arangosh`, create a database named `testCompany`.
-
 ---
 ### > How to Run the App
 `mvnw spring-boot:run`

@@ -7,8 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-
-import com.ecapybara.carbonx.model.Product;
+import com.ecapybara.carbonx.model.issb.Product;
 
 public interface ProductRepository extends ArangoRepository<Product, String>{
 
