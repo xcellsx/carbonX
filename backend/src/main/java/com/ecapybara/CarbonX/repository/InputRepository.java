@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.repository;
+package com.ecapybara.CarbonX.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,9 +9,9 @@ import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.annotation.Query;
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.carbonx.model.issb.Input;
-import com.ecapybara.carbonx.model.issb.Process;
-import com.ecapybara.carbonx.model.issb.Product;
+import com.ecapybara.CarbonX.model.issb.Input;
+import com.ecapybara.CarbonX.model.issb.Process;
+import com.ecapybara.CarbonX.model.issb.Product;
 
 public interface InputRepository extends ArangoRepository<Input, String> {
 
@@ -29,6 +29,10 @@ public interface InputRepository extends ArangoRepository<Input, String> {
 
   @Query("FOR input IN inputs FILTER input._to == @documentId RETURN input._key")
   Iterable<String> findConnectedInputs(@Param("documentId") String documentId);
+
+  /** Find input edge by vertex document ids (one-way: product → process). */
+  @Query("FOR i IN inputs FILTER i._from == @fromId AND i._to == @toId LIMIT 1 RETURN i")
+  List<Input> findByFromAndTo(@Param("fromId") String productId, @Param("toId") String processId);
 
   void removeById(String id);
 }
