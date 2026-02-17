@@ -1,0 +1,302 @@
+2026-02-17T15:37:36.645+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Starting CarbonXApplication using Java 25 with PID 21476 (C:\Users\Admin\Desktop\carbonX\backend\target\classes started by Admin in C:\Users\Admin\Desktop\carbonX)
+2026-02-17T15:37:36.647+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-02-17T15:37:36.690+08:00  INFO 21476 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-17T15:37:36.691+08:00  INFO 21476 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-17T15:37:37.475+08:00  INFO 21476 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data ArangoDB repositories in DEFAULT mode.
+2026-02-17T15:37:37.624+08:00  INFO 21476 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 144 ms. Found 6 ArangoDB repository interfaces.
+2026-02-17T15:37:38.329+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-17T15:37:38.342+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:37:38.343+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:37:38.409+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:37:38.410+08:00  INFO 21476 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1717 ms
+2026-02-17T15:37:38.531+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] o.s.w.f.ServerHttpObservationFilter      : Filter 'webMvcObservationFilter' configured for use
+2026-02-17T15:37:38.668+08:00  WARN 21476 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:37:38.669+08:00  WARN 21476 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:37:38.803+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-02-17T15:37:39.656+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-02-17T15:37:39.727+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 52 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:37:39.757+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:37:39.783+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:37:39.849+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-02-17T15:37:40.176+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-02-17T15:37:40.273+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9000 (http)
+2026-02-17T15:37:40.274+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:37:40.274+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:37:40.300+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:37:40.301+08:00  INFO 21476 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 121 ms
+2026-02-17T15:37:40.317+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-02-17T15:37:40.333+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 1 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:37:40.339+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:37:40.344+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:37:40.356+08:00  INFO 21476 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9000 (http) with context path '/'
+2026-02-17T15:37:40.371+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Started CarbonXApplication in 4.105 seconds (process running for 4.837)
+2026-02-17T15:37:40.410+08:00 ERROR 21476 --- [CarbonX] [restartedMain] c.e.carbonx.service.ImportExportService  : Error processing CSV
+
+java.nio.file.NoSuchFileException: C:\Users\Admin\Desktop\carbonX\temp\testProducts.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:357) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:399) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:154) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2645) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2674) ~[na:na]
+	at com.ecapybara.carbonx.service.ImportExportService.importCSV(ImportExportService.java:86) ~[classes/:na]
+	at com.ecapybara.carbonx.runner.InitialSetup.run(InitialSetup.java:43) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:788) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:82) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:86) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:796) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:787) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:571) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:325) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.10.jar:3.5.10]
+	at com.ecapybara.carbonx.CarbonXApplication.main(CarbonXApplication.java:23) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.5.10.jar:3.5.10]
+
+2026-02-17T15:37:40.474+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 0 PRODUCT entries created
+2026-02-17T15:37:40.474+08:00 ERROR 21476 --- [CarbonX] [restartedMain] c.e.carbonx.service.ImportExportService  : Error processing CSV
+
+java.nio.file.NoSuchFileException: C:\Users\Admin\Desktop\carbonX\temp\testProcesses.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:357) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:399) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:154) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2645) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2674) ~[na:na]
+	at com.ecapybara.carbonx.service.ImportExportService.importCSV(ImportExportService.java:86) ~[classes/:na]
+	at com.ecapybara.carbonx.runner.InitialSetup.run(InitialSetup.java:47) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:788) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:82) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:86) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:796) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:787) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:571) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:325) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.10.jar:3.5.10]
+	at com.ecapybara.carbonx.CarbonXApplication.main(CarbonXApplication.java:23) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.5.10.jar:3.5.10]
+
+2026-02-17T15:37:40.495+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 0 PROCESS entries created
+2026-02-17T15:37:40.496+08:00 ERROR 21476 --- [CarbonX] [restartedMain] c.e.carbonx.service.ImportExportService  : Error processing CSV
+
+java.nio.file.NoSuchFileException: C:\Users\Admin\Desktop\carbonX\temp\testInputs.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:357) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:399) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:154) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2645) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2674) ~[na:na]
+	at com.ecapybara.carbonx.service.ImportExportService.importCSV(ImportExportService.java:86) ~[classes/:na]
+	at com.ecapybara.carbonx.runner.InitialSetup.run(InitialSetup.java:51) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:788) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:82) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:86) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:796) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:787) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:571) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:325) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.10.jar:3.5.10]
+	at com.ecapybara.carbonx.CarbonXApplication.main(CarbonXApplication.java:23) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.5.10.jar:3.5.10]
+
+2026-02-17T15:37:40.520+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 0 INPUTS entries created
+2026-02-17T15:37:40.521+08:00 ERROR 21476 --- [CarbonX] [restartedMain] c.e.carbonx.service.ImportExportService  : Error processing CSV
+
+java.nio.file.NoSuchFileException: C:\Users\Admin\Desktop\carbonX\temp\testOutputs.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:357) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:399) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:154) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2645) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2674) ~[na:na]
+	at com.ecapybara.carbonx.service.ImportExportService.importCSV(ImportExportService.java:86) ~[classes/:na]
+	at com.ecapybara.carbonx.runner.InitialSetup.run(InitialSetup.java:55) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:788) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:82) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:86) ~[spring-core-6.2.15.jar:6.2.15]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:796) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:787) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:571) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:772) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:325) ~[spring-boot-3.5.10.jar:3.5.10]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.10.jar:3.5.10]
+	at com.ecapybara.carbonx.CarbonXApplication.main(CarbonXApplication.java:23) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.5.10.jar:3.5.10]
+
+2026-02-17T15:37:40.541+08:00  INFO 21476 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 0 OUTPUTS entries created
+2026-02-17T15:37:40.581+08:00 DEBUG 21476 --- [CarbonX] [restartedMain] o.s.w.r.f.client.ExchangeFunctions       : [41f7617e] HTTP POST http://localhost:8529/_db/testCompany/_api/gharial
+2026-02-17T15:37:40.665+08:00 DEBUG 21476 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [41f7617e] Encoding [{name=default, edgeDefinitions=[com.ecapybara.carbonx.model.basic.EdgeDefinition@638267b4, com.ecapy (truncated)...]
+2026-02-17T15:37:40.698+08:00 DEBUG 21476 --- [CarbonX] [reactor-http-nio-2] o.s.w.r.f.client.ExchangeFunctions       : [41f7617e] [1ff3fc30-1] Response 202 ACCEPTED
+2026-02-17T15:37:40.716+08:00 DEBUG 21476 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [41f7617e] [1ff3fc30-1] Decoded [{error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], t (truncated)...]
+2026-02-17T15:37:40.716+08:00  INFO 21476 --- [CarbonX] [reactor-http-nio-2] c.ecapybara.carbonx.runner.InitialSetup  : Graph created: {error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], to=[processes]}, {collection=outputs, from=[processes], to=[products]}], orphanCollections=[], _rev=_lEoGiCy---, _id=_graphs/default, name=default}}
+2026-02-17T15:37:42.582+08:00  INFO 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-17T15:37:42.582+08:00  INFO 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-02-17T15:37:42.583+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2026-02-17T15:37:42.583+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2026-02-17T15:37:42.583+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
+2026-02-17T15:37:42.583+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@5a38a26b
+2026-02-17T15:37:42.584+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@4cdc328
+2026-02-17T15:37:42.585+08:00 DEBUG 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-02-17T15:37:42.585+08:00  INFO 21476 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-02-17T15:38:44.188+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Starting CarbonXApplication using Java 25 with PID 16484 (C:\Users\Admin\Desktop\carbonX\backend\target\classes started by Admin in c:\Users\Admin\Desktop\carbonX)
+2026-02-17T15:38:44.191+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-02-17T15:38:44.234+08:00  INFO 16484 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-17T15:38:44.234+08:00  INFO 16484 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-17T15:38:45.004+08:00  INFO 16484 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data ArangoDB repositories in DEFAULT mode.
+2026-02-17T15:38:45.147+08:00  INFO 16484 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 137 ms. Found 6 ArangoDB repository interfaces.
+2026-02-17T15:38:45.798+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-17T15:38:45.809+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:38:45.809+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:38:45.858+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:38:45.859+08:00  INFO 16484 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1624 ms
+2026-02-17T15:38:45.937+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] o.s.w.f.ServerHttpObservationFilter      : Filter 'webMvcObservationFilter' configured for use
+2026-02-17T15:38:46.068+08:00  WARN 16484 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:38:46.069+08:00  WARN 16484 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:38:46.181+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-02-17T15:38:47.010+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-02-17T15:38:47.079+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 52 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:38:47.111+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:38:47.131+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:38:47.183+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-02-17T15:38:47.482+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-02-17T15:38:47.579+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9000 (http)
+2026-02-17T15:38:47.581+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:38:47.582+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:38:47.606+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:38:47.608+08:00  INFO 16484 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 122 ms
+2026-02-17T15:38:47.627+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-02-17T15:38:47.641+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 1 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:38:47.650+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:38:47.656+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:38:47.665+08:00  INFO 16484 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9000 (http) with context path '/'
+2026-02-17T15:38:47.681+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Started CarbonXApplication in 3.868 seconds (process running for 4.477)
+2026-02-17T15:38:48.012+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 16 PRODUCT entries created
+2026-02-17T15:38:48.064+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 3 PROCESS entries created
+2026-02-17T15:38:48.167+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 0 INPUTS entries created
+2026-02-17T15:38:48.256+08:00  INFO 16484 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 4 OUTPUTS entries created
+2026-02-17T15:38:48.297+08:00 DEBUG 16484 --- [CarbonX] [restartedMain] o.s.w.r.f.client.ExchangeFunctions       : [fd7a754] HTTP POST http://localhost:8529/_db/testCompany/_api/gharial
+2026-02-17T15:38:48.371+08:00 DEBUG 16484 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [fd7a754] Encoding [{name=default, edgeDefinitions=[com.ecapybara.carbonx.model.basic.EdgeDefinition@5743e9cc, com.ecapy (truncated)...]
+2026-02-17T15:38:48.401+08:00 DEBUG 16484 --- [CarbonX] [reactor-http-nio-2] o.s.w.r.f.client.ExchangeFunctions       : [fd7a754] [80111a8e-1] Response 202 ACCEPTED
+2026-02-17T15:38:48.423+08:00 DEBUG 16484 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [fd7a754] [80111a8e-1] Decoded [{error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], t (truncated)...]
+2026-02-17T15:38:48.424+08:00  INFO 16484 --- [CarbonX] [reactor-http-nio-2] c.ecapybara.carbonx.runner.InitialSetup  : Graph created: {error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], to=[processes]}, {collection=outputs, from=[processes], to=[products]}], orphanCollections=[], _rev=_lEoHkKK---, _id=_graphs/default, name=default}}
+2026-02-17T15:38:50.091+08:00  INFO 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-17T15:38:50.091+08:00  INFO 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-02-17T15:38:50.093+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2026-02-17T15:38:50.093+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2026-02-17T15:38:50.093+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
+2026-02-17T15:38:50.094+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@44e66a5e
+2026-02-17T15:38:50.095+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@6a269330
+2026-02-17T15:38:50.096+08:00 DEBUG 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-02-17T15:38:50.096+08:00  INFO 16484 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-02-17T15:42:12.931+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Starting CarbonXApplication using Java 25 with PID 18736 (C:\Users\Admin\Desktop\carbonX\backend\target\classes started by Admin in c:\Users\Admin\Desktop\carbonX)
+2026-02-17T15:42:12.934+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-02-17T15:42:12.974+08:00  INFO 18736 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-17T15:42:12.975+08:00  INFO 18736 --- [CarbonX] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-17T15:42:13.682+08:00  INFO 18736 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data ArangoDB repositories in DEFAULT mode.
+2026-02-17T15:42:13.832+08:00  INFO 18736 --- [CarbonX] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 143 ms. Found 6 ArangoDB repository interfaces.
+2026-02-17T15:42:14.403+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-17T15:42:14.416+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:42:14.417+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:42:14.462+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:42:14.463+08:00  INFO 18736 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1488 ms
+2026-02-17T15:42:14.557+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] o.s.w.f.ServerHttpObservationFilter      : Filter 'webMvcObservationFilter' configured for use
+2026-02-17T15:42:14.691+08:00  WARN 18736 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:42:14.692+08:00  WARN 18736 --- [CarbonX] [restartedMain] com.arangodb.internal.serde.SerdeUtils   : Unsupported Jackson version: 2.19.4
+2026-02-17T15:42:14.804+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-02-17T15:42:15.616+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-02-17T15:42:15.677+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 52 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:42:15.707+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:42:15.728+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:42:15.794+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-02-17T15:42:16.192+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-02-17T15:42:16.318+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9000 (http)
+2026-02-17T15:42:16.320+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-17T15:42:16.321+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-02-17T15:42:16.350+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-02-17T15:42:16.351+08:00  INFO 18736 --- [CarbonX] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 154 ms
+2026-02-17T15:42:16.373+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-02-17T15:42:16.395+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 1 mappings in 'requestMappingHandlerMapping'
+2026-02-17T15:42:16.405+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-02-17T15:42:16.412+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-02-17T15:42:16.425+08:00  INFO 18736 --- [CarbonX] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9000 (http) with context path '/'
+2026-02-17T15:42:16.444+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.CarbonXApplication   : Started CarbonXApplication in 3.897 seconds (process running for 4.519)
+2026-02-17T15:42:16.845+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 16 PRODUCT entries created
+2026-02-17T15:42:16.904+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 3 PROCESS entries created
+2026-02-17T15:42:17.212+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 14 INPUTS entries created
+2026-02-17T15:42:17.346+08:00  INFO 18736 --- [CarbonX] [restartedMain] c.ecapybara.carbonx.runner.InitialSetup  : -> 4 OUTPUTS entries created
+2026-02-17T15:42:17.415+08:00 DEBUG 18736 --- [CarbonX] [restartedMain] o.s.w.r.f.client.ExchangeFunctions       : [4fb1011d] HTTP POST http://localhost:8529/_db/testCompany/_api/gharial
+2026-02-17T15:42:17.508+08:00 DEBUG 18736 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [4fb1011d] Encoding [{name=default, edgeDefinitions=[com.ecapybara.carbonx.model.basic.EdgeDefinition@64c19cc2, com.ecapy (truncated)...]
+2026-02-17T15:42:17.535+08:00 DEBUG 18736 --- [CarbonX] [reactor-http-nio-2] o.s.w.r.f.client.ExchangeFunctions       : [4fb1011d] [841f0419-1] Response 202 ACCEPTED
+2026-02-17T15:42:17.554+08:00 DEBUG 18736 --- [CarbonX] [reactor-http-nio-2] org.springframework.web.HttpLogging      : [4fb1011d] [841f0419-1] Decoded [{error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], t (truncated)...]
+2026-02-17T15:42:17.554+08:00  INFO 18736 --- [CarbonX] [reactor-http-nio-2] c.ecapybara.carbonx.runner.InitialSetup  : Graph created: {error=false, code=202, graph={_key=default, edgeDefinitions=[{collection=inputs, from=[products], to=[processes]}, {collection=outputs, from=[processes], to=[products]}], orphanCollections=[], _rev=_lEoKwZO---, _id=_graphs/default, name=default}}
+2026-02-17T15:42:18.831+08:00  INFO 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-17T15:42:18.832+08:00  INFO 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-02-17T15:42:18.832+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2026-02-17T15:42:18.832+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2026-02-17T15:42:18.832+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected FixedThemeResolver
+2026-02-17T15:42:18.834+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@1833101f
+2026-02-17T15:42:18.834+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@4f49f8a5
+2026-02-17T15:42:18.834+08:00 DEBUG 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-02-17T15:42:18.835+08:00  INFO 18736 --- [CarbonX] [RMI TCP Connection(2)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms

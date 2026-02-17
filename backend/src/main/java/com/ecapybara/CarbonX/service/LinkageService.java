@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.service;
+package com.ecapybara.carbonx.service;
 
 import java.util.List;
 import java.util.Objects;
@@ -8,14 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.ecapybara.CarbonX.model.issb.Input;
-import com.ecapybara.CarbonX.model.issb.Output;
-import com.ecapybara.CarbonX.model.issb.Process;
-import com.ecapybara.CarbonX.model.issb.Product;
-import com.ecapybara.CarbonX.repository.InputRepository;
-import com.ecapybara.CarbonX.repository.OutputRepository;
-import com.ecapybara.CarbonX.repository.ProcessRepository;
-import com.ecapybara.CarbonX.repository.ProductRepository;
+import com.ecapybara.carbonx.model.issb.Input;
+import com.ecapybara.carbonx.model.issb.Output;
+import com.ecapybara.carbonx.model.issb.Process;
+import com.ecapybara.carbonx.model.issb.Product;
+import com.ecapybara.carbonx.repository.InputRepository;
+import com.ecapybara.carbonx.repository.OutputRepository;
+import com.ecapybara.carbonx.repository.ProcessRepository;
+import com.ecapybara.carbonx.repository.ProductRepository;
 
 /**
  * Creates one-way linkages between product and process nodes.

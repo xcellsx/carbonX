@@ -79,7 +79,7 @@ public class ImportExportService {
     try {
       // Find CSV file
       String projectRoot = System.getProperty("user.dir");
-      Path dir = Paths.get(projectRoot, "temp");
+      Path dir = Paths.get(projectRoot, "backend/temp");
       Path filepath = dir.resolve(filename);
 
       // Read, convert and save CSV file into database according to request type
@@ -116,6 +116,8 @@ public class ImportExportService {
                                           .withIgnoreEmptyLine(true)
                                           .build()
                                           .parse();
+          inputList.forEach(input -> inputRepository.save(input)); // save each document into the correct repo
+
           return Mono.just(String.format("Import successful for '%s' into INPUT repository!", filename));
 
         case "outputs":

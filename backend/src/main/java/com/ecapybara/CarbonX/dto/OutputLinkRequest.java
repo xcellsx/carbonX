@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.dto;
+package com.ecapybara.carbonx.dto;
 
 /**
  * Request to create a one-way link: Process → Product (process produces product).

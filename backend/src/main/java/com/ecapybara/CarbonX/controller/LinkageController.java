@@ -1,4 +1,4 @@
-package com.ecapybara.CarbonX.controller;
+package com.ecapybara.carbonx.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.CarbonX.dto.InputLinkRequest;
-import com.ecapybara.CarbonX.dto.OutputLinkRequest;
-import com.ecapybara.CarbonX.model.issb.Input;
-import com.ecapybara.CarbonX.model.issb.Output;
-import com.ecapybara.CarbonX.service.LinkageService;
+import com.ecapybara.carbonx.dto.InputLinkRequest;
+import com.ecapybara.carbonx.dto.OutputLinkRequest;
+import com.ecapybara.carbonx.model.issb.Input;
+import com.ecapybara.carbonx.model.issb.Output;
+import com.ecapybara.carbonx.service.LinkageService;
 
 /**
  * REST API to connect product and process nodes with one-way edges only.
