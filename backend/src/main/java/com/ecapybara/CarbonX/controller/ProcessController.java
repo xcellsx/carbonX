@@ -1,6 +1,7 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +21,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.config.AppLogger;
-import com.ecapybara.carbonx.model.Process;
-import com.ecapybara.carbonx.repository.ProcessRepository;
-import com.ecapybara.carbonx.service.DocumentService;
-import com.ecapybara.carbonx.service.GraphService;
+import com.ecapybara.CarbonX.config.AppLogger;
+import com.ecapybara.CarbonX.model.issb.Process;
+import com.ecapybara.CarbonX.repository.ProcessRepository;
+import com.ecapybara.CarbonX.service.arango.ArangoDocumentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ecapybara.CarbonX.service.GraphService;
 
 import reactor.core.publisher.Mono;
 
@@ -34,11 +36,14 @@ import reactor.core.publisher.Mono;
 public class ProcessController {
 
   @Autowired
-  private DocumentService documentService;
+  private ArangoDocumentService documentService;
   @Autowired
   private GraphService graphService;
   @Autowired
   private ProcessRepository processRepository;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
   final Sort sort = Sort.by(Direction.DESC, "id");
@@ -85,26 +90,26 @@ public class ProcessController {
     return revisedProcesses;
   }
 
-  @GetMapping("/{id}")
-  public Mono<Process> getProcess(@PathVariable String id) {
-    return documentService.getDocuments("processes", id)
-            .bodyToMono(Process.class)
-            .doOnNext(body -> log.info("API Response:\n{}", body));
+  @GetMapping("/{key}")
+  public Mono<Process> getProcess(@PathVariable String key) {
+    Map<String,Object> rawDocument = documentService.getDocument("processes", key, null, null)
+                                                    .block();
+    Process process = objectMapper.convertValue(rawDocument, Process.class);                                             
+    return Mono.just(process);
   }
 
-  @PutMapping("/{id}")
-  public Process editProcess(@PathVariable String id, @RequestBody Process revisedProcess) {
-    Process process = processRepository.findById(id).orElse(null);
+  @PutMapping("/{key}")
+  public Process editProcess(@PathVariable String key, @RequestBody Process revisedProcess) {
+    Process process = processRepository.findByKey(key).orElse(null);
 
     if (process != null) {
       process.setName(revisedProcess.getName());
       process.setType(revisedProcess.getType());
-      process.setFunctionalProperties(revisedProcess.getFunctionalProperties());
       process.setDPP(revisedProcess.getDPP());
       processRepository.save(process);
     }
     
-    return processRepository.findById(id).orElse(null);
+    return processRepository.findByKey(key).orElse(null);
   }
 
   // Proper document deletion require the use of ArangoDB's Graph API since AQL does not cleanly delete hanging edges. Trust me, I've tried

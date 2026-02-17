@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.dto;
+package com.ecapybara.CarbonX.dto;
 
 public class CompanyInfoRequest {
 

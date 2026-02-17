@@ -5,14 +5,14 @@ meta {
 }
 
 get {
-  url: {{host}}/api/products?productName=raw pasta
+  url: {{host}}/api/products
   body: none
   auth: inherit
 }
 
 params:query {
-  productName: raw pasta
-  ~productNature: ingredient
+  ~name: mushroom
+  ~type: ingredient
 }
 
 settings {

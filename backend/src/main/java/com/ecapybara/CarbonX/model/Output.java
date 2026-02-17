@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model;
+package com.ecapybara.CarbonX.model;
 
 import org.springframework.data.annotation.PersistenceCreator;
 
@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 
 @Edge("outputs")
 @PersistentIndex(fields = {"arangoId","id","processName","productName"})
-public class Output extends com.ecapybara.carbonx.model.Edge{
+public class Output extends com.ecapybara.CarbonX.model.Edge{
 
   @From
   @JsonAlias({"_from"})

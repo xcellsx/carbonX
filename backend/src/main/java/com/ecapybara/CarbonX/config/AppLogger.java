@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.config;
+package com.ecapybara.CarbonX.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

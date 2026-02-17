@@ -1,0 +1,35 @@
+meta {
+  name: Create a cursor
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/_db/{{databaseName}}/_api/cursor
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+body:json {
+  {
+    "query" : "FOR v IN 1..100 INBOUND @startNode GRAPH @graphName FILTER v._class == @vertexClass COLLECT AGGREGATE s1 = SUM(v.DPP.carbonFootprint.scope1.kgCO2e), s2 = SUM(v.DPP.carbonFootprint.scope2.kgCO2e), s3 = SUM(v.DPP.carbonFootprint.scope3.kgCO2e) RETURN {s1,s2,s3}",
+    "bindVars": 
+    {
+      "startNode": "products/1",
+      "graphName": "default",
+      "vertexClass": "com.ecapybara.CarbonX.model.issb.Process"
+    },
+    "count" : true,
+    "batchSize" : 10
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

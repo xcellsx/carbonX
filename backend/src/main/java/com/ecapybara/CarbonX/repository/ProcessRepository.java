@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.repository;
+package com.ecapybara.CarbonX.repository;
 
 import java.util.Collection;
 import java.util.List;
@@ -8,12 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-
-import com.ecapybara.carbonx.model.Process;
+import com.ecapybara.CarbonX.model.issb.Process;
 
 public interface ProcessRepository extends ArangoRepository<Process, String>{
   
   @NonNull Optional<Process> findById(@NonNull String id);
+
+  @NonNull Optional<Process> findByKey(@NonNull String key);
 
   List<Process> findByName(Sort sort, String name);
 

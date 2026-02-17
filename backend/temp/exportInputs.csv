@@ -1,0 +1,15 @@
+id,from,productName,to,processName
+inputs/106317,products/106159,raw pasta,processes/106218,boiling
+inputs/106322,products/106189,clean water,processes/106218,boiling
+inputs/106327,products/106189,clean water,processes/106221,simmering
+inputs/106332,products/106198,tomato paste,processes/106221,simmering
+inputs/106337,products/106174,salt,processes/106221,simmering
+inputs/106342,products/106180,sugar,processes/106221,simmering
+inputs/106347,products/106177,pepper,processes/106221,simmering
+inputs/106352,products/106183,garlic,processes/106221,simmering
+inputs/106357,products/106186,onions,processes/106221,simmering
+inputs/106362,products/106162,tomato sauce,processes/106224,combining
+inputs/106367,products/106168,pasta,processes/106224,combining
+inputs/106372,products/106171,hot dogs,processes/106224,combining
+inputs/106377,products/106195,cheese,processes/106224,combining
+inputs/106382,products/106201,olive oil,processes/106224,combining

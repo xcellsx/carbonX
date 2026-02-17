@@ -1,0 +1,16 @@
+meta {
+  name: generateReport
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/experiments/report
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

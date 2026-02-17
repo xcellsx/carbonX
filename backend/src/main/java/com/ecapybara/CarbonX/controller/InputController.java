@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.util.List;
 
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.Input;
-import com.ecapybara.carbonx.repository.InputRepository;
+import com.ecapybara.CarbonX.model.issb.Input;
+import com.ecapybara.CarbonX.repository.InputRepository;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
