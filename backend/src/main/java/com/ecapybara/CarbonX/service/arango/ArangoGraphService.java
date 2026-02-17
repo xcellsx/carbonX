@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service.arango;
+package com.ecapybara.CarbonX.service.arango;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;

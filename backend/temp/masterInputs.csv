@@ -1,15 +1,2501 @@
 id,from,productName,to,processName
-inputs/1,products/2,raw pasta,processes/1,boiling
-inputs/2,products/12,clean water,processes/1,boiling
-inputs/3,products/12,clean water,processes/2,simmering
-inputs/4,products/15,tomato paste,processes/2,simmering
-inputs/5,products/7,salt,processes/2,simmering
-inputs/6,products/9,sugar,processes/2,simmering
-inputs/7,products/8,pepper,processes/2,simmering
-inputs/8,products/10,garlic,processes/2,simmering
-inputs/9,products/11,onions,processes/2,simmering
-inputs/10,products/3,tomato sauce,processes/3,combining
-inputs/11,products/5,pasta,processes/3,combining
-inputs/12,products/6,hot dogs,processes/3,combining
-inputs/13,products/14,cheese,processes/3,combining
-inputs/14,products/16,olive oil,processes/3,combining
+inputs/1,products/779,celery,processes/179,heating
+inputs/2,products/347,sports drink,processes/457,smelting
+inputs/3,products/224,potatoes,processes/625,hydrolysis
+inputs/4,products/497,rice,processes/12,poaching
+inputs/5,products/501,bolognese,processes/296,planting
+inputs/6,products/9,sugar,processes/693,consolidation
+inputs/7,products/203,korma,processes/470,case_packing
+inputs/8,products/171,eggplant,processes/234,planting
+inputs/9,products/492,burger,processes/634,stripping
+inputs/10,products/243,bananas,processes/841,sterilizing
+inputs/11,products/359,bell peppers,processes/969,storage
+inputs/12,products/899,pork,processes/856,consolidation
+inputs/13,products/302,barley,processes/501,monitoring
+inputs/14,products/588,pilaf,processes/560,nitration
+inputs/15,products/568,biscuits,processes/351,precipitation
+inputs/16,products/793,chili powder,processes/825,fertilizing
+inputs/17,products/560,butter chicken,processes/427,filtering
+inputs/18,products/170,empanada,processes/253,gasification
+inputs/19,products/676,sandwich,processes/521,fermentation
+inputs/20,products/455,waste water,processes/98,carton_forming
+inputs/21,products/753,aspartame,processes/460,fertilizing
+inputs/22,products/87,eggs,processes/233,capping
+inputs/23,products/378,yogurt parfait,processes/706,desuperheating
+inputs/24,products/87,eggs,processes/236,filtering
+inputs/25,products/572,mayonnaise,processes/940,labeling
+inputs/26,products/477,brussels sprouts,processes/79,composting
+inputs/27,products/851,crackers,processes/540,boxing
+inputs/28,products/463,protein shake,processes/783,calendering
+inputs/29,products/346,potatoes,processes/474,UV treatment
+inputs/30,products/687,spring rolls,processes/602,biological treatment
+inputs/31,products/502,lobster,processes/269,simmering
+inputs/32,products/754,sugar,processes/883,anaerobic digestion
+inputs/33,products/966,white bread,processes/683,beaming
+inputs/34,products/223,rice,processes/668,composting
+inputs/35,products/854,ketchup,processes/910,polishing
+inputs/36,products/867,okra,processes/20,clarifying
+inputs/37,products/817,snapper,processes/905,casting
+inputs/38,products/69,naan,processes/74,shearing
+inputs/39,products/852,waste water,processes/958,drying
+inputs/40,products/824,fried chicken,processes/604,threshing
+inputs/41,products/347,sports drink,processes/439,unloading
+inputs/42,products/656,anaerobic digestion,processes/369,stamping
+inputs/43,products/608,cauliflower,processes/261,grinding
+inputs/44,products/128,chicken wings,processes/33,spinning
+inputs/45,products/6,hot dogs,processes/91,smoking
+inputs/46,products/267,prunes,processes/138,warehouse_operations
+inputs/47,products/394,beef,processes/574,desuperheating
+inputs/48,products/203,korma,processes/444,deconsolidation
+inputs/49,products/51,peaches,processes/894,storage
+inputs/50,products/811,pork,processes/127,extraction
+inputs/51,products/870,quesadilla,processes/725,beaming
+inputs/52,products/630,limes,processes/639,grinding
+inputs/53,products/303,tamale,processes/978,ion exchange
+inputs/54,products/1014,radishes,processes/479,painting
+inputs/55,products/35,gelato,processes/606,weeding
+inputs/56,products/987,ramen,processes/855,boxing
+inputs/57,products/561,butter chicken,processes/891,threshing
+inputs/58,products/658,goan fish,processes/96,gasification
+inputs/59,products/215,chicken broth,processes/511,welding
+inputs/60,products/706,butter,processes/335,coating
+inputs/61,products/377,chili,processes/778,stripping
+inputs/62,products/254,wine,processes/924,planting
+inputs/63,products/918,grouper,processes/100,mixing
+inputs/64,products/270,liqueur,processes/747,knitting
+inputs/65,products/647,sweet potatoes,processes/688,marinating
+inputs/66,products/321,pepper,processes/763,palletizing
+inputs/67,products/717,haddock,processes/895,pyrolysis
+inputs/68,products/888,strawberries,processes/303,grilling
+inputs/69,products/271,enchilada,processes/730,spinning
+inputs/70,products/252,cauliflower,processes/69,spinning
+inputs/71,products/579,biscuits and gravy,processes/452,labeling
+inputs/72,products/805,paneer tikka,processes/417,consolidation
+inputs/73,products/909,meatball,processes/491,warehouse_operations
+inputs/74,products/128,chicken wings,processes/971,shredding
+inputs/75,products/931,pie,processes/851,sedimentation
+inputs/76,products/510,mackerel,processes/392,boiling
+inputs/77,products/270,liqueur,processes/739,homogenizing
+inputs/78,products/541,chicken,processes/632,sorting
+inputs/79,products/1009,tzatziki,processes/750,oxidation
+inputs/80,products/912,risotto,processes/642,crystallization
+inputs/81,products/860,meatball,processes/612,packaging
+inputs/82,products/1006,beer,processes/385,chemical treatment
+inputs/83,products/531,salmon,processes/535,thinning
+inputs/84,products/288,lasagna bolognese,processes/77,concentrating
+inputs/85,products/695,milk,processes/318,expansion
+inputs/86,products/620,smoothie,processes/565,sedimentation
+inputs/87,products/1,spaghetti,processes/703,spinning
+inputs/88,products/397,cheese,processes/977,sedimentation
+inputs/89,products/260,mushrooms,processes/65,liquefaction
+inputs/90,products/790,prunes,processes/404,crystallization
+inputs/91,products/215,chicken broth,processes/536,frying
+inputs/92,products/761,pita,processes/569,spinning
+inputs/93,products/360,lobster,processes/703,spinning
+inputs/94,products/309,lobster,processes/447,printing
+inputs/95,products/889,leeks,processes/36,printing
+inputs/96,products/790,prunes,processes/96,gasification
+inputs/97,products/145,basil,processes/344,pyrolysis
+inputs/98,products/904,pork,processes/961,dyeing
+inputs/99,products/359,bell peppers,processes/924,planting
+inputs/100,products/452,vindaloo,processes/299,oxidation
+inputs/101,products/182,tilapia,processes/721,bromination
+inputs/102,products/724,grey water,processes/188,heat treatment
+inputs/103,products/3,tomato sauce,processes/710,palletizing
+inputs/104,products/345,wastewater treatment,processes/496,nitration
+inputs/105,products/658,goan fish,processes/708,bromination
+inputs/106,products/333,baguette,processes/810,labeling
+inputs/107,products/738,prosciutto,processes/634,stripping
+inputs/108,products/805,paneer tikka,processes/836,dewatering
+inputs/109,products/339,apples,processes/327,capping
+inputs/110,products/616,bolognese,processes/382,braising
+inputs/111,products/345,wastewater treatment,processes/489,rolling
+inputs/112,products/815,wheat,processes/524,printing
+inputs/113,products/904,pork,processes/945,welding
+inputs/114,products/195,beef wellington,processes/833,homogenizing
+inputs/115,products/879,sushi,processes/246,preheating
+inputs/116,products/803,honey blend,processes/887,precipitation
+inputs/117,products/308,chimichanga,processes/468,sautéing
+inputs/118,products/289,butter chicken,processes/749,printing
+inputs/119,products/967,packaging waste,processes/662,forging
+inputs/120,products/776,bananas,processes/1000,separating
+inputs/121,products/798,rice,processes/378,centrifuging
+inputs/122,products/479,linguine,processes/68,case_packing
+inputs/123,products/238,compost,processes/261,grinding
+inputs/124,products/32,chicken broth,processes/270,storage
+inputs/125,products/214,chickpeas,processes/549,compression
+inputs/126,products/320,beef brisket,processes/355,injection molding
+inputs/127,products/79,pudding,processes/586,extraction
+inputs/128,products/789,haddock,processes/209,plowing
+inputs/129,products/494,paprika,processes/617,printing
+inputs/130,products/116,landfill,processes/27,quality_control
+inputs/131,products/984,coffee,processes/863,pyrolysis
+inputs/132,products/337,raisins,processes/330,forming
+inputs/133,products/305,bell peppers,processes/912,chemical treatment
+inputs/134,products/898,bread,processes/426,finishing
+inputs/135,products/77,brown sugar,processes/125,palletizing
+inputs/136,products/465,anaerobic digestion,processes/735,gasification
+inputs/137,products/357,potato salad,processes/961,dyeing
+inputs/138,products/276,quesadilla,processes/297,fermentation
+inputs/139,products/426,tandoori,processes/719,calendering
+inputs/140,products/608,cauliflower,processes/693,consolidation
+inputs/141,products/587,soy,processes/510,stewing
+inputs/142,products/499,spinach,processes/42,winnowing
+inputs/143,products/314,carrots,processes/619,landfilling
+inputs/144,products/451,soup,processes/75,carton_forming
+inputs/145,products/389,edamame,processes/800,drawing
+inputs/146,products/499,spinach,processes/46,combing
+inputs/147,products/293,vodka,processes/922,pruning
+inputs/148,products/369,bouillabaisse,processes/633,sizing
+inputs/149,products/396,baking soda,processes/520,painting
+inputs/150,products/705,coconut milk,processes/312,frying
+inputs/151,products/543,water treatment,processes/658,evaporation
+inputs/152,products/685,green beans,processes/602,biological treatment
+inputs/153,products/596,coconut,processes/691,pyrolysis
+inputs/154,products/295,gelato,processes/466,composting
+inputs/155,products/405,vinegar,processes/552,concentrating
+inputs/156,products/794,ketchup,processes/842,marinating
+inputs/157,products/109,chickpeas,processes/347,spinning
+inputs/158,products/846,turkey breast,processes/396,fertilizing
+inputs/159,products/411,ice cream,processes/298,chlorination
+inputs/160,products/533,brussels sprouts,processes/113,combustion
+inputs/161,products/381,grouper,processes/470,case_packing
+inputs/162,products/974,pork schnitzel,processes/758,preheating
+inputs/163,products/765,ribs,processes/565,sedimentation
+inputs/164,products/108,yogurt parfait,processes/372,bending
+inputs/165,products/853,pork schnitzel,processes/54,filtration
+inputs/166,products/309,lobster,processes/403,distribution
+inputs/167,products/548,salami,processes/569,spinning
+inputs/168,products/857,oysters,processes/452,labeling
+inputs/169,products/991,sourdough,processes/26,compression
+inputs/170,products/667,spaghetti,processes/804,welding
+inputs/171,products/60,soy,processes/969,storage
+inputs/172,products/431,coffee,processes/931,case_packing
+inputs/173,products/996,granola,processes/572,carton_forming
+inputs/174,products/676,sandwich,processes/926,riveting
+inputs/175,products/89,packaging waste,processes/90,assembly
+inputs/176,products/108,yogurt parfait,processes/384,packaging
+inputs/177,products/993,chocolate,processes/42,winnowing
+inputs/178,products/543,water treatment,processes/677,rolling
+inputs/179,products/287,tilapia,processes/740,fertilizing
+inputs/180,products/753,aspartame,processes/857,sorting
+inputs/181,products/580,bell peppers,processes/203,bromination
+inputs/182,products/777,squash,processes/150,warping
+inputs/183,products/51,peaches,processes/835,handling
+inputs/184,products/766,caesar salad,processes/996,distribution
+inputs/185,products/965,air treatment,processes/616,desuperheating
+inputs/186,products/556,mango,processes/258,filtration
+inputs/187,products/305,bell peppers,processes/989,coating
+inputs/188,products/898,bread,processes/810,labeling
+inputs/189,products/457,chili,processes/57,concentrating
+inputs/190,products/148,molasses,processes/768,capping
+inputs/191,products/748,hummus,processes/768,capping
+inputs/192,products/306,dumpling,processes/967,thinning
+inputs/193,products/748,hummus,processes/737,carton_forming
+inputs/194,products/699,landfill,processes/250,warehouse_operations
+inputs/195,products/683,falafel,processes/669,dewatering
+inputs/196,products/926,parsley,processes/673,biological treatment
+inputs/197,products/920,beef broth,processes/386,superheating
+inputs/198,products/846,turkey breast,processes/372,bending
+inputs/199,products/593,salt,processes/709,carding
+inputs/200,products/814,white bread,processes/905,casting
+inputs/201,products/935,oysters,processes/368,printing
+inputs/202,products/927,wastewater treatment,processes/684,wrapping
+inputs/203,products/99,grouper,processes/92,bending
+inputs/204,products/638,mackerel,processes/189,mercerizing
+inputs/205,products/42,mousse,processes/717,extraction
+inputs/206,products/406,granola,processes/179,heating
+inputs/207,products/543,water treatment,processes/229,casting
+inputs/208,products/695,milk,processes/342,cooling
+inputs/209,products/161,oregano,processes/190,curing
+inputs/210,products/344,protein shake,processes/926,riveting
+inputs/211,products/344,protein shake,processes/2,simmering
+inputs/212,products/79,pudding,processes/944,packaging
+inputs/213,products/233,honey,processes/382,braising
+inputs/214,products/134,canola oil,processes/608,annealing
+inputs/215,products/520,herring,processes/884,sorting
+inputs/216,products/41,leeks,processes/740,fertilizing
+inputs/217,products/613,packaging waste,processes/427,filtering
+inputs/218,products/40,almond milk,processes/737,carton_forming
+inputs/219,products/880,dates,processes/1002,finishing
+inputs/220,products/168,cocoa,processes/486,clarifying
+inputs/221,products/698,tandoori,processes/779,deconsolidation
+inputs/222,products/791,mustard,processes/828,spinning
+inputs/223,products/88,kale,processes/646,shearing
+inputs/224,products/869,pepperoni,processes/137,flocculation
+inputs/225,products/446,scallops,processes/925,strapping
+inputs/226,products/345,wastewater treatment,processes/905,casting
+inputs/227,products/709,stevia,processes/315,boiling
+inputs/228,products/200,canola oil,processes/905,casting
+inputs/229,products/49,grouper,processes/75,carton_forming
+inputs/230,products/622,naan,processes/26,compression
+inputs/231,products/51,peaches,processes/53,ozonation
+inputs/232,products/473,pork schnitzel,processes/483,polymerization
+inputs/233,products/450,potatoes,processes/261,grinding
+inputs/234,products/749,rice,processes/739,homogenizing
+inputs/235,products/173,pepper,processes/248,centrifuging
+inputs/236,products/89,packaging waste,processes/221,shrink_wrapping
+inputs/237,products/315,oatmeal,processes/112,drying
+inputs/238,products/880,dates,processes/408,heating
+inputs/239,products/291,lettuce,processes/557,stripping
+inputs/240,products/458,bread,processes/652,desuperheating
+inputs/241,products/984,coffee,processes/490,plating
+inputs/242,products/174,beef,processes/256,grading
+inputs/243,products/395,flounder,processes/165,beaming
+inputs/244,products/845,falafel,processes/382,braising
+inputs/245,products/609,chimichanga,processes/601,distillation
+inputs/246,products/246,eggplant parmesan,processes/359,braising
+inputs/247,products/539,papaya,processes/885,boxing
+inputs/248,products/531,salmon,processes/136,wrapping
+inputs/249,products/429,walnuts,processes/297,fermentation
+inputs/250,products/360,lobster,processes/798,blanching
+inputs/251,products/915,brussels sprouts,processes/105,warehouse_operations
+inputs/252,products/24,spring rolls,processes/173,harvesting
+inputs/253,products/661,cookies,processes/521,fermentation
+inputs/254,products/768,pie,processes/462,sealing
+inputs/255,products/706,butter,processes/393,esterification
+inputs/256,products/302,barley,processes/544,sealing
+inputs/257,products/133,anchovies,processes/610,sealing
+inputs/258,products/120,pilaf,processes/1,boiling
+inputs/259,products/768,pie,processes/468,sautéing
+inputs/260,products/683,falafel,processes/691,pyrolysis
+inputs/261,products/517,okra,processes/703,spinning
+inputs/262,products/982,veal marsala,processes/488,braising
+inputs/263,products/158,chickpeas,processes/403,distribution
+inputs/264,products/757,cookies,processes/851,sedimentation
+inputs/265,products/237,sunflower seeds,processes/755,expansion
+inputs/266,products/687,spring rolls,processes/640,compacting
+inputs/267,products/987,ramen,processes/885,boxing
+inputs/268,products/910,chili peppers,processes/232,chlorination
+inputs/269,products/785,mustard,processes/298,chlorination
+inputs/270,products/390,leeks,processes/150,warping
+inputs/271,products/222,pumpkin,processes/631,mixing
+inputs/272,products/487,sushi,processes/29,stabilizing
+inputs/273,products/787,white bread,processes/279,dewatering
+inputs/274,products/767,worcestershire sauce,processes/540,boxing
+inputs/275,products/616,bolognese,processes/783,calendering
+inputs/276,products/754,sugar,processes/449,expansion
+inputs/277,products/417,pomegranate,processes/285,mercerizing
+inputs/278,products/13,waste water,processes/482,riveting
+inputs/279,products/541,chicken,processes/299,oxidation
+inputs/280,products/606,chicken,processes/764,plowing
+inputs/281,products/962,coleslaw,processes/744,bending
+inputs/282,products/662,juice,processes/502,screening
+inputs/283,products/914,fried chicken,processes/682,spinning
+inputs/284,products/880,dates,processes/866,heat treatment
+inputs/285,products/230,miso soup,processes/354,loading
+inputs/286,products/994,pumpkin,processes/123,chlorination
+inputs/287,products/836,vindaloo,processes/794,caramelizing
+inputs/288,products/522,caesar salad,processes/420,palletizing
+inputs/289,products/88,kale,processes/681,loading
+inputs/290,products/427,risotto,processes/93,UV treatment
+inputs/291,products/683,falafel,processes/232,chlorination
+inputs/292,products/418,sardines,processes/284,planting
+inputs/293,products/53,sausage,processes/835,handling
+inputs/294,products/452,vindaloo,processes/676,bromination
+inputs/295,products/684,leeks,processes/205,biological treatment
+inputs/296,products/451,soup,processes/208,thinning
+inputs/297,products/661,cookies,processes/986,reduction
+inputs/298,products/141,fettuccine,processes/777,condensation
+inputs/299,products/913,coconut milk,processes/227,biological treatment
+inputs/300,products/29,chicken parmesan,processes/494,incineration
+inputs/301,products/178,tandoori,processes/124,concentrating
+inputs/302,products/908,okra,processes/860,aerobic treatment
+inputs/303,products/588,pilaf,processes/908,dehydration
+inputs/304,products/141,fettuccine,processes/767,beaming
+inputs/305,products/528,turmeric,processes/843,unloading
+inputs/306,products/580,bell peppers,processes/622,sorting
+inputs/307,products/532,strawberries,processes/582,sorting
+inputs/308,products/685,green beans,processes/204,pressing
+inputs/309,products/262,sweet potatoes,processes/157,drying
+inputs/310,products/894,rye bread,processes/853,purification
+inputs/311,products/563,beef broth,processes/364,aeration
+inputs/312,products/318,tomatoes,processes/937,homogenizing
+inputs/313,products/215,chicken broth,processes/185,crystallization
+inputs/314,products/618,honey,processes/817,labeling
+inputs/315,products/567,pizza,processes/719,calendering
+inputs/316,products/334,turkey,processes/772,liquefaction
+inputs/317,products/812,adobo,processes/912,chemical treatment
+inputs/318,products/519,veal,processes/656,distillation
+inputs/319,products/514,bagels,processes/29,stabilizing
+inputs/320,products/568,biscuits,processes/805,threshing
+inputs/321,products/872,pork,processes/375,caramelizing
+inputs/322,products/448,soy sauce,processes/599,recycling
+inputs/323,products/257,duck,processes/853,purification
+inputs/324,products/584,halibut,processes/633,sizing
+inputs/325,products/64,tomato paste,processes/587,reverse osmosis
+inputs/326,products/670,sorbet,processes/210,forging
+inputs/327,products/713,yogurt parfait,processes/501,monitoring
+inputs/328,products/923,tomato paste,processes/220,injection molding
+inputs/329,products/528,turmeric,processes/772,liquefaction
+inputs/330,products/322,dal,processes/396,fertilizing
+inputs/331,products/19,biogas,processes/77,concentrating
+inputs/332,products/217,veal marsala,processes/106,combustion
+inputs/333,products/906,ham,processes/895,pyrolysis
+inputs/334,products/687,spring rolls,processes/176,amination
+inputs/335,products/11,onions,processes/853,purification
+inputs/336,products/796,porridge,processes/765,grinding
+inputs/337,products/469,hot dog,processes/760,spinning
+inputs/338,products/169,tuna,processes/402,blending
+inputs/339,products/521,goulash,processes/929,chlorination
+inputs/340,products/923,tomato paste,processes/218,carton_forming
+inputs/341,products/10,garlic,processes/2,simmering
+inputs/342,products/713,yogurt parfait,processes/511,welding
+inputs/343,products/12,clean water,processes/1,boiling
+inputs/344,products/12,clean water,processes/2,simmering
+inputs/345,products/283,peanuts,processes/896,forming
+inputs/346,products/75,grey water,processes/998,concentrating
+inputs/347,products/248,cocoa,processes/60,reduction
+inputs/348,products/566,yogurt parfait,processes/840,caramelizing
+inputs/349,products/373,bread,processes/732,quality_control
+inputs/350,products/799,plastic waste,processes/823,sorting
+inputs/351,products/799,plastic waste,processes/824,sizing
+inputs/352,products/485,kebab,processes/141,biological treatment
+inputs/353,products/229,wonton,processes/523,sorting
+inputs/354,products/757,cookies,processes/8,desuperheating
+inputs/355,products/999,maple syrup,processes/522,emulsifying
+inputs/356,products/148,molasses,processes/212,combustion
+inputs/357,products/972,cucumber,processes/873,punching
+inputs/358,products/875,kiwi,processes/649,precipitation
+inputs/359,products/885,coleslaw,processes/864,preheating
+inputs/360,products/944,cashews,processes/527,threshing
+inputs/361,products/973,composting,processes/724,superheating
+inputs/362,products/58,thyme,processes/704,warehouse_operations
+inputs/363,products/866,butter,processes/954,ozonation
+inputs/364,products/845,falafel,processes/436,bundle_wrapping
+inputs/365,products/238,compost,processes/725,beaming
+inputs/366,products/890,recycling,processes/597,carton_forming
+inputs/367,products/313,caesar salad,processes/144,refining
+inputs/368,products/607,edamame,processes/661,labeling
+inputs/369,products/479,linguine,processes/704,warehouse_operations
+inputs/370,products/499,spinach,processes/955,preheating
+inputs/371,products/340,recycling,processes/159,coagulation
+inputs/372,products/455,waste water,processes/299,oxidation
+inputs/373,products/433,salmon,processes/906,spinning
+inputs/374,products/723,gyoza,processes/939,pyrolysis
+inputs/375,products/807,squid,processes/367,distribution
+inputs/376,products/829,yeast,processes/994,combustion
+inputs/377,products/431,coffee,processes/880,packaging
+inputs/378,products/767,worcestershire sauce,processes/123,chlorination
+inputs/379,products/414,pudding,processes/728,unloading
+inputs/380,products/256,canola oil,processes/513,quality_control
+inputs/381,products/575,ginger,processes/952,concentrating
+inputs/382,products/536,nachos,processes/40,printing
+inputs/383,products/152,soda,processes/968,gasification
+inputs/384,products/564,cream,processes/494,incineration
+inputs/385,products/27,fried chicken,processes/434,braising
+inputs/386,products/274,biogas,processes/747,knitting
+inputs/387,products/1013,lettuce,processes/539,capping
+inputs/388,products/353,peaches,processes/684,wrapping
+inputs/389,products/934,juice,processes/334,physical separation
+inputs/390,products/293,vodka,processes/459,filtration
+inputs/391,products/623,stevia,processes/549,compression
+inputs/392,products/981,squid,processes/552,concentrating
+inputs/393,products/549,salad,processes/974,steaming
+inputs/394,products/897,guava,processes/912,chemical treatment
+inputs/395,products/496,gin,processes/612,packaging
+inputs/396,products/848,caesar salad,processes/767,beaming
+inputs/397,products/916,ginger,processes/953,purification
+inputs/398,products/977,aspartame,processes/259,steaming
+inputs/399,products/741,granola,processes/814,plowing
+inputs/400,products/952,oregano,processes/505,reverse osmosis
+inputs/401,products/877,veal marsala,processes/604,threshing
+inputs/402,products/720,mousse,processes/658,evaporation
+inputs/403,products/763,oat milk,processes/190,curing
+inputs/404,products/767,worcestershire sauce,processes/130,clarifying
+inputs/405,products/476,raisins,processes/429,compacting
+inputs/406,products/602,hot dog,processes/383,packaging
+inputs/407,products/532,strawberries,processes/194,filtering
+inputs/408,products/952,oregano,processes/508,superheating
+inputs/409,products/379,juice,processes/671,sealing
+inputs/410,products/861,okra,processes/270,storage
+inputs/411,products/90,raisins,processes/471,forming
+inputs/412,products/728,goan fish,processes/470,case_packing
+inputs/413,products/659,paneer tikka,processes/380,chlorination
+inputs/414,products/673,beef wellington,processes/6,carton_forming
+inputs/415,products/292,sorbet,processes/599,recycling
+inputs/416,products/653,protein shake,processes/783,calendering
+inputs/417,products/1010,yeast,processes/497,wrapping
+inputs/418,products/86,landfill,processes/650,centrifuging
+inputs/419,products/783,hot sauce,processes/269,simmering
+inputs/420,products/943,ribs,processes/81,refining
+inputs/421,products/113,brussels sprouts,processes/959,smoking
+inputs/422,products/703,paprika,processes/26,compression
+inputs/423,products/687,spring rolls,processes/128,heating
+inputs/424,products/682,sports drink,processes/775,aerobic treatment
+inputs/425,products/653,protein shake,processes/306,biological treatment
+inputs/426,products/785,mustard,processes/210,forging
+inputs/427,products/561,butter chicken,processes/384,packaging
+inputs/428,products/152,soda,processes/984,compression
+inputs/429,products/168,cocoa,processes/971,shredding
+inputs/430,products/261,shrimp,processes/265,separating
+inputs/431,products/467,anaerobic digestion,processes/266,strapping
+inputs/432,products/785,mustard,processes/218,carton_forming
+inputs/433,products/600,oranges,processes/19,biological treatment
+inputs/434,products/684,leeks,processes/82,filling
+inputs/435,products/449,trout,processes/426,finishing
+inputs/436,products/684,leeks,processes/715,superheating
+inputs/437,products/355,tilapia,processes/632,sorting
+inputs/438,products/380,bananas,processes/887,precipitation
+inputs/439,products/684,leeks,processes/718,grinding
+inputs/440,products/906,ham,processes/485,recycling
+inputs/441,products/307,whiskey,processes/577,shrink_wrapping
+inputs/442,products/327,kebab,processes/641,thinning
+inputs/443,products/586,curry,processes/631,mixing
+inputs/444,products/157,maple syrup,processes/354,loading
+inputs/445,products/801,potato salad,processes/542,fermentation
+inputs/446,products/30,molasses,processes/724,superheating
+inputs/447,products/355,tilapia,processes/37,crystallization
+inputs/448,products/990,sea bass,processes/220,injection molding
+inputs/449,products/82,brown sugar,processes/672,thickening
+inputs/450,products/719,sushi,processes/334,physical separation
+inputs/451,products/500,nachos,processes/777,condensation
+inputs/452,products/945,cereal,processes/813,weaving
+inputs/453,products/946,pomegranate,processes/946,palletizing
+inputs/454,products/968,dal,processes/9,riveting
+inputs/455,products/554,white bread,processes/203,bromination
+inputs/456,products/83,quinoa bowl,processes/301,reverse osmosis
+inputs/457,products/591,cereal,processes/89,boxing
+inputs/458,products/84,barley,processes/652,desuperheating
+inputs/459,products/499,spinach,processes/918,crystallization
+inputs/460,products/210,sugar,processes/902,boxing
+inputs/461,products/494,paprika,processes/292,beaming
+inputs/462,products/723,gyoza,processes/976,fertilizing
+inputs/463,products/688,meatball,processes/253,gasification
+inputs/464,products/409,sesame seeds,processes/198,labeling
+inputs/465,products/427,risotto,processes/265,separating
+inputs/466,products/345,wastewater treatment,processes/825,fertilizing
+inputs/467,products/484,squash,processes/489,rolling
+inputs/468,products/550,tilapia,processes/805,threshing
+inputs/469,products/979,molasses,processes/682,spinning
+inputs/470,products/565,sage,processes/372,bending
+inputs/471,products/177,juice,processes/646,shearing
+inputs/472,products/855,grey water,processes/441,finishing
+inputs/473,products/945,cereal,processes/821,mercerizing
+inputs/474,products/788,hot dog,processes/320,thermal treatment
+inputs/475,products/635,pepperoni,processes/580,blending
+inputs/476,products/556,mango,processes/678,warehouse_operations
+inputs/477,products/4,waste water,processes/253,gasification
+inputs/478,products/578,turkey breast,processes/826,warehouse_operations
+inputs/479,products/445,vanilla,processes/499,dewatering
+inputs/480,products/608,cauliflower,processes/5,simmering
+inputs/481,products/976,quesadilla,processes/377,smoking
+inputs/482,products/438,parsnips,processes/300,recycling
+inputs/483,products/201,crackers,processes/574,desuperheating
+inputs/484,products/597,guava,processes/164,irrigating
+inputs/485,products/10,garlic,processes/912,chemical treatment
+inputs/486,products/199,waste water,processes/885,boxing
+inputs/487,products/885,coleslaw,processes/450,esterification
+inputs/488,products/137,sports drink,processes/579,gasification
+inputs/489,products/19,biogas,processes/838,compacting
+inputs/490,products/573,enchilada,processes/62,thermal treatment
+inputs/491,products/945,cereal,processes/90,assembly
+inputs/492,products/113,brussels sprouts,processes/107,deconsolidation
+inputs/493,products/44,chimichanga,processes/310,desuperheating
+inputs/494,products/413,lettuce,processes/226,harvesting
+inputs/495,products/353,peaches,processes/11,precipitation
+inputs/496,products/355,tilapia,processes/661,labeling
+inputs/497,products/1000,rice,processes/407,landfilling
+inputs/498,products/176,basil,processes/501,monitoring
+inputs/499,products/305,bell peppers,processes/179,heating
+inputs/500,products/711,tagliatelle,processes/966,warping
+inputs/501,products/337,raisins,processes/875,preserving
+inputs/502,products/910,chili peppers,processes/705,injection molding
+inputs/503,products/506,vinegar,processes/561,cooling
+inputs/504,products/23,tortillas,processes/27,quality_control
+inputs/505,products/411,ice cream,processes/84,extraction
+inputs/506,products/438,parsnips,processes/792,mixing
+inputs/507,products/559,donut,processes/743,curing
+inputs/508,products/112,pad thai,processes/491,warehouse_operations
+inputs/509,products/473,pork schnitzel,processes/936,handling
+inputs/510,products/545,biogas,processes/971,shredding
+inputs/511,products/837,glass waste,processes/397,dewatering
+inputs/512,products/43,lasagna,processes/220,injection molding
+inputs/513,products/740,sunflower oil,processes/35,cooling
+inputs/514,products/502,lobster,processes/96,gasification
+inputs/515,products/621,soup,processes/903,bending
+inputs/516,products/305,bell peppers,processes/185,crystallization
+inputs/517,products/171,eggplant,processes/645,pressing
+inputs/518,products/949,cashews,processes/800,drawing
+inputs/519,products/250,lemons,processes/948,filtering
+inputs/520,products/78,prosciutto,processes/189,mercerizing
+inputs/521,products/400,bacon,processes/538,tempering
+inputs/522,products/711,tagliatelle,processes/974,steaming
+inputs/523,products/59,brown sugar,processes/409,caramelizing
+inputs/524,products/854,ketchup,processes/990,pyrolysis
+inputs/525,products/958,beans,processes/102,bleaching
+inputs/526,products/12,clean water,processes/994,combustion
+inputs/527,products/639,celery,processes/915,casting
+inputs/528,products/8,pepper,processes/666,wrapping
+inputs/529,products/565,sage,processes/715,superheating
+inputs/530,products/245,rosemary,processes/848,compacting
+inputs/531,products/416,soy sauce,processes/715,superheating
+inputs/532,products/969,lasagna bolognese,processes/205,biological treatment
+inputs/533,products/320,beef brisket,processes/700,storage
+inputs/534,products/961,beef,processes/258,filtration
+inputs/535,products/827,cashews,processes/88,plating
+inputs/536,products/969,lasagna bolognese,processes/686,incineration
+inputs/537,products/260,mushrooms,processes/125,palletizing
+inputs/538,products/1,spaghetti,processes/373,cooling
+inputs/539,products/224,potatoes,processes/13,annealing
+inputs/540,products/105,ice cream,processes/769,adsorption
+inputs/541,products/250,lemons,processes/978,ion exchange
+inputs/542,products/870,quesadilla,processes/326,unloading
+inputs/543,products/574,udon,processes/498,unloading
+inputs/544,products/209,oats,processes/735,gasification
+inputs/545,products/22,dates,processes/965,poaching
+inputs/546,products/570,mackerel,processes/462,sealing
+inputs/547,products/432,jambalaya,processes/121,biological treatment
+inputs/548,products/47,recycling,processes/231,recycling
+inputs/549,products/271,enchilada,processes/694,annealing
+inputs/550,products/133,anchovies,processes/197,desuperheating
+inputs/551,products/728,goan fish,processes/457,smelting
+inputs/552,products/941,beef stroganoff,processes/897,braising
+inputs/553,products/798,rice,processes/18,loading
+inputs/554,products/953,sunflower oil,processes/685,weaving
+inputs/555,products/1012,cookies,processes/813,weaving
+inputs/556,products/668,salami,processes/443,crystallization
+inputs/557,products/404,pie,processes/927,heat treatment
+inputs/558,products/189,nutmeg,processes/639,grinding
+inputs/559,products/850,bagels,processes/961,dyeing
+inputs/560,products/815,wheat,processes/581,amination
+inputs/561,products/411,ice cream,processes/633,sizing
+inputs/562,products/815,wheat,processes/586,extraction
+inputs/563,products/897,guava,processes/489,rolling
+inputs/564,products/154,plastic waste,processes/902,boxing
+inputs/565,products/437,clams,processes/499,dewatering
+inputs/566,products/588,pilaf,processes/479,painting
+inputs/567,products/747,bread,processes/67,threshing
+inputs/568,products/334,turkey,processes/730,spinning
+inputs/569,products/776,bananas,processes/29,stabilizing
+inputs/570,products/341,wastewater treatment,processes/446,cooling
+inputs/571,products/921,soup,processes/812,chlorination
+inputs/572,products/438,parsnips,processes/347,spinning
+inputs/573,products/43,lasagna,processes/271,handling
+inputs/574,products/285,hummus,processes/494,incineration
+inputs/575,products/266,food scraps,processes/543,printing
+inputs/576,products/934,juice,processes/730,spinning
+inputs/577,products/244,metal waste,processes/48,desuperheating
+inputs/578,products/272,sunflower oil,processes/329,warping
+inputs/579,products/30,molasses,processes/346,forging
+inputs/580,products/578,turkey breast,processes/892,loading
+inputs/581,products/121,biogas,processes/106,combustion
+inputs/582,products/563,beef broth,processes/796,expansion
+inputs/583,products/242,rye bread,processes/958,drying
+inputs/584,products/1004,guava,processes/806,loading
+inputs/585,products/2,raw pasta,processes/73,sorting
+inputs/586,products/495,salami,processes/523,sorting
+inputs/587,products/857,oysters,processes/813,weaving
+inputs/588,products/728,goan fish,processes/407,landfilling
+inputs/589,products/262,sweet potatoes,processes/108,incineration
+inputs/590,products/2,raw pasta,processes/78,adsorption
+inputs/591,products/780,cumin,processes/306,biological treatment
+inputs/592,products/982,veal marsala,processes/803,compacting
+inputs/593,products/505,pho,processes/673,biological treatment
+inputs/594,products/656,anaerobic digestion,processes/434,braising
+inputs/595,products/723,gyoza,processes/594,plowing
+inputs/596,products/125,rye,processes/539,capping
+inputs/597,products/953,sunflower oil,processes/267,shaping
+inputs/598,products/934,juice,processes/723,dewatering
+inputs/599,products/320,beef brisket,processes/710,palletizing
+inputs/600,products/635,pepperoni,processes/953,purification
+inputs/601,products/49,grouper,processes/644,calendering
+inputs/602,products/667,spaghetti,processes/398,composting
+inputs/603,products/850,bagels,processes/504,case_packing
+inputs/604,products/250,lemons,processes/504,case_packing
+inputs/605,products/657,zucchini,processes/356,liquefaction
+inputs/606,products/1014,radishes,processes/860,aerobic treatment
+inputs/607,products/172,veal,processes/755,expansion
+inputs/608,products/487,sushi,processes/991,fertilizing
+inputs/609,products/959,baking powder,processes/897,braising
+inputs/610,products/621,soup,processes/951,preheating
+inputs/611,products/852,waste water,processes/518,shredding
+inputs/612,products/879,sushi,processes/644,calendering
+inputs/613,products/409,sesame seeds,processes/40,printing
+inputs/614,products/772,baking soda,processes/739,homogenizing
+inputs/615,products/886,pepperoni,processes/355,injection molding
+inputs/616,products/943,ribs,processes/439,unloading
+inputs/617,products/66,enchilada,processes/194,filtering
+inputs/618,products/354,leeks,processes/112,drying
+inputs/619,products/585,chili powder,processes/149,drawing
+inputs/620,products/577,hazardous waste,processes/549,compression
+inputs/621,products/364,alfredo,processes/175,spinning
+inputs/622,products/876,salt,processes/335,coating
+inputs/623,products/211,quesadilla,processes/170,fermenting
+inputs/624,products/500,nachos,processes/392,boiling
+inputs/625,products/861,okra,processes/694,annealing
+inputs/626,products/938,anchovies,processes/717,extraction
+inputs/627,products/348,white bread,processes/517,refining
+inputs/628,products/166,plastic waste,processes/50,wrapping
+inputs/629,products/724,grey water,processes/204,pressing
+inputs/630,products/852,waste water,processes/982,sealing
+inputs/631,products/721,crab,processes/594,plowing
+inputs/632,products/571,corn,processes/129,oxidation
+inputs/633,products/256,canola oil,processes/957,irrigating
+inputs/634,products/493,dragon fruit,processes/30,shearing
+inputs/635,products/30,molasses,processes/339,condensation
+inputs/636,products/126,meatball,processes/438,amination
+inputs/637,products/180,burger,processes/794,caramelizing
+inputs/638,products/643,soy,processes/327,capping
+inputs/639,products/563,beef broth,processes/303,grilling
+inputs/640,products/575,ginger,processes/572,carton_forming
+inputs/641,products/643,soy,processes/322,dehydration
+inputs/642,products/856,biscuits and gravy,processes/953,purification
+inputs/643,products/412,dal,processes/303,grilling
+inputs/644,products/381,grouper,processes/192,biological treatment
+inputs/645,products/521,goulash,processes/98,carton_forming
+inputs/646,products/251,dragon fruit,processes/895,pyrolysis
+inputs/647,products/54,butter chicken,processes/938,adsorption
+inputs/648,products/940,goan fish,processes/830,quality_control
+inputs/649,products/418,sardines,processes/507,dehydration
+inputs/650,products/630,limes,processes/739,homogenizing
+inputs/651,products/375,gelato,processes/694,annealing
+inputs/652,products/311,carbonara,processes/998,concentrating
+inputs/653,products/638,mackerel,processes/200,welding
+inputs/654,products/161,oregano,processes/73,sorting
+inputs/655,products/522,caesar salad,processes/565,sedimentation
+inputs/656,products/768,pie,processes/50,wrapping
+inputs/657,products/279,metal waste,processes/548,roasting
+inputs/658,products/910,chili peppers,processes/781,felting
+inputs/659,products/473,pork schnitzel,processes/771,forging
+inputs/660,products/579,biscuits and gravy,processes/94,punching
+inputs/661,products/920,beef broth,processes/873,punching
+inputs/662,products/561,butter chicken,processes/739,homogenizing
+inputs/663,products/466,incineration,processes/824,sizing
+inputs/664,products/587,soy,processes/456,beaming
+inputs/665,products/166,plastic waste,processes/828,spinning
+inputs/666,products/710,oats,processes/814,plowing
+inputs/667,products/50,bread,processes/570,centrifuging
+inputs/668,products/438,parsnips,processes/715,superheating
+inputs/669,products/851,crackers,processes/654,homogenizing
+inputs/670,products/968,dal,processes/980,stamping
+inputs/671,products/451,soup,processes/151,liquefaction
+inputs/672,products/564,cream,processes/42,winnowing
+inputs/673,products/207,palm oil,processes/705,injection molding
+inputs/674,products/1013,lettuce,processes/60,reduction
+inputs/675,products/580,bell peppers,processes/720,blending
+inputs/676,products/235,pudding,processes/816,gasification
+inputs/677,products/146,couscous,processes/868,casting
+inputs/678,products/863,chicken,processes/928,oxidation
+inputs/679,products/735,garlic,processes/84,extraction
+inputs/680,products/70,oregano,processes/539,capping
+inputs/681,products/868,pineapple,processes/480,winnowing
+inputs/682,products/707,vanilla,processes/438,amination
+inputs/683,products/340,recycling,processes/40,printing
+inputs/684,products/532,strawberries,processes/887,precipitation
+inputs/685,products/33,salad,processes/513,quality_control
+inputs/686,products/900,clams,processes/476,adsorption
+inputs/687,products/753,aspartame,processes/594,plowing
+inputs/688,products/900,clams,processes/474,UV treatment
+inputs/689,products/372,raisins,processes/22,boiling
+inputs/690,products/80,air treatment,processes/409,caramelizing
+inputs/691,products/211,quesadilla,processes/494,incineration
+inputs/692,products/806,food scraps,processes/940,labeling
+inputs/693,products/272,sunflower oil,processes/823,sorting
+inputs/694,products/318,tomatoes,processes/232,chlorination
+inputs/695,products/979,molasses,processes/10,preheating
+inputs/696,products/472,pad thai,processes/543,printing
+inputs/697,products/659,paneer tikka,processes/626,annealing
+inputs/698,products/184,glass waste,processes/71,welding
+inputs/699,products/393,hot dog,processes/477,distribution
+inputs/700,products/145,basil,processes/401,distillation
+inputs/701,products/880,dates,processes/931,case_packing
+inputs/702,products/531,salmon,processes/669,dewatering
+inputs/703,products/172,veal,processes/85,expansion
+inputs/704,products/762,beans,processes/690,strapping
+inputs/705,products/744,vanilla,processes/414,forging
+inputs/706,products/601,pumpkin,processes/639,grinding
+inputs/707,products/74,chicken broth,processes/914,grading
+inputs/708,products/137,sports drink,processes/701,consolidation
+inputs/709,products/1003,artichokes,processes/57,concentrating
+inputs/710,products/763,oat milk,processes/434,braising
+inputs/711,products/183,garlic,processes/848,compacting
+inputs/712,products/294,baking powder,processes/394,spraying
+inputs/713,products/127,walnuts,processes/627,quality_control
+inputs/714,products/78,prosciutto,processes/448,plowing
+inputs/715,products/172,veal,processes/774,coating
+inputs/716,products/900,clams,processes/491,warehouse_operations
+inputs/717,products/895,scallops,processes/345,weeding
+inputs/718,products/531,salmon,processes/657,bleaching
+inputs/719,products/490,goji berries,processes/773,drawing
+inputs/720,products/543,water treatment,processes/771,forging
+inputs/721,products/74,chicken broth,processes/925,strapping
+inputs/722,products/362,paneer tikka,processes/86,loading
+inputs/723,products/216,mushrooms,processes/863,pyrolysis
+inputs/724,products/414,pudding,processes/595,consolidation
+inputs/725,products/878,veal marsala,processes/378,centrifuging
+inputs/726,products/766,caesar salad,processes/601,distillation
+inputs/727,products/18,rye,processes/703,spinning
+inputs/728,products/235,pudding,processes/845,forging
+inputs/729,products/275,mustard seeds,processes/163,storage
+inputs/730,products/236,rice,processes/815,palletizing
+inputs/731,products/726,haddock,processes/622,sorting
+inputs/732,products/540,biscuits and gravy,processes/794,caramelizing
+inputs/733,products/261,shrimp,processes/938,adsorption
+inputs/734,products/328,chili powder,processes/166,coagulation
+inputs/735,products/819,cod,processes/162,condensation
+inputs/736,products/742,quesadilla,processes/699,hydrogenation
+inputs/737,products/941,beef stroganoff,processes/837,tempering
+inputs/738,products/614,ramen,processes/715,superheating
+inputs/739,products/9,sugar,processes/782,oxidation
+inputs/740,products/697,chili,processes/849,rolling
+inputs/741,products/139,pad thai,processes/948,filtering
+inputs/742,products/668,salami,processes/300,recycling
+inputs/743,products/879,sushi,processes/351,precipitation
+inputs/744,products/850,bagels,processes/468,sautéing
+inputs/745,products/578,turkey breast,processes/364,aeration
+inputs/746,products/938,anchovies,processes/890,stripping
+inputs/747,products/171,eggplant,processes/566,storage
+inputs/748,products/165,rice,processes/401,distillation
+inputs/749,products/310,yogurt parfait,processes/997,unloading
+inputs/750,products/376,tortillas,processes/69,spinning
+inputs/751,products/560,butter chicken,processes/716,bundle_wrapping
+inputs/752,products/108,yogurt parfait,processes/877,unloading
+inputs/753,products/912,risotto,processes/989,coating
+inputs/754,products/715,blueberries,processes/108,incineration
+inputs/755,products/443,soy sauce,processes/457,smelting
+inputs/756,products/288,lasagna bolognese,processes/615,monitoring
+inputs/757,products/395,flounder,processes/666,wrapping
+inputs/758,products/190,rogan josh,processes/757,coagulation
+inputs/759,products/433,salmon,processes/319,consolidation
+inputs/760,products/774,artichokes,processes/308,forging
+inputs/761,products/15,tomato paste,processes/771,forging
+inputs/762,products/462,grouper,processes/875,preserving
+inputs/763,products/705,coconut milk,processes/206,calendering
+inputs/764,products/319,tomato puree,processes/488,braising
+inputs/765,products/195,beef wellington,processes/73,sorting
+inputs/766,products/269,greek salad,processes/468,sautéing
+inputs/767,products/516,baking soda,processes/406,drawing
+inputs/768,products/339,apples,processes/438,amination
+inputs/769,products/756,pho,processes/924,planting
+inputs/770,products/364,alfredo,processes/798,blanching
+inputs/771,products/398,burrito,processes/610,sealing
+inputs/772,products/752,cooking oil waste,processes/174,flocculation
+inputs/773,products/213,vinegar,processes/678,warehouse_operations
+inputs/774,products/96,parsnips,processes/667,smelting
+inputs/775,products/890,recycling,processes/831,harrowing
+inputs/776,products/386,champagne,processes/47,strapping
+inputs/777,products/340,recycling,processes/626,annealing
+inputs/778,products/647,sweet potatoes,processes/361,pruning
+inputs/779,products/239,duck,processes/112,drying
+inputs/780,products/499,spinach,processes/239,welding
+inputs/781,products/995,okra,processes/400,nitration
+inputs/782,products/362,paneer tikka,processes/52,amination
+inputs/783,products/318,tomatoes,processes/264,gasification
+inputs/784,products/637,butter chicken,processes/446,cooling
+inputs/785,products/292,sorbet,processes/807,homogenizing
+inputs/786,products/279,metal waste,processes/136,wrapping
+inputs/787,products/974,pork schnitzel,processes/493,spinning
+inputs/788,products/51,peaches,processes/336,casting
+inputs/789,products/366,linguine,processes/544,sealing
+inputs/790,products/603,peanuts,processes/824,sizing
+inputs/791,products/220,avocado,processes/155,screening
+inputs/792,products/41,leeks,processes/414,forging
+inputs/793,products/16,olive oil,processes/994,combustion
+inputs/794,products/387,beef broth,processes/707,crystallization
+inputs/795,products/1013,lettuce,processes/80,fermenting
+inputs/796,products/516,baking soda,processes/417,consolidation
+inputs/797,products/569,yogurt parfait,processes/294,physical separation
+inputs/798,products/846,turkey breast,processes/277,chemical treatment
+inputs/799,products/650,peas,processes/772,liquefaction
+inputs/800,products/858,zucchini,processes/787,painting
+inputs/801,products/925,pineapple,processes/366,shrink_wrapping
+inputs/802,products/433,salmon,processes/781,felting
+inputs/803,products/40,almond milk,processes/408,heating
+inputs/804,products/979,molasses,processes/870,superheating
+inputs/805,products/142,flounder,processes/425,deconsolidation
+inputs/806,products/191,oysters,processes/47,strapping
+inputs/807,products/102,ceviche,processes/296,planting
+inputs/808,products/397,cheese,processes/422,carding
+inputs/809,products/996,granola,processes/692,twisting
+inputs/810,products/321,pepper,processes/464,bending
+inputs/811,products/617,bolognese,processes/449,expansion
+inputs/812,products/471,ribs,processes/197,desuperheating
+inputs/813,products/158,chickpeas,processes/968,gasification
+inputs/814,products/858,zucchini,processes/799,weaving
+inputs/815,products/131,rye,processes/816,gasification
+inputs/816,products/190,rogan josh,processes/741,landfilling
+inputs/817,products/803,honey blend,processes/971,shredding
+inputs/818,products/590,figs,processes/896,forming
+inputs/819,products/797,flounder,processes/910,polishing
+inputs/820,products/3,tomato sauce,processes/3,combining
+inputs/821,products/860,meatball,processes/947,plating
+inputs/822,products/744,vanilla,processes/832,calendering
+inputs/823,products/932,turmeric,processes/57,concentrating
+inputs/824,products/6,hot dogs,processes/3,combining
+inputs/825,products/7,salt,processes/2,simmering
+inputs/826,products/564,cream,processes/279,dewatering
+inputs/827,products/800,peas,processes/803,compacting
+inputs/828,products/927,wastewater treatment,processes/536,frying
+inputs/829,products/978,metal waste,processes/65,liquefaction
+inputs/830,products/530,vanilla,processes/659,sterilizing
+inputs/831,products/41,leeks,processes/835,handling
+inputs/832,products/653,protein shake,processes/903,bending
+inputs/833,products/152,soda,processes/788,sedimentation
+inputs/834,products/583,goan fish,processes/930,marinating
+inputs/835,products/448,soy sauce,processes/645,pressing
+inputs/836,products/855,grey water,processes/389,storage
+inputs/837,products/103,cereal,processes/272,filtration
+inputs/838,products/678,mustard,processes/430,nitration
+inputs/839,products/788,hot dog,processes/346,forging
+inputs/840,products/136,veal,processes/708,bromination
+inputs/841,products/773,burrito,processes/145,thinning
+inputs/842,products/949,cashews,processes/371,sedimentation
+inputs/843,products/27,fried chicken,processes/178,drawing
+inputs/844,products/102,ceviche,processes/267,shaping
+inputs/845,products/908,okra,processes/778,stripping
+inputs/846,products/741,granola,processes/683,beaming
+inputs/847,products/747,bread,processes/882,thermal treatment
+inputs/848,products/232,honey blend,processes/498,unloading
+inputs/849,products/397,cheese,processes/441,finishing
+inputs/850,products/447,sage,processes/408,heating
+inputs/851,products/942,pork schnitzel,processes/54,filtration
+inputs/852,products/932,turmeric,processes/84,extraction
+inputs/853,products/285,hummus,processes/900,shrink_wrapping
+inputs/854,products/60,soy,processes/860,aerobic treatment
+inputs/855,products/147,jambalaya,processes/644,calendering
+inputs/856,products/893,dates,processes/92,bending
+inputs/857,products/685,green beans,processes/373,cooling
+inputs/858,products/536,nachos,processes/56,mercerizing
+inputs/859,products/487,sushi,processes/369,stamping
+inputs/860,products/258,dried cranberries,processes/582,sorting
+inputs/861,products/294,baking powder,processes/307,oxidation
+inputs/862,products/278,brownie,processes/196,bundle_wrapping
+inputs/863,products/360,lobster,processes/600,marinating
+inputs/864,products/708,fettuccine,processes/282,recycling
+inputs/865,products/987,ramen,processes/590,superheating
+inputs/866,products/447,sage,processes/876,hydrolysis
+inputs/867,products/257,duck,processes/349,compacting
+inputs/868,products/192,sunflower oil,processes/940,labeling
+inputs/869,products/421,avocado,processes/951,preheating
+inputs/870,products/280,salt,processes/785,baking
+inputs/871,products/634,grey water,processes/271,handling
+inputs/872,products/146,couscous,processes/805,threshing
+inputs/873,products/166,plastic waste,processes/410,pyrolysis
+inputs/874,products/855,grey water,processes/365,preheating
+inputs/875,products/52,linguine,processes/719,calendering
+inputs/876,products/457,chili,processes/725,beaming
+inputs/877,products/1013,lettuce,processes/373,cooling
+inputs/878,products/466,incineration,processes/455,monitoring
+inputs/879,products/525,cheese,processes/57,concentrating
+inputs/880,products/18,rye,processes/303,grilling
+inputs/881,products/954,mustard seeds,processes/925,strapping
+inputs/882,products/928,champagne,processes/310,desuperheating
+inputs/883,products/489,greek salad,processes/194,filtering
+inputs/884,products/661,cookies,processes/639,grinding
+inputs/885,products/357,potato salad,processes/41,condensation
+inputs/886,products/908,okra,processes/750,oxidation
+inputs/887,products/258,dried cranberries,processes/585,filling
+inputs/888,products/51,peaches,processes/749,printing
+inputs/889,products/743,spaghetti,processes/61,steaming
+inputs/890,products/236,rice,processes/419,incineration
+inputs/891,products/57,blueberries,processes/953,purification
+inputs/892,products/285,hummus,processes/928,oxidation
+inputs/893,products/985,yams,processes/337,plating
+inputs/894,products/583,goan fish,processes/503,simmering
+inputs/895,products/153,peas,processes/767,beaming
+inputs/896,products/384,lettuce,processes/782,oxidation
+inputs/897,products/485,kebab,processes/160,chlorination
+inputs/898,products/587,soy,processes/77,concentrating
+inputs/899,products/454,milk,processes/330,forming
+inputs/900,products/234,air treatment,processes/659,sterilizing
+inputs/901,products/247,cabbage,processes/16,wrapping
+inputs/902,products/368,burger,processes/703,spinning
+inputs/903,products/184,glass waste,processes/94,punching
+inputs/904,products/891,wine,processes/445,warehouse_operations
+inputs/905,products/306,dumpling,processes/851,sedimentation
+inputs/906,products/140,artichokes,processes/682,spinning
+inputs/907,products/914,fried chicken,processes/314,planting
+inputs/908,products/914,fried chicken,processes/315,boiling
+inputs/909,products/911,grouper,processes/383,packaging
+inputs/910,products/607,edamame,processes/849,rolling
+inputs/911,products/624,empanada,processes/365,preheating
+inputs/912,products/681,udon,processes/386,superheating
+inputs/913,products/348,white bread,processes/185,crystallization
+inputs/914,products/942,pork schnitzel,processes/87,liquefaction
+inputs/915,products/281,honey,processes/999,machining
+inputs/916,products/842,onions,processes/165,beaming
+inputs/917,products/383,granola,processes/326,unloading
+inputs/918,products/734,yogurt parfait,processes/712,stamping
+inputs/919,products/667,spaghetti,processes/954,ozonation
+inputs/920,products/1015,bouillabaisse,processes/132,baking
+inputs/921,products/820,brown sugar,processes/332,bleaching
+inputs/922,products/328,chili powder,processes/570,centrifuging
+inputs/923,products/489,greek salad,processes/174,flocculation
+inputs/924,products/394,beef,processes/257,nitration
+inputs/925,products/906,ham,processes/641,thinning
+inputs/926,products/475,linguine,processes/284,planting
+inputs/927,products/526,hot dog,processes/989,coating
+inputs/928,products/909,meatball,processes/748,carton_forming
+inputs/929,products/902,vanilla,processes/686,incineration
+inputs/930,products/539,papaya,processes/508,superheating
+inputs/931,products/610,coconut milk,processes/366,shrink_wrapping
+inputs/932,products/972,cucumber,processes/674,rolling
+inputs/933,products/246,eggplant parmesan,processes/462,sealing
+inputs/934,products/546,whiskey,processes/460,fertilizing
+inputs/935,products/185,broccoli,processes/182,sorting
+inputs/936,products/970,cherries,processes/459,filtration
+inputs/937,products/300,eggplant parmesan,processes/681,loading
+inputs/938,products/650,peas,processes/703,spinning
+inputs/939,products/786,pasta,processes/197,desuperheating
+inputs/940,products/671,shrimp,processes/685,weaving
+inputs/941,products/248,cocoa,processes/201,grilling
+inputs/942,products/406,granola,processes/79,composting
+inputs/943,products/158,chickpeas,processes/984,compression
+inputs/944,products/592,ramen,processes/650,centrifuging
+inputs/945,products/950,jambalaya,processes/13,annealing
+inputs/946,products/688,meatball,processes/770,deconsolidation
+inputs/947,products/827,cashews,processes/974,steaming
+inputs/948,products/806,food scraps,processes/7,marinating
+inputs/949,products/71,sugar,processes/77,concentrating
+inputs/950,products/87,eggs,processes/583,crystallization
+inputs/951,products/99,grouper,processes/485,recycling
+inputs/952,products/884,gumbo,processes/940,labeling
+inputs/953,products/1016,vodka,processes/141,biological treatment
+inputs/954,products/84,barley,processes/128,heating
+inputs/955,products/671,shrimp,processes/678,warehouse_operations
+inputs/956,products/167,tilapia,processes/204,pressing
+inputs/957,products/1009,tzatziki,processes/674,rolling
+inputs/958,products/761,pita,processes/82,filling
+inputs/959,products/866,butter,processes/628,drying
+inputs/960,products/431,coffee,processes/526,packaging
+inputs/961,products/586,curry,processes/931,case_packing
+inputs/962,products/641,ceviche,processes/247,cooling
+inputs/963,products/313,caesar salad,processes/254,precipitation
+inputs/964,products/779,celery,processes/737,carton_forming
+inputs/965,products/934,juice,processes/413,nitration
+inputs/966,products/615,wine,processes/679,finishing
+inputs/967,products/656,anaerobic digestion,processes/903,bending
+inputs/968,products/121,biogas,processes/432,pasteurizing
+inputs/969,products/934,juice,processes/896,forming
+inputs/970,products/185,broccoli,processes/123,chlorination
+inputs/971,products/284,tortillas,processes/637,welding
+inputs/972,products/37,brussels sprouts,processes/566,storage
+inputs/973,products/970,cherries,processes/553,calendering
+inputs/974,products/1000,rice,processes/382,braising
+inputs/975,products/825,milk,processes/282,recycling
+inputs/976,products/626,guava,processes/980,stamping
+inputs/977,products/27,fried chicken,processes/124,concentrating
+inputs/978,products/906,ham,processes/533,biological treatment
+inputs/979,products/315,oatmeal,processes/546,refining
+inputs/980,products/599,raisins,processes/291,case_packing
+inputs/981,products/914,fried chicken,processes/355,injection molding
+inputs/982,products/660,biryani,processes/344,pyrolysis
+inputs/983,products/960,rogan josh,processes/457,smelting
+inputs/984,products/72,pepper,processes/289,plowing
+inputs/985,products/519,veal,processes/523,sorting
+inputs/986,products/961,beef,processes/327,capping
+inputs/987,products/606,chicken,processes/891,threshing
+inputs/988,products/980,blueberries,processes/545,grading
+inputs/989,products/979,molasses,processes/343,purification
+inputs/990,products/419,lemons,processes/145,thinning
+inputs/991,products/404,pie,processes/624,cooling
+inputs/992,products/131,rye,processes/421,handling
+inputs/993,products/11,onions,processes/2,simmering
+inputs/994,products/509,cod,processes/561,cooling
+inputs/995,products/928,champagne,processes/809,wrapping
+inputs/996,products/249,grey water,processes/941,spinning
+inputs/997,products/57,blueberries,processes/504,case_packing
+inputs/998,products/14,cheese,processes/2,simmering
+inputs/999,products/714,baking powder,processes/737,carton_forming
+inputs/1000,products/990,sea bass,processes/536,frying
+inputs/1001,products/181,butter,processes/902,boxing
+inputs/1002,products/14,cheese,processes/3,combining
+inputs/1003,products/950,jambalaya,processes/473,sealing
+inputs/1004,products/323,butter,processes/370,threshing
+inputs/1005,products/196,potato salad,processes/886,sautéing
+inputs/1006,products/141,fettuccine,processes/964,stamping
+inputs/1007,products/980,blueberries,processes/560,nitration
+inputs/1008,products/218,beer,processes/542,fermentation
+inputs/1009,products/656,anaerobic digestion,processes/927,heat treatment
+inputs/1010,products/90,raisins,processes/180,fertilizing
+inputs/1011,products/247,cabbage,processes/309,sautéing
+inputs/1012,products/593,salt,processes/425,deconsolidation
+inputs/1013,products/174,beef,processes/190,curing
+inputs/1014,products/19,biogas,processes/772,liquefaction
+inputs/1015,products/923,tomato paste,processes/126,caramelizing
+inputs/1016,products/788,hot dog,processes/878,shaping
+inputs/1017,products/951,dried cranberries,processes/357,filling
+inputs/1018,products/325,basil,processes/980,stamping
+inputs/1019,products/224,potatoes,processes/171,rolling
+inputs/1020,products/16,olive oil,processes/146,esterification
+inputs/1021,products/284,tortillas,processes/619,landfilling
+inputs/1022,products/654,kale,processes/717,extraction
+inputs/1023,products/845,falafel,processes/799,weaving
+inputs/1024,products/63,shallots,processes/175,spinning
+inputs/1025,products/465,anaerobic digestion,processes/137,flocculation
+inputs/1026,products/360,lobster,processes/680,shrink_wrapping
+inputs/1027,products/690,tagliatelle,processes/407,landfilling
+inputs/1028,products/306,dumpling,processes/794,caramelizing
+inputs/1029,products/124,anchovies,processes/928,oxidation
+inputs/1030,products/403,tea,processes/766,sorting
+inputs/1031,products/689,zucchini,processes/201,grilling
+inputs/1032,products/306,dumpling,processes/792,mixing
+inputs/1033,products/644,gin,processes/757,coagulation
+inputs/1034,products/422,anaerobic digestion,processes/430,nitration
+inputs/1035,products/576,ketchup,processes/923,combustion
+inputs/1036,products/397,cheese,processes/398,composting
+inputs/1037,products/783,hot sauce,processes/56,mercerizing
+inputs/1038,products/893,dates,processes/562,clarifying
+inputs/1039,products/753,aspartame,processes/916,carton_forming
+inputs/1040,products/627,crab,processes/836,dewatering
+inputs/1041,products/787,white bread,processes/533,biological treatment
+inputs/1042,products/1001,aspartame,processes/223,labeling
+inputs/1043,products/58,thyme,processes/832,calendering
+inputs/1044,products/235,pudding,processes/475,punching
+inputs/1045,products/502,lobster,processes/849,rolling
+inputs/1046,products/535,miso soup,processes/116,superheating
+inputs/1047,products/193,nachos,processes/378,centrifuging
+inputs/1048,products/480,papaya,processes/715,superheating
+inputs/1049,products/546,whiskey,processes/993,handling
+inputs/1050,products/825,milk,processes/232,chlorination
+inputs/1051,products/1012,cookies,processes/566,storage
+inputs/1052,products/617,bolognese,processes/803,compacting
+inputs/1053,products/226,turkey,processes/321,mercerizing
+inputs/1054,products/894,rye bread,processes/939,pyrolysis
+inputs/1055,products/917,green beans,processes/928,oxidation
+inputs/1056,products/450,potatoes,processes/707,crystallization
+inputs/1057,products/419,lemons,processes/117,smoking
+inputs/1058,products/323,butter,processes/309,sautéing
+inputs/1059,products/232,honey blend,processes/47,strapping
+inputs/1060,products/849,kiwi,processes/733,spinning
+inputs/1061,products/817,snapper,processes/438,amination
+inputs/1062,products/625,veal marsala,processes/208,thinning
+inputs/1063,products/527,aspartame,processes/361,pruning
+inputs/1064,products/678,mustard,processes/343,purification
+inputs/1065,products/942,pork schnitzel,processes/262,welding
+inputs/1066,products/91,vanilla,processes/465,planting
+inputs/1067,products/874,whiskey,processes/876,hydrolysis
+inputs/1068,products/721,crab,processes/616,desuperheating
+inputs/1069,products/420,lamb,processes/672,thickening
+inputs/1070,products/352,salt,processes/884,sorting
+inputs/1071,products/191,oysters,processes/83,strapping
+inputs/1072,products/954,mustard seeds,processes/411,weeding
+inputs/1073,products/208,gelato,processes/136,wrapping
+inputs/1074,products/85,corn,processes/412,spraying
+inputs/1075,products/998,butter oil,processes/523,sorting
+inputs/1076,products/970,cherries,processes/502,screening
+inputs/1077,products/57,blueberries,processes/546,refining
+inputs/1078,products/627,crab,processes/885,boxing
+inputs/1079,products/710,oats,processes/387,casting
+inputs/1080,products/906,ham,processes/60,reduction
+inputs/1081,products/942,pork schnitzel,processes/278,case_packing
+inputs/1082,products/858,zucchini,processes/880,packaging
+inputs/1083,products/989,ragu,processes/351,precipitation
+inputs/1084,products/635,pepperoni,processes/204,pressing
+inputs/1085,products/158,chickpeas,processes/58,baking
+inputs/1086,products/224,potatoes,processes/123,chlorination
+inputs/1087,products/362,paneer tikka,processes/473,sealing
+inputs/1088,products/428,glass waste,processes/73,sorting
+inputs/1089,products/279,metal waste,processes/922,pruning
+inputs/1090,products/261,shrimp,processes/171,rolling
+inputs/1091,products/522,caesar salad,processes/949,thermal treatment
+inputs/1092,products/284,tortillas,processes/657,bleaching
+inputs/1093,products/323,butter,processes/327,capping
+inputs/1094,products/952,oregano,processes/647,amination
+inputs/1095,products/322,dal,processes/453,shearing
+inputs/1096,products/153,peas,processes/702,storage
+inputs/1097,products/222,pumpkin,processes/824,sizing
+inputs/1098,products/926,parsley,processes/641,thinning
+inputs/1099,products/218,beer,processes/514,gasification
+inputs/1100,products/554,white bread,processes/324,assembly
+inputs/1101,products/67,bolognese,processes/565,sedimentation
+inputs/1102,products/292,sorbet,processes/491,warehouse_operations
+inputs/1103,products/477,brussels sprouts,processes/406,drawing
+inputs/1104,products/326,oats,processes/404,crystallization
+inputs/1105,products/147,jambalaya,processes/36,printing
+inputs/1106,products/894,rye bread,processes/905,casting
+inputs/1107,products/756,pho,processes/120,grilling
+inputs/1108,products/292,sorbet,processes/498,unloading
+inputs/1109,products/150,paprika,processes/618,strapping
+inputs/1110,products/931,pie,processes/380,chlorination
+inputs/1111,products/902,vanilla,processes/158,distribution
+inputs/1112,products/856,biscuits and gravy,processes/672,thickening
+inputs/1113,products/1011,peaches,processes/231,recycling
+inputs/1114,products/425,basil,processes/967,thinning
+inputs/1115,products/53,sausage,processes/99,chemical treatment
+inputs/1116,products/854,ketchup,processes/458,carton_forming
+inputs/1117,products/30,molasses,processes/859,labeling
+inputs/1118,products/228,parsley,processes/560,nitration
+inputs/1119,products/472,pad thai,processes/91,smoking
+inputs/1120,products/468,scallops,processes/28,stewing
+inputs/1121,products/344,protein shake,processes/230,blending
+inputs/1122,products/990,sea bass,processes/913,casting
+inputs/1123,products/125,rye,processes/868,casting
+inputs/1124,products/61,donut,processes/806,loading
+inputs/1125,products/272,sunflower oil,processes/897,braising
+inputs/1126,products/266,food scraps,processes/467,winnowing
+inputs/1127,products/799,plastic waste,processes/766,sorting
+inputs/1128,products/202,samosa,processes/776,condensation
+inputs/1129,products/439,sandwich,processes/988,shearing
+inputs/1130,products/52,linguine,processes/244,frying
+inputs/1131,products/343,air treatment,processes/48,desuperheating
+inputs/1132,products/705,coconut milk,processes/666,wrapping
+inputs/1133,products/999,maple syrup,processes/825,fertilizing
+inputs/1134,products/703,paprika,processes/819,combustion
+inputs/1135,products/92,oregano,processes/735,gasification
+inputs/1136,products/177,juice,processes/717,extraction
+inputs/1137,products/789,haddock,processes/787,painting
+inputs/1138,products/392,hazardous waste,processes/547,unloading
+inputs/1139,products/487,sushi,processes/822,purification
+inputs/1140,products/942,pork schnitzel,processes/623,coagulation
+inputs/1141,products/907,fettuccine,processes/488,braising
+inputs/1142,products/783,hot sauce,processes/112,drying
+inputs/1143,products/52,linguine,processes/231,recycling
+inputs/1144,products/57,blueberries,processes/588,combustion
+inputs/1145,products/644,gin,processes/338,carton_forming
+inputs/1146,products/113,brussels sprouts,processes/238,evaporation
+inputs/1147,products/417,pomegranate,processes/716,bundle_wrapping
+inputs/1148,products/728,goan fish,processes/94,punching
+inputs/1149,products/630,limes,processes/322,dehydration
+inputs/1150,products/964,coconut oil,processes/28,stewing
+inputs/1151,products/862,caesar salad,processes/655,consolidation
+inputs/1152,products/851,crackers,processes/707,crystallization
+inputs/1153,products/243,bananas,processes/49,purification
+inputs/1154,products/200,canola oil,processes/580,blending
+inputs/1155,products/254,wine,processes/655,consolidation
+inputs/1156,products/968,dal,processes/439,unloading
+inputs/1157,products/176,basil,processes/76,separating
+inputs/1158,products/630,limes,processes/363,caramelizing
+inputs/1159,products/797,flounder,processes/567,separating
+inputs/1160,products/586,curry,processes/557,stripping
+inputs/1161,products/89,packaging waste,processes/800,drawing
+inputs/1162,products/723,gyoza,processes/425,deconsolidation
+inputs/1163,products/650,peas,processes/68,case_packing
+inputs/1164,products/527,aspartame,processes/389,storage
+inputs/1165,products/711,tagliatelle,processes/5,simmering
+inputs/1166,products/70,oregano,processes/943,reverse osmosis
+inputs/1167,products/491,burger,processes/284,planting
+inputs/1168,products/446,scallops,processes/477,distribution
+inputs/1169,products/44,chimichanga,processes/418,sorting
+inputs/1170,products/34,curry,processes/475,punching
+inputs/1171,products/957,glass waste,processes/123,chlorination
+inputs/1172,products/844,brown sugar,processes/1002,finishing
+inputs/1173,products/877,veal marsala,processes/985,evaporation
+inputs/1174,products/957,glass waste,processes/96,gasification
+inputs/1175,products/176,basil,processes/89,boxing
+inputs/1176,products/633,walnuts,processes/835,handling
+inputs/1177,products/115,nachos,processes/436,bundle_wrapping
+inputs/1178,products/65,anchovies,processes/392,boiling
+inputs/1179,products/714,baking powder,processes/320,thermal treatment
+inputs/1180,products/53,sausage,processes/117,smoking
+inputs/1181,products/716,bagels,processes/940,labeling
+inputs/1182,products/571,corn,processes/696,chlorination
+inputs/1183,products/367,goulash,processes/334,physical separation
+inputs/1184,products/43,lasagna,processes/557,stripping
+inputs/1185,products/30,molasses,processes/413,nitration
+inputs/1186,products/884,gumbo,processes/468,sautéing
+inputs/1187,products/136,veal,processes/38,smelting
+inputs/1188,products/162,cherries,processes/845,forging
+inputs/1189,products/728,goan fish,processes/75,carton_forming
+inputs/1190,products/175,soy sauce,processes/988,shearing
+inputs/1191,products/277,eggs,processes/755,expansion
+inputs/1192,products/610,coconut milk,processes/739,homogenizing
+inputs/1193,products/857,oysters,processes/902,boxing
+inputs/1194,products/574,udon,processes/384,packaging
+inputs/1195,products/495,salami,processes/639,grinding
+inputs/1196,products/276,quesadilla,processes/47,strapping
+inputs/1197,products/509,cod,processes/984,compression
+inputs/1198,products/946,pomegranate,processes/75,carton_forming
+inputs/1199,products/496,gin,processes/585,filling
+inputs/1200,products/320,beef brisket,processes/605,sulfation
+inputs/1201,products/284,tortillas,processes/282,recycling
+inputs/1202,products/893,dates,processes/172,gasification
+inputs/1203,products/1013,lettuce,processes/819,combustion
+inputs/1204,products/808,goulash,processes/301,reverse osmosis
+inputs/1205,products/843,baking powder,processes/921,ion exchange
+inputs/1206,products/970,cherries,processes/910,polishing
+inputs/1207,products/676,sandwich,processes/180,fertilizing
+inputs/1208,products/620,smoothie,processes/719,calendering
+inputs/1209,products/103,cereal,processes/621,crystallization
+inputs/1210,products/563,beef broth,processes/454,roasting
+inputs/1211,products/176,basil,processes/26,compression
+inputs/1212,products/1,spaghetti,processes/414,forging
+inputs/1213,products/340,recycling,processes/259,steaming
+inputs/1214,products/311,carbonara,processes/943,reverse osmosis
+inputs/1215,products/368,burger,processes/272,filtration
+inputs/1216,products/855,grey water,processes/743,curing
+inputs/1217,products/148,molasses,processes/168,curing
+inputs/1218,products/332,couscous,processes/422,carding
+inputs/1219,products/66,enchilada,processes/281,pyrolysis
+inputs/1220,products/876,salt,processes/221,shrink_wrapping
+inputs/1221,products/850,bagels,processes/869,thickening
+inputs/1222,products/877,veal marsala,processes/578,shearing
+inputs/1223,products/269,greek salad,processes/991,fertilizing
+inputs/1224,products/206,air treatment,processes/790,shearing
+inputs/1225,products/415,cinnamon,processes/501,monitoring
+inputs/1226,products/729,vinegar,processes/634,stripping
+inputs/1227,products/104,lamb,processes/965,poaching
+inputs/1228,products/853,pork schnitzel,processes/960,loading
+inputs/1229,products/565,sage,processes/633,sizing
+inputs/1230,products/10,garlic,processes/850,printing
+inputs/1231,products/736,bolognese,processes/586,extraction
+inputs/1232,products/561,butter chicken,processes/35,cooling
+inputs/1233,products/868,pineapple,processes/856,consolidation
+inputs/1234,products/421,avocado,processes/126,caramelizing
+inputs/1235,products/332,couscous,processes/411,weeding
+inputs/1236,products/578,turkey breast,processes/797,planting
+inputs/1237,products/337,raisins,processes/730,spinning
+inputs/1238,products/124,anchovies,processes/560,nitration
+inputs/1239,products/375,gelato,processes/194,filtering
+inputs/1240,products/493,dragon fruit,processes/469,oxidation
+inputs/1241,products/110,beef brisket,processes/551,separating
+inputs/1242,products/626,guava,processes/916,carton_forming
+inputs/1243,products/852,waste water,processes/626,annealing
+inputs/1244,products/490,goji berries,processes/361,pruning
+inputs/1245,products/369,bouillabaisse,processes/110,carton_forming
+inputs/1246,products/31,vindaloo,processes/328,stabilizing
+inputs/1247,products/490,goji berries,processes/367,distribution
+inputs/1248,products/850,bagels,processes/890,stripping
+inputs/1249,products/497,rice,processes/411,weeding
+inputs/1250,products/422,anaerobic digestion,processes/473,sealing
+inputs/1251,products/952,oregano,processes/254,precipitation
+inputs/1252,products/480,papaya,processes/790,shearing
+inputs/1253,products/287,tilapia,processes/360,esterification
+inputs/1254,products/295,gelato,processes/181,flocculation
+inputs/1255,products/113,brussels sprouts,processes/652,desuperheating
+inputs/1256,products/431,coffee,processes/164,irrigating
+inputs/1257,products/346,potatoes,processes/417,consolidation
+inputs/1258,products/604,coconut,processes/927,heat treatment
+inputs/1259,products/919,peaches,processes/341,flocculation
+inputs/1260,products/939,soy sauce,processes/534,aerobic treatment
+inputs/1261,products/44,chimichanga,processes/50,wrapping
+inputs/1262,products/579,biscuits and gravy,processes/669,dewatering
+inputs/1263,products/665,sausage,processes/27,quality_control
+inputs/1264,products/860,meatball,processes/413,nitration
+inputs/1265,products/833,beef brisket,processes/511,welding
+inputs/1266,products/995,okra,processes/755,expansion
+inputs/1267,products/579,biscuits and gravy,processes/663,annealing
+inputs/1268,products/929,quinoa,processes/433,compression
+inputs/1269,products/50,bread,processes/215,recycling
+inputs/1270,products/69,naan,processes/228,superheating
+inputs/1271,products/631,spinach,processes/45,combustion
+inputs/1272,products/849,kiwi,processes/138,warehouse_operations
+inputs/1273,products/911,grouper,processes/877,unloading
+inputs/1274,products/979,molasses,processes/909,smoking
+inputs/1275,products/234,air treatment,processes/973,plating
+inputs/1276,products/321,pepper,processes/988,shearing
+inputs/1277,products/393,hot dog,processes/338,carton_forming
+inputs/1278,products/249,grey water,processes/150,warping
+inputs/1279,products/831,blackberries,processes/564,refining
+inputs/1280,products/205,rice,processes/639,grinding
+inputs/1281,products/185,broccoli,processes/926,riveting
+inputs/1282,products/949,cashews,processes/649,precipitation
+inputs/1283,products/143,peanuts,processes/131,warehouse_operations
+inputs/1284,products/657,zucchini,processes/558,palletizing
+inputs/1285,products/269,greek salad,processes/315,boiling
+inputs/1286,products/957,glass waste,processes/794,caramelizing
+inputs/1287,products/822,bananas,processes/54,filtration
+inputs/1288,products/541,chicken,processes/896,forming
+inputs/1289,products/241,eggplant,processes/217,heating
+inputs/1290,products/45,molasses,processes/943,reverse osmosis
+inputs/1291,products/577,hazardous waste,processes/231,recycling
+inputs/1292,products/948,rice,processes/206,calendering
+inputs/1293,products/503,avocado,processes/445,warehouse_operations
+inputs/1294,products/235,pudding,processes/909,smoking
+inputs/1295,products/444,sugar,processes/307,oxidation
+inputs/1296,products/287,tilapia,processes/71,welding
+inputs/1297,products/215,chicken broth,processes/758,preheating
+inputs/1298,products/790,prunes,processes/676,bromination
+inputs/1299,products/783,hot sauce,processes/954,ozonation
+inputs/1300,products/366,linguine,processes/456,beaming
+inputs/1301,products/486,cooking oil waste,processes/54,filtration
+inputs/1302,products/425,basil,processes/115,carton_forming
+inputs/1303,products/107,palm oil,processes/108,incineration
+inputs/1304,products/898,bread,processes/623,coagulation
+inputs/1305,products/541,chicken,processes/887,precipitation
+inputs/1306,products/14,cheese,processes/682,spinning
+inputs/1307,products/45,molasses,processes/936,handling
+inputs/1308,products/12,clean water,processes/223,labeling
+inputs/1309,products/473,pork schnitzel,processes/634,stripping
+inputs/1310,products/589,cereal,processes/775,aerobic treatment
+inputs/1311,products/1009,tzatziki,processes/516,combustion
+inputs/1312,products/289,butter chicken,processes/535,thinning
+inputs/1313,products/491,burger,processes/429,compacting
+inputs/1314,products/190,rogan josh,processes/205,biological treatment
+inputs/1315,products/914,fried chicken,processes/810,labeling
+inputs/1316,products/215,chicken broth,processes/749,printing
+inputs/1317,products/631,spinach,processes/850,printing
+inputs/1318,products/214,chickpeas,processes/759,braising
+inputs/1319,products/180,burger,processes/112,drying
+inputs/1320,products/382,dates,processes/273,curing
+inputs/1321,products/1014,radishes,processes/247,cooling
+inputs/1322,products/473,pork schnitzel,processes/204,pressing
+inputs/1323,products/393,hot dog,processes/300,recycling
+inputs/1324,products/481,coleslaw,processes/366,shrink_wrapping
+inputs/1325,products/672,burrito,processes/385,chemical treatment
+inputs/1326,products/293,vodka,processes/28,stewing
+inputs/1327,products/708,fettuccine,processes/974,steaming
+inputs/1328,products/670,sorbet,processes/803,compacting
+inputs/1329,products/197,sweet potatoes,processes/157,drying
+inputs/1330,products/397,cheese,processes/732,quality_control
+inputs/1331,products/675,tamale,processes/367,distribution
+inputs/1332,products/234,air treatment,processes/928,oxidation
+inputs/1333,products/977,aspartame,processes/938,adsorption
+inputs/1334,products/972,cucumber,processes/139,distribution
+inputs/1335,products/165,rice,processes/771,forging
+inputs/1336,products/184,glass waste,processes/904,grading
+inputs/1337,products/310,yogurt parfait,processes/865,shredding
+inputs/1338,products/603,peanuts,processes/911,superheating
+inputs/1339,products/968,dal,processes/422,carding
+inputs/1340,products/879,sushi,processes/477,distribution
+inputs/1341,products/169,tuna,processes/296,planting
+inputs/1342,products/71,sugar,processes/411,weeding
+inputs/1343,products/74,chicken broth,processes/819,combustion
+inputs/1344,products/1,spaghetti,processes/934,sealing
+inputs/1345,products/940,goan fish,processes/765,grinding
+inputs/1346,products/768,pie,processes/295,aeration
+inputs/1347,products/745,lasagna,processes/556,shredding
+inputs/1348,products/285,hummus,processes/97,reduction
+inputs/1349,products/445,vanilla,processes/350,drying
+inputs/1350,products/896,veal marsala,processes/675,condensation
+inputs/1351,products/838,water treatment,processes/497,wrapping
+inputs/1352,products/196,potato salad,processes/166,coagulation
+inputs/1353,products/912,risotto,processes/863,pyrolysis
+inputs/1354,products/25,goulash,processes/799,weaving
+inputs/1355,products/753,aspartame,processes/272,filtration
+inputs/1356,products/671,shrimp,processes/396,fertilizing
+inputs/1357,products/4,waste water,processes/912,chemical treatment
+inputs/1358,products/392,hazardous waste,processes/792,mixing
+inputs/1359,products/909,meatball,processes/228,superheating
+inputs/1360,products/59,brown sugar,processes/196,bundle_wrapping
+inputs/1361,products/484,squash,processes/18,loading
+inputs/1362,products/440,dumpling,processes/21,filtering
+inputs/1363,products/841,canola oil,processes/683,beaming
+inputs/1364,products/261,shrimp,processes/850,printing
+inputs/1365,products/959,baking powder,processes/716,bundle_wrapping
+inputs/1366,products/773,burrito,processes/450,esterification
+inputs/1367,products/995,okra,processes/768,capping
+inputs/1368,products/676,sandwich,processes/344,pyrolysis
+inputs/1369,products/36,kale,processes/79,composting
+inputs/1370,products/919,peaches,processes/377,smoking
+inputs/1371,products/536,nachos,processes/709,carding
+inputs/1372,products/8,pepper,processes/458,carton_forming
+inputs/1373,products/806,food scraps,processes/618,strapping
+inputs/1374,products/742,quesadilla,processes/118,recycling
+inputs/1375,products/115,nachos,processes/237,concentrating
+inputs/1376,products/141,fettuccine,processes/137,flocculation
+inputs/1377,products/947,artichokes,processes/242,labeling
+inputs/1378,products/948,rice,processes/234,planting
+inputs/1379,products/215,chicken broth,processes/307,oxidation
+inputs/1380,products/480,papaya,processes/392,boiling
+inputs/1381,products/59,brown sugar,processes/193,grilling
+inputs/1382,products/489,greek salad,processes/675,condensation
+inputs/1383,products/781,brussels sprouts,processes/149,drawing
+inputs/1384,products/938,anchovies,processes/550,forging
+inputs/1385,products/773,burrito,processes/448,plowing
+inputs/1386,products/44,chimichanga,processes/507,dehydration
+inputs/1387,products/605,cucumber,processes/924,planting
+inputs/1388,products/410,flounder,processes/62,thermal treatment
+inputs/1389,products/511,pita,processes/548,roasting
+inputs/1390,products/1013,lettuce,processes/695,strapping
+inputs/1391,products/539,papaya,processes/683,beaming
+inputs/1392,products/512,anchovies,processes/512,calendering
+inputs/1393,products/400,bacon,processes/86,loading
+inputs/1394,products/19,biogas,processes/159,coagulation
+inputs/1395,products/1002,rabbit,processes/150,warping
+inputs/1396,products/665,sausage,processes/626,annealing
+inputs/1397,products/227,agave nectar,processes/4,pyrolysis
+inputs/1398,products/148,molasses,processes/995,forging
+inputs/1399,products/1002,rabbit,processes/142,harvesting
+inputs/1400,products/374,sashimi,processes/516,combustion
+inputs/1401,products/938,anchovies,processes/162,condensation
+inputs/1402,products/478,protein shake,processes/132,baking
+inputs/1403,products/651,flounder,processes/610,sealing
+inputs/1404,products/256,canola oil,processes/247,cooling
+inputs/1405,products/547,beef wellington,processes/353,screening
+inputs/1406,products/635,pepperoni,processes/352,winnowing
+inputs/1407,products/847,chili powder,processes/590,superheating
+inputs/1408,products/87,eggs,processes/878,shaping
+inputs/1409,products/74,chicken broth,processes/851,sedimentation
+inputs/1410,products/980,blueberries,processes/271,handling
+inputs/1411,products/440,dumpling,processes/368,printing
+inputs/1412,products/974,pork schnitzel,processes/500,oxidation
+inputs/1413,products/38,muffin,processes/362,compacting
+inputs/1414,products/809,rye,processes/160,chlorination
+inputs/1415,products/85,corn,processes/463,carton_forming
+inputs/1416,products/224,potatoes,processes/457,smelting
+inputs/1417,products/935,oysters,processes/117,smoking
+inputs/1418,products/94,lettuce,processes/108,incineration
+inputs/1419,products/245,rosemary,processes/188,heat treatment
+inputs/1420,products/222,pumpkin,processes/839,forging
+inputs/1421,products/617,bolognese,processes/571,nitration
+inputs/1422,products/51,peaches,processes/8,desuperheating
+inputs/1423,products/488,sandwich,processes/225,separating
+inputs/1424,products/992,miso soup,processes/37,crystallization
+inputs/1425,products/998,butter oil,processes/285,mercerizing
+inputs/1426,products/833,beef brisket,processes/130,clarifying
+inputs/1427,products/445,vanilla,processes/1,boiling
+inputs/1428,products/458,bread,processes/60,reduction
+inputs/1429,products/809,rye,processes/176,amination
+inputs/1430,products/526,hot dog,processes/663,annealing
+inputs/1431,products/351,haddock,processes/881,evaporation
+inputs/1432,products/294,baking powder,processes/2,simmering
+inputs/1433,products/17,paneer tikka,processes/674,rolling
+inputs/1434,products/610,coconut milk,processes/295,aeration
+inputs/1435,products/928,champagne,processes/411,weeding
+inputs/1436,products/235,pudding,processes/509,heating
+inputs/1437,products/443,soy sauce,processes/783,calendering
+inputs/1438,products/973,composting,processes/569,spinning
+inputs/1439,products/257,duck,processes/236,filtering
+inputs/1440,products/741,granola,processes/558,palletizing
+inputs/1441,products/736,bolognese,processes/829,separating
+inputs/1442,products/565,sage,processes/8,desuperheating
+inputs/1443,products/685,green beans,processes/476,adsorption
+inputs/1444,products/283,peanuts,processes/88,plating
+inputs/1445,products/1000,rice,processes/189,mercerizing
+inputs/1446,products/675,tamale,processes/717,extraction
+inputs/1447,products/466,incineration,processes/522,emulsifying
+inputs/1448,products/989,ragu,processes/601,distillation
+inputs/1449,products/926,parsley,processes/447,printing
+inputs/1450,products/837,glass waste,processes/970,spinning
+inputs/1451,products/948,rice,processes/271,handling
+inputs/1452,products/920,beef broth,processes/132,baking
+inputs/1453,products/672,burrito,processes/355,injection molding
+inputs/1454,products/634,grey water,processes/384,packaging
+inputs/1455,products/628,granola,processes/662,forging
+inputs/1456,products/614,ramen,processes/655,consolidation
+inputs/1457,products/730,sourdough,processes/924,planting
+inputs/1458,products/381,grouper,processes/207,harvesting
+inputs/1459,products/479,linguine,processes/549,compression
+inputs/1460,products/47,recycling,processes/911,superheating
+inputs/1461,products/818,squid,processes/717,extraction
+inputs/1462,products/990,sea bass,processes/12,poaching
+inputs/1463,products/116,landfill,processes/273,curing
+inputs/1464,products/706,butter,processes/184,threshing
+inputs/1465,products/338,goan fish,processes/196,bundle_wrapping
+inputs/1466,products/581,rum,processes/896,forming
+inputs/1467,products/448,soy sauce,processes/749,printing
+inputs/1468,products/747,bread,processes/998,concentrating
+inputs/1469,products/569,yogurt parfait,processes/136,wrapping
+inputs/1470,products/830,taco,processes/24,compression
+inputs/1471,products/283,peanuts,processes/7,marinating
+inputs/1472,products/516,baking soda,processes/904,grading
+inputs/1473,products/19,biogas,processes/593,spinning
+inputs/1474,products/174,beef,processes/497,wrapping
+inputs/1475,products/308,chimichanga,processes/643,forging
+inputs/1476,products/842,onions,processes/283,coating
+inputs/1477,products/232,honey blend,processes/588,combustion
+inputs/1478,products/777,squash,processes/352,winnowing
+inputs/1479,products/391,haddock,processes/372,bending
+inputs/1480,products/826,oysters,processes/849,rolling
+inputs/1481,products/320,beef brisket,processes/178,drawing
+inputs/1482,products/871,hot sauce,processes/913,casting
+inputs/1483,products/535,miso soup,processes/322,dehydration
+inputs/1484,products/217,veal marsala,processes/719,calendering
+inputs/1485,products/1016,vodka,processes/237,concentrating
+inputs/1486,products/840,prosciutto,processes/255,smoking
+inputs/1487,products/350,sardines,processes/846,refining
+inputs/1488,products/640,mustard,processes/925,strapping
+inputs/1489,products/533,brussels sprouts,processes/303,grilling
+inputs/1490,products/474,scallops,processes/264,gasification
+inputs/1491,products/234,air treatment,processes/539,capping
+inputs/1492,products/73,pumpkin,processes/422,carding
+inputs/1493,products/674,landfill,processes/788,sedimentation
+inputs/1494,products/626,guava,processes/263,assembly
+inputs/1495,products/675,tamale,processes/776,condensation
+inputs/1496,products/628,granola,processes/203,bromination
+inputs/1497,products/977,aspartame,processes/524,printing
+inputs/1498,products/426,tandoori,processes/84,extraction
+inputs/1499,products/603,peanuts,processes/528,blanching
+inputs/1500,products/44,chimichanga,processes/923,combustion
+inputs/1501,products/60,soy,processes/20,clarifying
+inputs/1502,products/884,gumbo,processes/606,weeding
+inputs/1503,products/385,satay,processes/202,stewing
+inputs/1504,products/532,strawberries,processes/324,assembly
+inputs/1505,products/75,grey water,processes/314,planting
+inputs/1506,products/308,chimichanga,processes/622,sorting
+inputs/1507,products/489,greek salad,processes/293,extrusion
+inputs/1508,products/810,lettuce,processes/19,biological treatment
+inputs/1509,products/87,eggs,processes/468,sautéing
+inputs/1510,products/158,chickpeas,processes/635,pressing
+inputs/1511,products/893,dates,processes/744,bending
+inputs/1512,products/515,mustard,processes/950,adsorption
+inputs/1513,products/455,waste water,processes/404,crystallization
+inputs/1514,products/309,lobster,processes/621,crystallization
+inputs/1515,products/455,waste water,processes/887,precipitation
+inputs/1516,products/919,peaches,processes/767,beaming
+inputs/1517,products/534,quesadilla,processes/334,physical separation
+inputs/1518,products/585,chili powder,processes/826,warehouse_operations
+inputs/1519,products/486,cooking oil waste,processes/15,carton_forming
+inputs/1520,products/749,rice,processes/947,plating
+inputs/1521,products/467,anaerobic digestion,processes/554,purification
+inputs/1522,products/221,plastic waste,processes/430,nitration
+inputs/1523,products/1013,lettuce,processes/288,chemical treatment
+inputs/1524,products/952,oregano,processes/99,chemical treatment
+inputs/1525,products/306,dumpling,processes/39,roasting
+inputs/1526,products/663,pears,processes/725,beaming
+inputs/1527,products/595,garlic,processes/855,boxing
+inputs/1528,products/169,tuna,processes/17,pruning
+inputs/1529,products/1005,rye,processes/108,incineration
+inputs/1530,products/362,paneer tikka,processes/979,precipitation
+inputs/1531,products/223,rice,processes/891,threshing
+inputs/1532,products/72,pepper,processes/465,planting
+inputs/1533,products/279,metal waste,processes/54,filtration
+inputs/1534,products/293,vodka,processes/758,preheating
+inputs/1535,products/762,beans,processes/367,distribution
+inputs/1536,products/321,pepper,processes/171,rolling
+inputs/1537,products/902,vanilla,processes/798,blanching
+inputs/1538,products/366,linguine,processes/822,purification
+inputs/1539,products/584,halibut,processes/822,purification
+inputs/1540,products/864,sunflower seeds,processes/1002,finishing
+inputs/1541,products/519,veal,processes/907,flocculation
+inputs/1542,products/142,flounder,processes/517,refining
+inputs/1543,products/489,greek salad,processes/277,chemical treatment
+inputs/1544,products/766,caesar salad,processes/337,plating
+inputs/1545,products/98,almond milk,processes/133,chemical treatment
+inputs/1546,products/15,tomato paste,processes/248,centrifuging
+inputs/1547,products/655,palm oil,processes/931,case_packing
+inputs/1548,products/430,miso soup,processes/316,irrigating
+inputs/1549,products/355,tilapia,processes/819,combustion
+inputs/1550,products/100,metal waste,processes/275,rolling
+inputs/1551,products/287,tilapia,processes/901,storage
+inputs/1552,products/333,baguette,processes/206,calendering
+inputs/1553,products/776,bananas,processes/351,precipitation
+inputs/1554,products/438,parsnips,processes/60,reduction
+inputs/1555,products/594,coffee,processes/980,stamping
+inputs/1556,products/927,wastewater treatment,processes/827,twisting
+inputs/1557,products/150,paprika,processes/751,beaming
+inputs/1558,products/863,chicken,processes/477,distribution
+inputs/1559,products/200,canola oil,processes/636,irrigating
+inputs/1560,products/211,quesadilla,processes/42,winnowing
+inputs/1561,products/653,protein shake,processes/519,threshing
+inputs/1562,products/625,veal marsala,processes/765,grinding
+inputs/1563,products/972,cucumber,processes/20,clarifying
+inputs/1564,products/413,lettuce,processes/867,crystallization
+inputs/1565,products/672,burrito,processes/738,capping
+inputs/1566,products/603,peanuts,processes/10,preheating
+inputs/1567,products/845,falafel,processes/215,recycling
+inputs/1568,products/917,green beans,processes/859,labeling
+inputs/1569,products/391,haddock,processes/737,carton_forming
+inputs/1570,products/682,sports drink,processes/965,poaching
+inputs/1571,products/170,empanada,processes/930,marinating
+inputs/1572,products/148,molasses,processes/493,spinning
+inputs/1573,products/400,bacon,processes/384,packaging
+inputs/1574,products/892,corn,processes/796,expansion
+inputs/1575,products/479,linguine,processes/967,thinning
+inputs/1576,products/1010,yeast,processes/699,hydrogenation
+inputs/1577,products/695,milk,processes/197,desuperheating
+inputs/1578,products/486,cooking oil waste,processes/682,spinning
+inputs/1579,products/254,wine,processes/355,injection molding
+inputs/1580,products/1,spaghetti,processes/180,fertilizing
+inputs/1581,products/5,pasta,processes/540,boxing
+inputs/1582,products/771,cucumber,processes/41,condensation
+inputs/1583,products/506,vinegar,processes/393,esterification
+inputs/1584,products/921,soup,processes/195,grinding
+inputs/1585,products/131,rye,processes/506,winnowing
+inputs/1586,products/15,tomato paste,processes/2,simmering
+inputs/1587,products/3,tomato sauce,processes/107,deconsolidation
+inputs/1588,products/797,flounder,processes/608,annealing
+inputs/1589,products/691,trout,processes/627,quality_control
+inputs/1590,products/786,pasta,processes/547,unloading
+inputs/1591,products/951,dried cranberries,processes/483,polymerization
+inputs/1592,products/775,metal waste,processes/483,polymerization
+inputs/1593,products/336,potatoes,processes/936,handling
+inputs/1594,products/701,taco,processes/135,stewing
+inputs/1595,products/49,grouper,processes/850,printing
+inputs/1596,products/178,tandoori,processes/790,shearing
+inputs/1597,products/924,biscuits and gravy,processes/579,gasification
+inputs/1598,products/651,flounder,processes/599,recycling
+inputs/1599,products/776,bananas,processes/329,warping
+inputs/1600,products/535,miso soup,processes/224,smoking
+inputs/1601,products/91,vanilla,processes/166,coagulation
+inputs/1602,products/326,oats,processes/967,thinning
+inputs/1603,products/828,okra,processes/889,wrapping
+inputs/1604,products/210,sugar,processes/701,consolidation
+inputs/1605,products/459,parsnips,processes/417,consolidation
+inputs/1606,products/893,dates,processes/677,rolling
+inputs/1607,products/668,salami,processes/290,bolting
+inputs/1608,products/397,cheese,processes/273,curing
+inputs/1609,products/475,linguine,processes/108,incineration
+inputs/1610,products/370,parsnips,processes/121,biological treatment
+inputs/1611,products/645,beets,processes/500,oxidation
+inputs/1612,products/828,okra,processes/403,distribution
+inputs/1613,products/508,vodka,processes/359,braising
+inputs/1614,products/111,tilapia,processes/352,winnowing
+inputs/1615,products/788,hot dog,processes/522,emulsifying
+inputs/1616,products/786,pasta,processes/124,concentrating
+inputs/1617,products/825,milk,processes/351,precipitation
+inputs/1618,products/272,sunflower oil,processes/171,rolling
+inputs/1619,products/553,duck,processes/586,extraction
+inputs/1620,products/524,beef,processes/146,esterification
+inputs/1621,products/634,grey water,processes/451,warehouse_operations
+inputs/1622,products/777,squash,processes/875,preserving
+inputs/1623,products/475,linguine,processes/582,sorting
+inputs/1624,products/92,oregano,processes/264,gasification
+inputs/1625,products/585,chili powder,processes/770,deconsolidation
+inputs/1626,products/788,hot dog,processes/535,thinning
+inputs/1627,products/644,gin,processes/822,purification
+inputs/1628,products/456,nachos,processes/360,esterification
+inputs/1629,products/607,edamame,processes/439,unloading
+inputs/1630,products/322,dal,processes/591,sorting
+inputs/1631,products/657,zucchini,processes/189,mercerizing
+inputs/1632,products/200,canola oil,processes/676,bromination
+inputs/1633,products/188,udon,processes/534,aerobic treatment
+inputs/1634,products/292,sorbet,processes/351,precipitation
+inputs/1635,products/917,green beans,processes/810,labeling
+inputs/1636,products/627,crab,processes/736,mercerizing
+inputs/1637,products/777,squash,processes/861,planting
+inputs/1638,products/1,spaghetti,processes/139,distribution
+inputs/1639,products/86,landfill,processes/400,nitration
+inputs/1640,products/772,baking soda,processes/908,dehydration
+inputs/1641,products/484,squash,processes/215,recycling
+inputs/1642,products/93,cucumber,processes/116,superheating
+inputs/1643,products/828,okra,processes/460,fertilizing
+inputs/1644,products/537,cocoa,processes/230,blending
+inputs/1645,products/928,champagne,processes/966,warping
+inputs/1646,products/108,yogurt parfait,processes/191,adsorption
+inputs/1647,products/726,haddock,processes/294,physical separation
+inputs/1648,products/322,dal,processes/580,blending
+inputs/1649,products/466,incineration,processes/195,grinding
+inputs/1650,products/61,donut,processes/284,planting
+inputs/1651,products/307,whiskey,processes/333,harvesting
+inputs/1652,products/853,pork schnitzel,processes/688,marinating
+inputs/1653,products/662,juice,processes/229,casting
+inputs/1654,products/710,oats,processes/266,strapping
+inputs/1655,products/822,bananas,processes/949,thermal treatment
+inputs/1656,products/581,rum,processes/316,irrigating
+inputs/1657,products/60,soy,processes/810,labeling
+inputs/1658,products/605,cucumber,processes/476,adsorption
+inputs/1659,products/326,oats,processes/997,unloading
+inputs/1660,products/891,wine,processes/256,grading
+inputs/1661,products/483,cinnamon,processes/363,caramelizing
+inputs/1662,products/495,salami,processes/390,winnowing
+inputs/1663,products/821,hot dog,processes/810,labeling
+inputs/1664,products/177,juice,processes/415,bolting
+inputs/1665,products/754,sugar,processes/278,case_packing
+inputs/1666,products/400,bacon,processes/369,stamping
+inputs/1667,products/776,bananas,processes/764,plowing
+inputs/1668,products/370,parsnips,processes/150,warping
+inputs/1669,products/148,molasses,processes/892,loading
+inputs/1670,products/121,biogas,processes/769,adsorption
+inputs/1671,products/760,kiwi,processes/775,aerobic treatment
+inputs/1672,products/103,cereal,processes/560,nitration
+inputs/1673,products/233,honey,processes/186,painting
+inputs/1674,products/963,strawberries,processes/440,preserving
+inputs/1675,products/217,veal marsala,processes/768,capping
+inputs/1676,products/184,glass waste,processes/123,chlorination
+inputs/1677,products/782,milk beverage,processes/141,biological treatment
+inputs/1678,products/989,ragu,processes/245,landfilling
+inputs/1679,products/233,honey,processes/83,strapping
+inputs/1680,products/530,vanilla,processes/875,preserving
+inputs/1681,products/30,molasses,processes/971,shredding
+inputs/1682,products/274,biogas,processes/981,compacting
+inputs/1683,products/894,rye bread,processes/10,preheating
+inputs/1684,products/133,anchovies,processes/33,spinning
+inputs/1685,products/998,butter oil,processes/65,liquefaction
+inputs/1686,products/91,vanilla,processes/119,pasteurizing
+inputs/1687,products/535,miso soup,processes/274,sizing
+inputs/1688,products/926,parsley,processes/527,threshing
+inputs/1689,products/978,metal waste,processes/82,filling
+inputs/1690,products/838,water treatment,processes/924,planting
+inputs/1691,products/847,chili powder,processes/7,marinating
+inputs/1692,products/325,basil,processes/416,roasting
+inputs/1693,products/729,vinegar,processes/770,deconsolidation
+inputs/1694,products/874,whiskey,processes/145,thinning
+inputs/1695,products/429,walnuts,processes/894,storage
+inputs/1696,products/932,turmeric,processes/997,unloading
+inputs/1697,products/2,raw pasta,processes/437,shaping
+inputs/1698,products/418,sardines,processes/902,boxing
+inputs/1699,products/12,clean water,processes/25,drying
+inputs/1700,products/353,peaches,processes/485,recycling
+inputs/1701,products/402,potatoes,processes/722,spinning
+inputs/1702,products/324,anaerobic digestion,processes/956,felting
+inputs/1703,products/694,gumbo,processes/942,physical separation
+inputs/1704,products/653,protein shake,processes/114,fermenting
+inputs/1705,products/190,rogan josh,processes/29,stabilizing
+inputs/1706,products/266,food scraps,processes/354,loading
+inputs/1707,products/420,lamb,processes/28,stewing
+inputs/1708,products/177,juice,processes/838,compacting
+inputs/1709,products/850,bagels,processes/715,superheating
+inputs/1710,products/806,food scraps,processes/680,shrink_wrapping
+inputs/1711,products/925,pineapple,processes/806,loading
+inputs/1712,products/493,dragon fruit,processes/321,mercerizing
+inputs/1713,products/116,landfill,processes/604,threshing
+inputs/1714,products/845,falafel,processes/611,monitoring
+inputs/1715,products/814,white bread,processes/28,stewing
+inputs/1716,products/357,potato salad,processes/266,strapping
+inputs/1717,products/3,tomato sauce,processes/994,combustion
+inputs/1718,products/804,food scraps,processes/283,coating
+inputs/1719,products/956,vindaloo,processes/750,oxidation
+inputs/1720,products/272,sunflower oil,processes/543,printing
+inputs/1721,products/46,tuna,processes/980,stamping
+inputs/1722,products/199,waste water,processes/659,sterilizing
+inputs/1723,products/936,shrimp,processes/556,shredding
+inputs/1724,products/915,brussels sprouts,processes/831,harrowing
+inputs/1725,products/640,mustard,processes/452,labeling
+inputs/1726,products/340,recycling,processes/334,physical separation
+inputs/1727,products/560,butter chicken,processes/46,combing
+inputs/1728,products/480,papaya,processes/892,loading
+inputs/1729,products/137,sports drink,processes/58,baking
+inputs/1730,products/9,sugar,processes/2,simmering
+inputs/1731,products/793,chili powder,processes/671,sealing
+inputs/1732,products/261,shrimp,processes/469,oxidation
+inputs/1733,products/269,greek salad,processes/830,quality_control
+inputs/1734,products/338,goan fish,processes/970,spinning
+inputs/1735,products/644,gin,processes/456,beaming
+inputs/1736,products/570,mackerel,processes/211,recycling
+inputs/1737,products/323,butter,processes/891,threshing
+inputs/1738,products/293,vodka,processes/273,curing
+inputs/1739,products/655,palm oil,processes/552,concentrating
+inputs/1740,products/481,coleslaw,processes/744,bending
+inputs/1741,products/181,butter,processes/620,thickening
+inputs/1742,products/186,tomato paste,processes/942,physical separation
+inputs/1743,products/489,greek salad,processes/770,deconsolidation
+inputs/1744,products/499,spinach,processes/301,reverse osmosis
+inputs/1745,products/906,ham,processes/288,chemical treatment
+inputs/1746,products/123,chocolate,processes/305,plowing
+inputs/1747,products/891,wine,processes/298,chlorination
+inputs/1748,products/421,avocado,processes/299,oxidation
+inputs/1749,products/675,tamale,processes/393,esterification
+inputs/1750,products/115,nachos,processes/790,shearing
+inputs/1751,products/32,chicken broth,processes/990,pyrolysis
+inputs/1752,products/493,dragon fruit,processes/785,baking
+inputs/1753,products/175,soy sauce,processes/878,shaping
+inputs/1754,products/194,goji berries,processes/511,welding
+inputs/1755,products/663,pears,processes/361,pruning
+inputs/1756,products/47,recycling,processes/470,case_packing
+inputs/1757,products/732,cauliflower,processes/482,riveting
+inputs/1758,products/182,tilapia,processes/106,combustion
+inputs/1759,products/263,pulled pork,processes/873,punching
+inputs/1760,products/714,baking powder,processes/687,marinating
+inputs/1761,products/177,juice,processes/48,desuperheating
+inputs/1762,products/700,food scraps,processes/676,bromination
+inputs/1763,products/758,udon,processes/269,simmering
+inputs/1764,products/429,walnuts,processes/442,dewatering
+inputs/1765,products/805,paneer tikka,processes/138,warehouse_operations
+inputs/1766,products/50,bread,processes/153,rolling
+inputs/1767,products/880,dates,processes/66,printing
+inputs/1768,products/877,veal marsala,processes/874,wrapping
+inputs/1769,products/209,oats,processes/981,compacting
+inputs/1770,products/332,couscous,processes/961,dyeing
+inputs/1771,products/204,pepper,processes/273,curing
+inputs/1772,products/1001,aspartame,processes/507,dehydration
+inputs/1773,products/422,anaerobic digestion,processes/154,welding
+inputs/1774,products/274,biogas,processes/149,drawing
+inputs/1775,products/265,snapper,processes/846,refining
+inputs/1776,products/651,flounder,processes/37,crystallization
+inputs/1777,products/338,goan fish,processes/991,fertilizing
+inputs/1778,products/930,chicken wings,processes/586,extraction
+inputs/1779,products/268,bacon,processes/782,oxidation
+inputs/1780,products/197,sweet potatoes,processes/26,compression
+inputs/1781,products/475,linguine,processes/509,heating
+inputs/1782,products/515,mustard,processes/467,winnowing
+inputs/1783,products/607,edamame,processes/54,filtration
+inputs/1784,products/267,prunes,processes/1000,separating
+inputs/1785,products/45,molasses,processes/448,plowing
+inputs/1786,products/499,spinach,processes/729,annealing
+inputs/1787,products/10,garlic,processes/711,sedimentation
+inputs/1788,products/322,dal,processes/508,superheating
+inputs/1789,products/550,tilapia,processes/641,thinning
+inputs/1790,products/274,biogas,processes/110,carton_forming
+inputs/1791,products/789,haddock,processes/862,stabilizing
+inputs/1792,products/492,burger,processes/434,braising
+inputs/1793,products/934,juice,processes/68,case_packing
+inputs/1794,products/22,dates,processes/309,sautéing
+inputs/1795,products/111,tilapia,processes/783,calendering
+inputs/1796,products/512,anchovies,processes/164,irrigating
+inputs/1797,products/424,grouper,processes/586,extraction
+inputs/1798,products/402,potatoes,processes/758,preheating
+inputs/1799,products/956,vindaloo,processes/790,shearing
+inputs/1800,products/112,pad thai,processes/212,combustion
+inputs/1801,products/20,peanuts,processes/786,boxing
+inputs/1802,products/4,waste water,processes/424,purification
+inputs/1803,products/735,garlic,processes/347,spinning
+inputs/1804,products/137,sports drink,processes/367,distribution
+inputs/1805,products/267,prunes,processes/405,fertilizing
+inputs/1806,products/632,bolognese,processes/421,handling
+inputs/1807,products/296,worcestershire sauce,processes/150,warping
+inputs/1808,products/773,burrito,processes/823,sorting
+inputs/1809,products/422,anaerobic digestion,processes/32,grading
+inputs/1810,products/491,burger,processes/331,anaerobic digestion
+inputs/1811,products/193,nachos,processes/234,planting
+inputs/1812,products/692,ceviche,processes/978,ion exchange
+inputs/1813,products/218,beer,processes/225,separating
+inputs/1814,products/357,potato salad,processes/213,mixing
+inputs/1815,products/962,coleslaw,processes/189,mercerizing
+inputs/1816,products/262,sweet potatoes,processes/330,forming
+inputs/1817,products/647,sweet potatoes,processes/26,compression
+inputs/1818,products/31,vindaloo,processes/459,filtration
+inputs/1819,products/32,chicken broth,processes/544,sealing
+inputs/1820,products/587,soy,processes/369,stamping
+inputs/1821,products/848,caesar salad,processes/905,casting
+inputs/1822,products/417,pomegranate,processes/844,reduction
+inputs/1823,products/265,snapper,processes/876,hydrolysis
+inputs/1824,products/775,metal waste,processes/831,harrowing
+inputs/1825,products/782,milk beverage,processes/548,roasting
+inputs/1826,products/551,turkey breast,processes/985,evaporation
+inputs/1827,products/788,hot dog,processes/953,purification
+inputs/1828,products/877,veal marsala,processes/423,polymerization
+inputs/1829,products/230,miso soup,processes/904,grading
+inputs/1830,products/884,gumbo,processes/137,flocculation
+inputs/1831,products/288,lasagna bolognese,processes/102,bleaching
+inputs/1832,products/119,donut,processes/970,spinning
+inputs/1833,products/21,burrito,processes/871,roasting
+inputs/1834,products/657,zucchini,processes/564,refining
+inputs/1835,products/489,greek salad,processes/727,emulsifying
+inputs/1836,products/794,ketchup,processes/578,shearing
+inputs/1837,products/809,rye,processes/541,clarifying
+inputs/1838,products/147,jambalaya,processes/165,beaming
+inputs/1839,products/272,sunflower oil,processes/120,grilling
+inputs/1840,products/54,butter chicken,processes/51,incineration
+inputs/1841,products/816,eggs,processes/252,polymerization
+inputs/1842,products/652,almonds,processes/266,strapping
+inputs/1843,products/721,crab,processes/354,loading
+inputs/1844,products/183,garlic,processes/893,concentrating
+inputs/1845,products/418,sardines,processes/971,shredding
+inputs/1846,products/127,walnuts,processes/782,oxidation
+inputs/1847,products/792,chicken,processes/586,extraction
+inputs/1848,products/787,white bread,processes/850,printing
+inputs/1849,products/579,biscuits and gravy,processes/786,boxing
+inputs/1850,products/566,yogurt parfait,processes/69,spinning
+inputs/1851,products/531,salmon,processes/67,threshing
+inputs/1852,products/764,veal,processes/639,grinding
+inputs/1853,products/997,rogan josh,processes/816,gasification
+inputs/1854,products/756,pho,processes/50,wrapping
+inputs/1855,products/43,lasagna,processes/863,pyrolysis
+inputs/1856,products/851,crackers,processes/892,loading
+inputs/1857,products/14,cheese,processes/544,sealing
+inputs/1858,products/515,mustard,processes/857,sorting
+inputs/1859,products/835,composting,processes/800,drawing
+inputs/1860,products/41,leeks,processes/203,bromination
+inputs/1861,products/105,ice cream,processes/265,separating
+inputs/1862,products/170,empanada,processes/24,compression
+inputs/1863,products/1015,bouillabaisse,processes/344,pyrolysis
+inputs/1864,products/201,crackers,processes/160,chlorination
+inputs/1865,products/185,broccoli,processes/809,wrapping
+inputs/1866,products/639,celery,processes/408,heating
+inputs/1867,products/31,vindaloo,processes/109,drying
+inputs/1868,products/36,kale,processes/905,casting
+inputs/1869,products/588,pilaf,processes/38,smelting
+inputs/1870,products/761,pita,processes/485,recycling
+inputs/1871,products/853,pork schnitzel,processes/839,forging
+inputs/1872,products/11,onions,processes/179,heating
+inputs/1873,products/182,tilapia,processes/12,poaching
+inputs/1874,products/227,agave nectar,processes/900,shrink_wrapping
+inputs/1875,products/385,satay,processes/24,compression
+inputs/1876,products/687,spring rolls,processes/720,blending
+inputs/1877,products/251,dragon fruit,processes/658,evaporation
+inputs/1878,products/571,corn,processes/828,spinning
+inputs/1879,products/631,spinach,processes/951,preheating
+inputs/1880,products/480,papaya,processes/494,incineration
+inputs/1881,products/577,hazardous waste,processes/41,condensation
+inputs/1882,products/897,guava,processes/782,oxidation
+inputs/1883,products/775,metal waste,processes/926,riveting
+inputs/1884,products/860,meatball,processes/310,desuperheating
+inputs/1885,products/746,green beans,processes/862,stabilizing
+inputs/1886,products/1014,radishes,processes/144,refining
+inputs/1887,products/611,pita,processes/749,printing
+inputs/1888,products/948,rice,processes/57,concentrating
+inputs/1889,products/541,chicken,processes/11,precipitation
+inputs/1890,products/530,vanilla,processes/65,liquefaction
+inputs/1891,products/490,goji berries,processes/557,stripping
+inputs/1892,products/416,soy sauce,processes/556,shredding
+inputs/1893,products/462,grouper,processes/679,finishing
+inputs/1894,products/830,taco,processes/275,rolling
+inputs/1895,products/100,metal waste,processes/722,spinning
+inputs/1896,products/914,fried chicken,processes/923,combustion
+inputs/1897,products/551,turkey breast,processes/428,grinding
+inputs/1898,products/480,papaya,processes/462,sealing
+inputs/1899,products/589,cereal,processes/49,purification
+inputs/1900,products/474,scallops,processes/984,compression
+inputs/1901,products/452,vindaloo,processes/354,loading
+inputs/1902,products/687,spring rolls,processes/738,capping
+inputs/1903,products/684,leeks,processes/126,caramelizing
+inputs/1904,products/752,cooking oil waste,processes/374,grading
+inputs/1905,products/833,beef brisket,processes/641,thinning
+inputs/1906,products/948,rice,processes/551,separating
+inputs/1907,products/490,goji berries,processes/568,punching
+inputs/1908,products/8,pepper,processes/382,braising
+inputs/1909,products/841,canola oil,processes/515,purification
+inputs/1910,products/901,pita,processes/400,nitration
+inputs/1911,products/657,zucchini,processes/654,homogenizing
+inputs/1912,products/60,soy,processes/234,planting
+inputs/1913,products/706,butter,processes/221,shrink_wrapping
+inputs/1914,products/561,butter chicken,processes/520,painting
+inputs/1915,products/878,veal marsala,processes/109,drying
+inputs/1916,products/595,garlic,processes/142,harvesting
+inputs/1917,products/117,whiskey,processes/344,pyrolysis
+inputs/1918,products/552,sweet potatoes,processes/817,labeling
+inputs/1919,products/684,leeks,processes/136,wrapping
+inputs/1920,products/137,sports drink,processes/537,frying
+inputs/1921,products/707,vanilla,processes/642,crystallization
+inputs/1922,products/468,scallops,processes/196,bundle_wrapping
+inputs/1923,products/134,canola oil,processes/791,winnowing
+inputs/1924,products/347,sports drink,processes/132,baking
+inputs/1925,products/641,ceviche,processes/845,forging
+inputs/1926,products/774,artichokes,processes/528,blanching
+inputs/1927,products/384,lettuce,processes/141,biological treatment
+inputs/1928,products/144,oil,processes/498,unloading
+inputs/1929,products/491,burger,processes/500,oxidation
+inputs/1930,products/198,wonton,processes/481,neutralization
+inputs/1931,products/337,raisins,processes/433,compression
+inputs/1932,products/685,green beans,processes/978,ion exchange
+inputs/1933,products/841,canola oil,processes/101,drawing
+inputs/1934,products/708,fettuccine,processes/858,plowing
+inputs/1935,products/453,turmeric,processes/143,combing
+inputs/1936,products/697,chili,processes/600,marinating
+inputs/1937,products/9,sugar,processes/547,unloading
+inputs/1938,products/743,spaghetti,processes/209,plowing
+inputs/1939,products/377,chili,processes/676,bromination
+inputs/1940,products/946,pomegranate,processes/399,thickening
+inputs/1941,products/78,prosciutto,processes/270,storage
+inputs/1942,products/743,spaghetti,processes/683,beaming
+inputs/1943,products/744,vanilla,processes/238,evaporation
+inputs/1944,products/798,rice,processes/226,harvesting
+inputs/1945,products/929,quinoa,processes/520,painting
+inputs/1946,products/395,flounder,processes/425,deconsolidation
+inputs/1947,products/929,quinoa,processes/522,emulsifying
+inputs/1948,products/210,sugar,processes/491,warehouse_operations
+inputs/1949,products/755,bagels,processes/67,threshing
+inputs/1950,products/887,burrito,processes/885,boxing
+inputs/1951,products/297,broccoli,processes/585,filling
+inputs/1952,products/181,butter,processes/65,liquefaction
+inputs/1953,products/296,worcestershire sauce,processes/337,plating
+inputs/1954,products/12,clean water,processes/313,injection molding
+inputs/1955,products/940,goan fish,processes/615,monitoring
+inputs/1956,products/958,beans,processes/618,strapping
+inputs/1957,products/971,canola oil,processes/277,chemical treatment
+inputs/1958,products/43,lasagna,processes/891,threshing
+inputs/1959,products/973,composting,processes/494,incineration
+inputs/1960,products/115,nachos,processes/587,reverse osmosis
+inputs/1961,products/844,brown sugar,processes/991,fertilizing
+inputs/1962,products/1016,vodka,processes/770,deconsolidation
+inputs/1963,products/71,sugar,processes/517,refining
+inputs/1964,products/49,grouper,processes/135,stewing
+inputs/1965,products/965,air treatment,processes/563,plowing
+inputs/1966,products/750,salt,processes/1001,sealing
+inputs/1967,products/522,caesar salad,processes/388,punching
+inputs/1968,products/167,tilapia,processes/837,tempering
+inputs/1969,products/261,shrimp,processes/733,spinning
+inputs/1970,products/128,chicken wings,processes/822,purification
+inputs/1971,products/892,corn,processes/81,refining
+inputs/1972,products/387,beef broth,processes/936,handling
+inputs/1973,products/985,yams,processes/951,preheating
+inputs/1974,products/372,raisins,processes/278,case_packing
+inputs/1975,products/53,sausage,processes/319,consolidation
+inputs/1976,products/315,oatmeal,processes/288,chemical treatment
+inputs/1977,products/816,eggs,processes/896,forming
+inputs/1978,products/744,vanilla,processes/215,recycling
+inputs/1979,products/416,soy sauce,processes/583,crystallization
+inputs/1980,products/437,clams,processes/980,stamping
+inputs/1981,products/412,dal,processes/151,liquefaction
+inputs/1982,products/589,cereal,processes/858,plowing
+inputs/1983,products/115,nachos,processes/598,forging
+inputs/1984,products/669,alfredo,processes/997,unloading
+inputs/1985,products/657,zucchini,processes/619,landfilling
+inputs/1986,products/669,alfredo,processes/511,welding
+inputs/1987,products/739,salad,processes/971,shredding
+inputs/1988,products/1008,almond milk,processes/840,caramelizing
+inputs/1989,products/216,mushrooms,processes/58,baking
+inputs/1990,products/711,tagliatelle,processes/833,homogenizing
+inputs/1991,products/957,glass waste,processes/852,chlorination
+inputs/1992,products/23,tortillas,processes/229,casting
+inputs/1993,products/240,sports drink,processes/323,anaerobic digestion
+inputs/1994,products/770,rye bread,processes/591,sorting
+inputs/1995,products/16,olive oil,processes/752,liquefaction
+inputs/1996,products/112,pad thai,processes/147,blending
+inputs/1997,products/321,pepper,processes/215,recycling
+inputs/1998,products/581,rum,processes/538,tempering
+inputs/1999,products/66,enchilada,processes/803,compacting
+inputs/2000,products/381,grouper,processes/33,spinning
+inputs/2001,products/563,beef broth,processes/1003,baking
+inputs/2002,products/274,biogas,processes/821,mercerizing
+inputs/2003,products/140,artichokes,processes/491,warehouse_operations
+inputs/2004,products/696,soda,processes/446,cooling
+inputs/2005,products/141,fettuccine,processes/222,grilling
+inputs/2006,products/361,turkey breast,processes/835,handling
+inputs/2007,products/674,landfill,processes/640,compacting
+inputs/2008,products/402,potatoes,processes/290,bolting
+inputs/2009,products/447,sage,processes/668,composting
+inputs/2010,products/2,raw pasta,processes/1,boiling
+inputs/2011,products/214,chickpeas,processes/800,drawing
+inputs/2012,products/766,caesar salad,processes/883,anaerobic digestion
+inputs/2013,products/405,vinegar,processes/26,compression
+inputs/2014,products/178,tandoori,processes/490,plating
+inputs/2015,products/686,wine,processes/347,spinning
+inputs/2016,products/249,grey water,processes/654,homogenizing
+inputs/2017,products/174,beef,processes/328,stabilizing
+inputs/2018,products/247,cabbage,processes/479,painting
+inputs/2019,products/822,bananas,processes/718,grinding
+inputs/2020,products/54,butter chicken,processes/765,grinding
+inputs/2021,products/92,oregano,processes/81,refining
+inputs/2022,products/791,mustard,processes/923,combustion
+inputs/2023,products/585,chili powder,processes/74,shearing
+inputs/2024,products/620,smoothie,processes/478,chemical treatment
+inputs/2025,products/39,risotto,processes/473,sealing
+inputs/2026,products/327,kebab,processes/530,weeding
+inputs/2027,products/555,turkey breast,processes/17,pruning
+inputs/2028,products/134,canola oil,processes/758,preheating
+inputs/2029,products/827,cashews,processes/712,stamping
+inputs/2030,products/231,almonds,processes/298,chlorination
+inputs/2031,products/372,raisins,processes/209,plowing
+inputs/2032,products/61,donut,processes/242,labeling
+inputs/2033,products/894,rye bread,processes/332,bleaching
+inputs/2034,products/701,taco,processes/24,compression
+inputs/2035,products/512,anchovies,processes/653,compression
+inputs/2036,products/474,scallops,processes/111,knitting
+inputs/2037,products/260,mushrooms,processes/914,grading
+inputs/2038,products/661,cookies,processes/814,plowing
+inputs/2039,products/388,artichokes,processes/991,fertilizing
+inputs/2040,products/72,pepper,processes/523,sorting
+inputs/2041,products/399,tilapia,processes/24,compression
+inputs/2042,products/750,salt,processes/130,clarifying
+inputs/2043,products/763,oat milk,processes/292,beaming
+inputs/2044,products/843,baking powder,processes/344,pyrolysis
+inputs/2045,products/421,avocado,processes/725,beaming
+inputs/2046,products/999,maple syrup,processes/121,biological treatment
+inputs/2047,products/467,anaerobic digestion,processes/634,stripping
+inputs/2048,products/796,porridge,processes/918,crystallization
+inputs/2049,products/652,almonds,processes/727,emulsifying
+inputs/2050,products/251,dragon fruit,processes/280,combustion
+inputs/2051,products/698,tandoori,processes/653,compression
+inputs/2052,products/590,figs,processes/636,irrigating
+inputs/2053,products/40,almond milk,processes/615,monitoring
+inputs/2054,products/162,cherries,processes/293,extrusion
+inputs/2055,products/661,cookies,processes/822,purification
+inputs/2056,products/243,bananas,processes/103,unloading
+inputs/2057,products/828,okra,processes/922,pruning
+inputs/2058,products/628,granola,processes/547,unloading
+inputs/2059,products/547,beef wellington,processes/259,steaming
+inputs/2060,products/479,linguine,processes/427,filtering
+inputs/2061,products/909,meatball,processes/537,frying
+inputs/2062,products/294,baking powder,processes/549,compression
+inputs/2063,products/662,juice,processes/815,palletizing
+inputs/2064,products/610,coconut milk,processes/180,fertilizing
+inputs/2065,products/902,vanilla,processes/477,distribution
+inputs/2066,products/399,tilapia,processes/33,spinning
+inputs/2067,products/895,scallops,processes/98,carton_forming
+inputs/2068,products/625,veal marsala,processes/336,casting
+inputs/2069,products/650,peas,processes/513,quality_control
+inputs/2070,products/627,crab,processes/586,extraction
+inputs/2071,products/832,honey blend,processes/464,bending
+inputs/2072,products/217,veal marsala,processes/832,calendering
+inputs/2073,products/966,white bread,processes/919,capping
+inputs/2074,products/66,enchilada,processes/847,ozonation
+inputs/2075,products/526,hot dog,processes/721,bromination
+inputs/2076,products/394,beef,processes/477,distribution
+inputs/2077,products/246,eggplant parmesan,processes/238,evaporation
+inputs/2078,products/811,pork,processes/866,heat treatment
+inputs/2079,products/873,shallots,processes/810,labeling
+inputs/2080,products/651,flounder,processes/939,pyrolysis
+inputs/2081,products/686,wine,processes/309,sautéing
+inputs/2082,products/192,sunflower oil,processes/27,quality_control
+inputs/2083,products/919,peaches,processes/65,liquefaction
+inputs/2084,products/679,risotto,processes/838,compacting
+inputs/2085,products/759,glass waste,processes/972,mixing
+inputs/2086,products/513,tomatoes,processes/634,stripping
+inputs/2087,products/386,champagne,processes/304,carton_forming
+inputs/2088,products/203,korma,processes/944,packaging
+inputs/2089,products/70,oregano,processes/326,unloading
+inputs/2090,products/971,canola oil,processes/202,stewing
+inputs/2091,products/664,oregano,processes/974,steaming
+inputs/2092,products/76,chili,processes/413,nitration
+inputs/2093,products/614,ramen,processes/551,separating
+inputs/2094,products/524,beef,processes/539,capping
+inputs/2095,products/583,goan fish,processes/740,fertilizing
+inputs/2096,products/61,donut,processes/676,bromination
+inputs/2097,products/685,green beans,processes/595,consolidation
+inputs/2098,products/179,quinoa,processes/246,preheating
+inputs/2099,products/174,beef,processes/386,superheating
+inputs/2100,products/458,bread,processes/528,blanching
+inputs/2101,products/464,dates,processes/444,deconsolidation
+inputs/2102,products/959,baking powder,processes/39,roasting
+inputs/2103,products/558,hazardous waste,processes/595,consolidation
+inputs/2104,products/163,prunes,processes/72,irrigating
+inputs/2105,products/397,cheese,processes/209,plowing
+inputs/2106,products/516,baking soda,processes/90,assembly
+inputs/2107,products/987,ramen,processes/761,recycling
+inputs/2108,products/80,air treatment,processes/41,condensation
+inputs/2109,products/361,turkey breast,processes/891,threshing
+inputs/2110,products/397,cheese,processes/213,mixing
+inputs/2111,products/774,artichokes,processes/135,stewing
+inputs/2112,products/386,champagne,processes/778,stripping
+inputs/2113,products/295,gelato,processes/762,loading
+inputs/2114,products/898,bread,processes/736,mercerizing
+inputs/2115,products/520,herring,processes/575,rolling
+inputs/2116,products/451,soup,processes/351,precipitation
+inputs/2117,products/846,turkey breast,processes/451,warehouse_operations
+inputs/2118,products/409,sesame seeds,processes/246,preheating
+inputs/2119,products/511,pita,processes/849,rolling
+inputs/2120,products/315,oatmeal,processes/215,recycling
+inputs/2121,products/697,chili,processes/236,filtering
+inputs/2122,products/661,cookies,processes/852,chlorination
+inputs/2123,products/730,sourdough,processes/615,monitoring
+inputs/2124,products/530,vanilla,processes/475,punching
+inputs/2125,products/245,rosemary,processes/254,precipitation
+inputs/2126,products/259,basil,processes/383,packaging
+inputs/2127,products/911,grouper,processes/133,chemical treatment
+inputs/2128,products/317,dal,processes/427,filtering
+inputs/2129,products/747,bread,processes/604,threshing
+inputs/2130,products/999,maple syrup,processes/30,shearing
+inputs/2131,products/487,sushi,processes/161,forging
+inputs/2132,products/581,rum,processes/960,loading
+inputs/2133,products/808,goulash,processes/13,annealing
+inputs/2134,products/951,dried cranberries,processes/54,filtration
+inputs/2135,products/919,peaches,processes/893,concentrating
+inputs/2136,products/881,halibut,processes/966,warping
+inputs/2137,products/615,wine,processes/444,deconsolidation
+inputs/2138,products/163,prunes,processes/485,recycling
+inputs/2139,products/688,meatball,processes/535,thinning
+inputs/2140,products/190,rogan josh,processes/924,planting
+inputs/2141,products/901,pita,processes/94,punching
+inputs/2142,products/731,soup,processes/837,tempering
+inputs/2143,products/381,grouper,processes/369,stamping
+inputs/2144,products/381,grouper,processes/81,refining
+inputs/2145,products/259,basil,processes/365,preheating
+inputs/2146,products/986,herring,processes/555,liquefaction
+inputs/2147,products/379,juice,processes/848,compacting
+inputs/2148,products/994,pumpkin,processes/256,grading
+inputs/2149,products/584,halibut,processes/946,palletizing
+inputs/2150,products/842,onions,processes/389,storage
+inputs/2151,products/384,lettuce,processes/570,centrifuging
+inputs/2152,products/973,composting,processes/898,pruning
+inputs/2153,products/557,kale,processes/142,harvesting
+inputs/2154,products/856,biscuits and gravy,processes/393,esterification
+inputs/2155,products/387,beef broth,processes/543,printing
+inputs/2156,products/384,lettuce,processes/575,rolling
+inputs/2157,products/1015,bouillabaisse,processes/393,esterification
+inputs/2158,products/419,lemons,processes/281,pyrolysis
+inputs/2159,products/684,leeks,processes/570,centrifuging
+inputs/2160,products/896,veal marsala,processes/971,shredding
+inputs/2161,products/765,ribs,processes/461,liquefaction
+inputs/2162,products/385,satay,processes/326,unloading
+inputs/2163,products/370,parsnips,processes/45,combustion
+inputs/2164,products/873,shallots,processes/68,case_packing
+inputs/2165,products/510,mackerel,processes/979,precipitation
+inputs/2166,products/74,chicken broth,processes/688,marinating
+inputs/2167,products/721,crab,processes/426,finishing
+inputs/2168,products/756,pho,processes/398,composting
+inputs/2169,products/338,goan fish,processes/97,reduction
+inputs/2170,products/130,salt,processes/317,sorting
+inputs/2171,products/570,mackerel,processes/191,adsorption
+inputs/2172,products/615,wine,processes/434,braising
+inputs/2173,products/829,yeast,processes/24,compression
+inputs/2174,products/476,raisins,processes/350,drying
+inputs/2175,products/545,biogas,processes/463,carton_forming
+inputs/2176,products/845,falafel,processes/582,sorting
+inputs/2177,products/510,mackerel,processes/972,mixing
+inputs/2178,products/223,rice,processes/55,drying
+inputs/2179,products/216,mushrooms,processes/147,blending
+inputs/2180,products/56,leeks,processes/428,grinding
+inputs/2181,products/767,worcestershire sauce,processes/3,combining
+inputs/2182,products/507,taco,processes/134,casting
+inputs/2183,products/256,canola oil,processes/17,pruning
+inputs/2184,products/692,ceviche,processes/37,crystallization
+inputs/2185,products/178,tandoori,processes/14,harvesting
+inputs/2186,products/230,miso soup,processes/808,drying
+inputs/2187,products/997,rogan josh,processes/382,braising
+inputs/2188,products/83,quinoa bowl,processes/448,plowing
+inputs/2189,products/766,caesar salad,processes/361,pruning
+inputs/2190,products/562,eggplant,processes/388,punching
+inputs/2191,products/498,bouillabaisse,processes/943,reverse osmosis
+inputs/2192,products/20,peanuts,processes/626,annealing
+inputs/2193,products/923,tomato paste,processes/334,physical separation
+inputs/2194,products/1010,yeast,processes/576,calendering
+inputs/2195,products/414,pudding,processes/822,purification
+inputs/2196,products/581,rum,processes/67,threshing
+inputs/2197,products/623,stevia,processes/695,strapping
+inputs/2198,products/112,pad thai,processes/72,irrigating
+inputs/2199,products/555,turkey breast,processes/423,polymerization
+inputs/2200,products/767,worcestershire sauce,processes/221,shrink_wrapping
+inputs/2201,products/493,dragon fruit,processes/275,rolling
+inputs/2202,products/431,coffee,processes/783,calendering
+inputs/2203,products/699,landfill,processes/551,separating
+inputs/2204,products/488,sandwich,processes/503,simmering
+inputs/2205,products/770,rye bread,processes/43,bending
+inputs/2206,products/580,bell peppers,processes/163,storage
+inputs/2207,products/228,parsley,processes/782,oxidation
+inputs/2208,products/715,blueberries,processes/820,welding
+inputs/2209,products/16,olive oil,processes/3,combining
+inputs/2210,products/953,sunflower oil,processes/738,capping
+inputs/2211,products/54,butter chicken,processes/237,concentrating
+inputs/2212,products/702,canola oil,processes/781,felting
+inputs/2213,products/475,linguine,processes/487,unloading
+inputs/2214,products/403,tea,processes/515,purification
+inputs/2215,products/4,waste water,processes/319,consolidation
+inputs/2216,products/819,cod,processes/79,composting
+inputs/2217,products/290,tuna,processes/481,neutralization
+inputs/2218,products/855,grey water,processes/537,frying
+inputs/2219,products/202,samosa,processes/954,ozonation
+inputs/2220,products/903,chili peppers,processes/298,chlorination
+inputs/2221,products/759,glass waste,processes/436,bundle_wrapping
+inputs/2222,products/316,lemons,processes/656,distillation
+inputs/2223,products/48,hummus,processes/643,forging
+inputs/2224,products/873,shallots,processes/40,printing
+inputs/2225,products/978,metal waste,processes/240,blending
+inputs/2226,products/836,vindaloo,processes/355,injection molding
+inputs/2227,products/970,cherries,processes/777,condensation
+inputs/2228,products/486,cooking oil waste,processes/790,shearing
+inputs/2229,products/944,cashews,processes/644,calendering
+inputs/2230,products/282,yams,processes/259,steaming
+inputs/2231,products/786,pasta,processes/410,pyrolysis
+inputs/2232,products/595,garlic,processes/936,handling
+inputs/2233,products/973,composting,processes/71,welding
+inputs/2234,products/96,parsnips,processes/900,shrink_wrapping
+inputs/2235,products/83,quinoa bowl,processes/461,liquefaction
+inputs/2236,products/641,ceviche,processes/499,dewatering
+inputs/2237,products/628,granola,processes/942,physical separation
+inputs/2238,products/422,anaerobic digestion,processes/669,dewatering
+inputs/2239,products/689,zucchini,processes/445,warehouse_operations
+inputs/2240,products/688,meatball,processes/574,desuperheating
+inputs/2241,products/680,lemons,processes/211,recycling
+inputs/2242,products/469,hot dog,processes/860,aerobic treatment
+inputs/2243,products/169,tuna,processes/744,bending
+inputs/2244,products/565,sage,processes/451,warehouse_operations
+inputs/2245,products/149,fettuccine,processes/693,consolidation
+inputs/2246,products/254,wine,processes/490,plating
+inputs/2247,products/699,landfill,processes/536,frying
+inputs/2248,products/867,okra,processes/706,desuperheating
+inputs/2249,products/257,duck,processes/984,compression
+inputs/2250,products/507,taco,processes/128,heating
+inputs/2251,products/64,tomato paste,processes/676,bromination
+inputs/2252,products/628,granola,processes/947,plating
+inputs/2253,products/255,grapes,processes/363,caramelizing
+inputs/2254,products/188,udon,processes/887,precipitation
+inputs/2255,products/111,tilapia,processes/232,chlorination
+inputs/2256,products/978,metal waste,processes/254,precipitation
+inputs/2257,products/83,quinoa bowl,processes/458,carton_forming
+inputs/2258,products/139,pad thai,processes/251,poaching
+inputs/2259,products/985,yams,processes/184,threshing
+inputs/2260,products/26,teriyaki,processes/461,liquefaction
+inputs/2261,products/364,alfredo,processes/903,bending
+inputs/2262,products/756,pho,processes/354,loading
+inputs/2263,products/545,biogas,processes/420,palletizing
+inputs/2264,products/182,tilapia,processes/292,beaming
+inputs/2265,products/108,yogurt parfait,processes/296,planting
+inputs/2266,products/704,mushrooms,processes/56,mercerizing
+inputs/2267,products/999,maple syrup,processes/622,sorting
+inputs/2268,products/484,squash,processes/110,carton_forming
+inputs/2269,products/280,salt,processes/499,dewatering
+inputs/2270,products/35,gelato,processes/584,caramelizing
+inputs/2271,products/196,potato salad,processes/613,smoking
+inputs/2272,products/302,barley,processes/149,drawing
+inputs/2273,products/325,basil,processes/329,warping
+inputs/2274,products/659,paneer tikka,processes/25,drying
+inputs/2275,products/881,halibut,processes/588,combustion
+inputs/2276,products/277,eggs,processes/980,stamping
+inputs/2277,products/848,caesar salad,processes/639,grinding
+inputs/2278,products/248,cocoa,processes/825,fertilizing
+inputs/2279,products/758,udon,processes/125,palletizing
+inputs/2280,products/675,tamale,processes/933,ion exchange
+inputs/2281,products/670,sorbet,processes/85,expansion
+inputs/2282,products/1012,cookies,processes/316,irrigating
+inputs/2283,products/65,anchovies,processes/132,baking
+inputs/2284,products/653,protein shake,processes/663,annealing
+inputs/2285,products/113,brussels sprouts,processes/839,forging
+inputs/2286,products/741,granola,processes/943,reverse osmosis
+inputs/2287,products/316,lemons,processes/81,refining
+inputs/2288,products/149,fettuccine,processes/632,sorting
+inputs/2289,products/537,cocoa,processes/116,superheating
+inputs/2290,products/941,beef stroganoff,processes/164,irrigating
+inputs/2291,products/188,udon,processes/444,deconsolidation
+inputs/2292,products/657,zucchini,processes/292,beaming
+inputs/2293,products/861,okra,processes/163,storage
+inputs/2294,products/195,beef wellington,processes/397,dewatering
+inputs/2295,products/426,tandoori,processes/293,extrusion
+inputs/2296,products/59,brown sugar,processes/513,quality_control
+inputs/2297,products/558,hazardous waste,processes/522,emulsifying
+inputs/2298,products/274,biogas,processes/844,reduction
+inputs/2299,products/62,beef stroganoff,processes/56,mercerizing
+inputs/2300,products/622,naan,processes/799,weaving
+inputs/2301,products/699,landfill,processes/963,monitoring
+inputs/2302,products/226,turkey,processes/593,spinning
+inputs/2303,products/708,fettuccine,processes/66,printing
+inputs/2304,products/929,quinoa,processes/18,loading
+inputs/2305,products/626,guava,processes/768,capping
+inputs/2306,products/437,clams,processes/189,mercerizing
+inputs/2307,products/990,sea bass,processes/326,unloading
+inputs/2308,products/201,crackers,processes/660,strapping
+inputs/2309,products/703,paprika,processes/686,incineration
+inputs/2310,products/982,veal marsala,processes/986,reduction
+inputs/2311,products/702,canola oil,processes/335,coating
+inputs/2312,products/905,wonton,processes/480,winnowing
+inputs/2313,products/788,hot dog,processes/206,calendering
+inputs/2314,products/10,garlic,processes/690,strapping
+inputs/2315,products/116,landfill,processes/909,smoking
+inputs/2316,products/854,ketchup,processes/215,recycling
+inputs/2317,products/517,okra,processes/529,emulsifying
+inputs/2318,products/256,canola oil,processes/22,boiling
+inputs/2319,products/278,brownie,processes/828,spinning
+inputs/2320,products/1007,ragu,processes/171,rolling
+inputs/2321,products/630,limes,processes/580,blending
+inputs/2322,products/736,bolognese,processes/367,distribution
+inputs/2323,products/270,liqueur,processes/476,adsorption
+inputs/2324,products/183,garlic,processes/584,caramelizing
+inputs/2325,products/459,parsnips,processes/385,chemical treatment
+inputs/2326,products/955,biscuits and gravy,processes/67,threshing
+inputs/2327,products/31,vindaloo,processes/516,combustion
+inputs/2328,products/951,dried cranberries,processes/187,compression
+inputs/2329,products/245,rosemary,processes/746,sorting
+inputs/2330,products/496,gin,processes/389,storage
+inputs/2331,products/888,strawberries,processes/54,filtration
+inputs/2332,products/484,squash,processes/554,purification
+inputs/2333,products/984,coffee,processes/722,spinning
+inputs/2334,products/992,miso soup,processes/521,fermentation
+inputs/2335,products/624,empanada,processes/955,preheating
+inputs/2336,products/769,caesar salad,processes/910,polishing
+inputs/2337,products/875,kiwi,processes/100,mixing
+inputs/2338,products/105,ice cream,processes/663,annealing
+inputs/2339,products/624,empanada,processes/953,purification
+inputs/2340,products/396,baking soda,processes/90,assembly
+inputs/2341,products/538,olive oil,processes/900,shrink_wrapping
+inputs/2342,products/737,dried cranberries,processes/682,spinning
+inputs/2343,products/802,palm oil,processes/305,plowing
+inputs/2344,products/519,veal,processes/56,mercerizing
+inputs/2345,products/175,soy sauce,processes/773,drawing
+inputs/2346,products/135,pears,processes/272,filtration
+inputs/2347,products/45,molasses,processes/993,handling
+inputs/2348,products/615,wine,processes/820,welding
+inputs/2349,products/410,flounder,processes/419,incineration
+inputs/2350,products/114,yeast,processes/791,winnowing
+inputs/2351,products/784,maple syrup,processes/657,bleaching
+inputs/2352,products/207,palm oil,processes/428,grinding
+inputs/2353,products/922,biogas,processes/428,grinding
+inputs/2354,products/52,linguine,processes/473,sealing
+inputs/2355,products/5,pasta,processes/3,combining
+inputs/2356,products/804,food scraps,processes/74,shearing
+inputs/2357,products/863,chicken,processes/762,loading
+inputs/2358,products/58,thyme,processes/210,forging
+inputs/2359,products/98,almond milk,processes/719,calendering
+inputs/2360,products/416,soy sauce,processes/608,annealing
+inputs/2361,products/705,coconut milk,processes/899,combustion
+inputs/2362,products/340,recycling,processes/451,warehouse_operations
+inputs/2363,products/163,prunes,processes/938,adsorption
+inputs/2364,products/212,rye bread,processes/199,reduction
+inputs/2365,products/861,okra,processes/109,drying
+inputs/2366,products/711,tagliatelle,processes/851,sedimentation
+inputs/2367,products/8,pepper,processes/2,simmering
+inputs/2368,products/427,risotto,processes/126,caramelizing
+inputs/2369,products/648,ginger,processes/76,separating
+inputs/2370,products/278,brownie,processes/847,ozonation
+inputs/2371,products/597,guava,processes/265,separating
+inputs/2372,products/189,nutmeg,processes/771,forging
+inputs/2373,products/956,vindaloo,processes/886,sautéing
+inputs/2374,products/888,strawberries,processes/76,separating
+inputs/2375,products/32,chicken broth,processes/865,shredding
+inputs/2376,products/507,taco,processes/995,forging
+inputs/2377,products/572,mayonnaise,processes/311,assembly
+inputs/2378,products/823,sugar,processes/280,combustion
+inputs/2379,products/502,lobster,processes/677,rolling
+inputs/2380,products/564,cream,processes/984,compression
+inputs/2381,products/559,donut,processes/97,reduction
+inputs/2382,products/462,grouper,processes/714,capping
+inputs/2383,products/860,meatball,processes/242,labeling
+inputs/2384,products/541,chicken,processes/90,assembly
+inputs/2385,products/741,granola,processes/85,expansion
+inputs/2386,products/260,mushrooms,processes/482,riveting
+inputs/2387,products/47,recycling,processes/370,threshing
+inputs/2388,products/677,wheat,processes/252,polymerization
+inputs/2389,products/178,tandoori,processes/837,tempering
+inputs/2390,products/310,yogurt parfait,processes/861,planting
+inputs/2391,products/356,vinegar,processes/653,compression
+inputs/2392,products/793,chili powder,processes/769,adsorption
+inputs/2393,products/955,biscuits and gravy,processes/549,compression
+inputs/2394,products/483,cinnamon,processes/694,annealing
+inputs/2395,products/519,veal,processes/31,blending
+inputs/2396,products/422,anaerobic digestion,processes/268,spraying
+inputs/2397,products/19,biogas,processes/920,strapping
+inputs/2398,products/401,meatloaf,processes/305,plowing
+inputs/2399,products/891,wine,processes/186,painting
+inputs/2400,products/718,soda,processes/935,evaporation
+inputs/2401,products/559,donut,processes/88,plating
+inputs/2402,products/502,lobster,processes/684,wrapping
+inputs/2403,products/1010,yeast,processes/950,adsorption
+inputs/2404,products/738,prosciutto,processes/541,clarifying
+inputs/2405,products/789,haddock,processes/517,refining
+inputs/2406,products/21,burrito,processes/563,plowing
+inputs/2407,products/828,okra,processes/124,concentrating
+inputs/2408,products/419,lemons,processes/760,spinning
+inputs/2409,products/461,salami,processes/859,labeling
+inputs/2410,products/49,grouper,processes/585,filling
+inputs/2411,products/146,couscous,processes/145,thinning
+inputs/2412,products/959,baking powder,processes/529,emulsifying
+inputs/2413,products/423,caprese,processes/127,extraction
+inputs/2414,products/82,brown sugar,processes/964,stamping
+inputs/2415,products/577,hazardous waste,processes/691,pyrolysis
+inputs/2416,products/664,oregano,processes/181,flocculation
+inputs/2417,products/82,brown sugar,processes/967,thinning
+inputs/2418,products/565,sage,processes/857,sorting
+inputs/2419,products/724,grey water,processes/578,shearing
+inputs/2420,products/816,eggs,processes/340,sorting
+inputs/2421,products/819,cod,processes/452,labeling
+inputs/2422,products/620,smoothie,processes/962,neutralization
+inputs/2423,products/485,kebab,processes/837,tempering
+inputs/2424,products/12,clean water,processes/857,sorting
+inputs/2425,products/368,burger,processes/497,wrapping
+inputs/2426,products/301,quesadilla,processes/11,precipitation
+inputs/2427,products/715,blueberries,processes/36,printing
+inputs/2428,products/106,grey water,processes/956,felting
+inputs/2429,products/488,sandwich,processes/934,sealing
+inputs/2430,products/83,quinoa bowl,processes/802,drawing
+inputs/2431,products/22,dates,processes/31,blending
+inputs/2432,products/187,passion fruit,processes/980,stamping
+inputs/2433,products/428,glass waste,processes/885,boxing
+inputs/2434,products/862,caesar salad,processes/464,bending
+inputs/2435,products/90,raisins,processes/754,condensation
+inputs/2436,products/94,lettuce,processes/708,bromination
+inputs/2437,products/866,butter,processes/414,forging
+inputs/2438,products/330,agave nectar,processes/412,spraying
+inputs/2439,products/915,brussels sprouts,processes/919,capping
+inputs/2440,products/937,salad,processes/704,warehouse_operations
+inputs/2441,products/995,okra,processes/43,bending
+inputs/2442,products/641,ceviche,processes/435,cooling
+inputs/2443,products/886,pepperoni,processes/462,sealing
+inputs/2444,products/197,sweet potatoes,processes/563,plowing
+inputs/2445,products/715,blueberries,processes/26,compression
+inputs/2446,products/951,dried cranberries,processes/124,concentrating
+inputs/2447,products/180,burger,processes/458,carton_forming
+inputs/2448,products/864,sunflower seeds,processes/638,biological treatment
+inputs/2449,products/273,dumpling,processes/130,clarifying
+inputs/2450,products/472,pad thai,processes/753,dewatering
+inputs/2451,products/146,couscous,processes/147,blending
+inputs/2452,products/726,haddock,processes/333,harvesting
+inputs/2453,products/6,hot dogs,processes/536,frying
+inputs/2454,products/530,vanilla,processes/29,stabilizing
+inputs/2455,products/191,oysters,processes/361,pruning
+inputs/2456,products/670,sorbet,processes/37,crystallization
+inputs/2457,products/647,sweet potatoes,processes/633,sizing
+inputs/2458,products/792,chicken,processes/449,expansion
+inputs/2459,products/472,pad thai,processes/736,mercerizing
+inputs/2460,products/552,sweet potatoes,processes/755,expansion
+inputs/2461,products/899,pork,processes/160,chlorination
+inputs/2462,products/122,acai,processes/102,bleaching
+inputs/2463,products/48,hummus,processes/208,thinning
+inputs/2464,products/631,spinach,processes/402,blending
+inputs/2465,products/273,dumpling,processes/127,extraction
+inputs/2466,products/426,tandoori,processes/209,plowing
+inputs/2467,products/44,chimichanga,processes/698,physical separation
+inputs/2468,products/1000,rice,processes/946,palletizing
+inputs/2469,products/881,halibut,processes/160,chlorination
+inputs/2470,products/991,sourdough,processes/618,strapping
+inputs/2471,products/1015,bouillabaisse,processes/847,ozonation
+inputs/2472,products/128,chicken wings,processes/307,oxidation
+inputs/2473,products/552,sweet potatoes,processes/85,expansion
+inputs/2474,products/577,hazardous waste,processes/667,smelting
+inputs/2475,products/426,tandoori,processes/202,stewing
+inputs/2476,products/208,gelato,processes/321,mercerizing
+inputs/2477,products/9,sugar,processes/604,threshing
+inputs/2478,products/262,sweet potatoes,processes/684,wrapping
+inputs/2479,products/860,meatball,processes/687,marinating
+inputs/2480,products/865,sesame seeds,processes/526,packaging
+inputs/2481,products/452,vindaloo,processes/30,shearing
+inputs/2482,products/199,waste water,processes/755,expansion
+inputs/2483,products/517,okra,processes/120,grilling
+inputs/2484,products/332,couscous,processes/652,desuperheating
+inputs/2485,products/648,ginger,processes/512,calendering
+inputs/2486,products/799,plastic waste,processes/997,unloading
+inputs/2487,products/934,juice,processes/620,thickening
+inputs/2488,products/586,curry,processes/367,distribution
+inputs/2489,products/216,mushrooms,processes/135,stewing
+inputs/2490,products/23,tortillas,processes/743,curing
+inputs/2491,products/177,juice,processes/923,combustion
+inputs/2492,products/506,vinegar,processes/211,recycling
+inputs/2493,products/309,lobster,processes/297,fermentation
+inputs/2494,products/426,tandoori,processes/670,annealing
+inputs/2495,products/574,udon,processes/102,bleaching
+inputs/2496,products/762,beans,processes/806,loading
+inputs/2497,products/648,ginger,processes/52,amination
+inputs/2498,products/480,papaya,processes/558,palletizing
+inputs/2499,products/791,mustard,processes/590,superheating
+inputs/2500,products/392,hazardous waste,processes/714,capping

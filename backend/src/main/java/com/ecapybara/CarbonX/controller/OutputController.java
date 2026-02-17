@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.util.List;
 
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.issb.Output;
-import com.ecapybara.carbonx.repository.OutputRepository;
+import com.ecapybara.CarbonX.model.issb.Output;
+import com.ecapybara.CarbonX.repository.OutputRepository;
 
 @RestController
 @RequestMapping("/api/outputs")

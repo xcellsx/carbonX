@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;

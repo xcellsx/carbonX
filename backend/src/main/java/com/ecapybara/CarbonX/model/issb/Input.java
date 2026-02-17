@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model.issb;
+package com.ecapybara.CarbonX.model.issb;
 
 import org.springframework.data.annotation.PersistenceCreator;
 
@@ -6,8 +6,8 @@ import com.arangodb.springframework.annotation.Edge;
 import com.arangodb.springframework.annotation.From;
 import com.arangodb.springframework.annotation.PersistentIndex;
 import com.arangodb.springframework.annotation.To;
-import com.ecapybara.carbonx.utils.csv.IdToProcessConverter;
-import com.ecapybara.carbonx.utils.csv.IdToProductConverter;
+import com.ecapybara.CarbonX.utils.csv.IdToProcessConverter;
+import com.ecapybara.CarbonX.utils.csv.IdToProductConverter;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvCustomBindByName;
@@ -23,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @Data @NoArgsConstructor @EqualsAndHashCode(callSuper = true) @SuperBuilder(toBuilder = true)
 @Edge("inputs")
 @PersistentIndex(fields = {"id","key","productName","processName"})
-public class Input extends com.ecapybara.carbonx.model.basic.Edge {  
+public class Input extends com.ecapybara.CarbonX.model.basic.Edge {  
   @NonNull
   @From
   @JsonAlias({"_from"})

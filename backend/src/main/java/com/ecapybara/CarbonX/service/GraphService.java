@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service;
+package com.ecapybara.CarbonX.service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,8 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.ecapybara.carbonx.config.AppLogger;
-import com.ecapybara.carbonx.model.basic.Graph;
+import com.ecapybara.CarbonX.config.AppLogger;
+import com.ecapybara.CarbonX.model.basic.Graph;
 
 import reactor.core.publisher.Mono;
 

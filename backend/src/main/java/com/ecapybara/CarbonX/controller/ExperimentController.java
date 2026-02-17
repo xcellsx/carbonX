@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.issb.Product;
-import com.ecapybara.carbonx.model.issb.Process;
-import com.ecapybara.carbonx.service.*;
-import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.ecapybara.CarbonX.model.issb.Product;
+import com.ecapybara.CarbonX.model.issb.Process;
+import com.ecapybara.CarbonX.service.*;
+import com.ecapybara.CarbonX.service.arango.ArangoDocumentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;

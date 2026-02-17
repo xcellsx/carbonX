@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.util.List;
 import java.util.Map;
@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.ecapybara.carbonx.config.AppLogger;
-import com.ecapybara.carbonx.model.issb.Product;
-import com.ecapybara.carbonx.repository.ProductRepository;
-import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
-import com.ecapybara.carbonx.service.GraphService;
-import com.ecapybara.carbonx.service.ImportExportService;
+import com.ecapybara.CarbonX.config.AppLogger;
+import com.ecapybara.CarbonX.model.issb.Product;
+import com.ecapybara.CarbonX.repository.ProductRepository;
+import com.ecapybara.CarbonX.service.arango.ArangoDocumentService;
+import com.ecapybara.CarbonX.service.GraphService;
+import com.ecapybara.CarbonX.service.ImportExportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Flux;

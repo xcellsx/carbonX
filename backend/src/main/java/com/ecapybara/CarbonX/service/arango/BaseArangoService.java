@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service.arango;
+package com.ecapybara.CarbonX.service.arango;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.ecapybara.carbonx.service.exception.ExternalServiceException;
+import com.ecapybara.CarbonX.service.exception.ExternalServiceException;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

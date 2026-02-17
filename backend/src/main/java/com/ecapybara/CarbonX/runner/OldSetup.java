@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.runner;
+package com.ecapybara.CarbonX.runner;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,17 +13,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 
 import com.arangodb.springframework.core.ArangoOperations;
-import com.ecapybara.carbonx.model.basic.EdgeDefinition;
-import com.ecapybara.carbonx.model.basic.Graph;
-import com.ecapybara.carbonx.model.issb.Input;
-import com.ecapybara.carbonx.model.issb.Output;
-import com.ecapybara.carbonx.model.issb.Process;
-import com.ecapybara.carbonx.model.issb.Product;
-import com.ecapybara.carbonx.repository.*;
-import com.ecapybara.carbonx.service.GraphService;
+import com.ecapybara.CarbonX.model.basic.EdgeDefinition;
+import com.ecapybara.CarbonX.model.basic.Graph;
+import com.ecapybara.CarbonX.model.issb.Input;
+import com.ecapybara.CarbonX.model.issb.Output;
+import com.ecapybara.CarbonX.model.issb.Process;
+import com.ecapybara.CarbonX.model.issb.Product;
+import com.ecapybara.CarbonX.repository.*;
+import com.ecapybara.CarbonX.service.GraphService;
 
 @Slf4j
-@ComponentScan("com.ecapybara.carbonx")
+@ComponentScan("com.ecapybara.CarbonX")
 public class OldSetup implements CommandLineRunner {
   @Autowired
   private ArangoOperations operations;

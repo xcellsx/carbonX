@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model.ipcc;
+package com.ecapybara.CarbonX.model.ipcc;
 
 import java.util.Map;
 

@@ -1,8 +1,8 @@
-package com.ecapybara.carbonx.model.emissions;
+package com.ecapybara.CarbonX.model.emissions;
 
 import java.util.Map;
 
-import com.ecapybara.carbonx.model.Metric;
+import com.ecapybara.CarbonX.model.Metric;
 
 public class CarbonFootprint {
   private Metric Scope1;

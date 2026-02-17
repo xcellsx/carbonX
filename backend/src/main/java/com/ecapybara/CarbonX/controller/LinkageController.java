@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ecapybara.CarbonX.dto.BulkLinkRequest;
+import com.ecapybara.CarbonX.dto.BulkLinkResult;
 import com.ecapybara.CarbonX.dto.InputLinkRequest;
 import com.ecapybara.CarbonX.dto.OutputLinkRequest;
 import com.ecapybara.CarbonX.model.issb.Input;
@@ -52,5 +54,28 @@ public class LinkageController {
       throw new IllegalArgumentException("processId and productId are required");
     }
     return linkageService.createOutputLink(request.getProcessId(), request.getProductId());
+  }
+
+  /**
+   * Create many input and output links in one request.
+   * Body: { "inputs": [ {"productId":"...", "processId":"..."}, ... ], "outputs": [ {"processId":"...", "productId":"..."}, ... ] }
+   * Idempotent: existing pairs are skipped. Returns counts and any errors (e.g. not found).
+   */
+  @PostMapping(value = "/bulk", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public BulkLinkResult bulkCreate(@RequestBody BulkLinkRequest request) {
+    return linkageService.bulkCreate(
+        request.getInputs(),
+        request.getOutputs());
+  }
+
+  /**
+   * Load links from backend/temp/masterInputs.csv and masterOutputs.csv and create them.
+   * Use this after dropping larger CSV files into temp (same format as existing master files).
+   */
+  @PostMapping(value = "/bulk/from-temp", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public BulkLinkResult bulkCreateFromTempCsvs() {
+    return linkageService.bulkCreateFromTempMasterCsvs();
   }
 }

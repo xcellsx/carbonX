@@ -1,8 +1,8 @@
-package com.ecapybara.carbonx.model.ghg;
+package com.ecapybara.CarbonX.model.ghg;
 
 import java.util.Map;
 
-import com.ecapybara.carbonx.utils.csv.ComplexMapConverter;
+import com.ecapybara.CarbonX.utils.csv.ComplexMapConverter;
 import com.opencsv.bean.CsvCustomBindByName;
 
 import lombok.AllArgsConstructor;

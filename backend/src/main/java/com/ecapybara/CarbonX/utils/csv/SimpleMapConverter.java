@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.utils.csv;
+package com.ecapybara.CarbonX.utils.csv;
 
 import com.opencsv.bean.AbstractBeanField;
 

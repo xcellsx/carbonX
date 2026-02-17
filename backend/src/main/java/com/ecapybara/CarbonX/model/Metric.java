@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model;
+package com.ecapybara.CarbonX.model;
 
 import org.springframework.data.annotation.Id;
 

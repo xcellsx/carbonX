@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.repository;
+package com.ecapybara.CarbonX.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -7,7 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 
 import com.arangodb.springframework.repository.ArangoRepository;
-import com.ecapybara.carbonx.model.basic.Company;
+import com.ecapybara.CarbonX.model.basic.Company;
 
 public interface CompanyRepository extends ArangoRepository<Company, String> {
   @NonNull Optional<Company> findById(@NonNull String id);

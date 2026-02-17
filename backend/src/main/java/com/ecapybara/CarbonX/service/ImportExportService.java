@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service;
+package com.ecapybara.CarbonX.service;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,14 +20,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.supercsv.io.dozer.CsvDozerBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import com.ecapybara.carbonx.model.issb.Product;
-import com.ecapybara.carbonx.model.issb.Input;
-import com.ecapybara.carbonx.model.issb.Output;
-import com.ecapybara.carbonx.model.issb.Process;
-import com.ecapybara.carbonx.repository.*;
-import com.ecapybara.carbonx.utils.csv.CsvColumn;
-import com.ecapybara.carbonx.utils.csv.CsvColumnConfigurations;
-import com.ecapybara.carbonx.utils.csv.CsvColumnWriterWithDozer;
+import com.ecapybara.CarbonX.model.issb.Product;
+import com.ecapybara.CarbonX.model.issb.Input;
+import com.ecapybara.CarbonX.model.issb.Output;
+import com.ecapybara.CarbonX.model.issb.Process;
+import com.ecapybara.CarbonX.repository.*;
+import com.ecapybara.CarbonX.utils.csv.CsvColumn;
+import com.ecapybara.CarbonX.utils.csv.CsvColumnConfigurations;
+import com.ecapybara.CarbonX.utils.csv.CsvColumnWriterWithDozer;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.exceptions.CsvRecursionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -116,6 +116,7 @@ public class ImportExportService {
                                           .withIgnoreEmptyLine(true)
                                           .build()
                                           .parse();
+          inputList.forEach(input -> inputRepository.save(input));
           return Mono.just(String.format("Import successful for '%s' into INPUT repository!", filename));
 
         case "outputs":

@@ -1,6 +1,6 @@
-package com.ecapybara.carbonx.model.emissions;
+package com.ecapybara.CarbonX.model.emissions;
 
-import com.ecapybara.carbonx.model.Metric;
+import com.ecapybara.CarbonX.model.Metric;
 
 public class Emission {
   private String name; // eg. "CO"

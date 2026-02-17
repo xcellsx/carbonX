@@ -1,6 +1,6 @@
-package com.ecapybara.carbonx.service.exception;
+package com.ecapybara.CarbonX.service.exception;
 
-import com.ecapybara.carbonx.dto.ErrorResponse;
+import com.ecapybara.CarbonX.dto.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
 

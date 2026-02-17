@@ -1,12 +1,12 @@
-package com.ecapybara.carbonx.controller;
+package com.ecapybara.CarbonX.controller;
 
 import java.util.List;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.model.basic.Company;
-import com.ecapybara.carbonx.repository.CompanyRepository;
+import com.ecapybara.CarbonX.model.basic.Company;
+import com.ecapybara.CarbonX.repository.CompanyRepository;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;

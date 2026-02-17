@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model.ghg;
+package com.ecapybara.CarbonX.model.ghg;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;

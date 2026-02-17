@@ -1,10 +1,10 @@
-package com.ecapybara.carbonx;
+package com.ecapybara.CarbonX;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
-import com.ecapybara.carbonx.runner.*;
+import com.ecapybara.CarbonX.runner.*;
 
 //import com.ecapybara.CarbonX.runner.*;
 

@@ -1,11 +1,11 @@
-package com.ecapybara.carbonx.model.basic;
+package com.ecapybara.CarbonX.model.basic;
 
 import org.springframework.data.annotation.Id;
 
 import com.arangodb.springframework.annotation.ArangoId;
 import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.PersistentIndex;
-import com.ecapybara.carbonx.model.ghg.CarbonFootprint;
+import com.ecapybara.CarbonX.model.ghg.CarbonFootprint;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;

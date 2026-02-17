@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model;
+package com.ecapybara.CarbonX.model;
 
 import java.util.Map;
 import java.util.Properties;
@@ -6,7 +6,7 @@ import java.util.Properties;
 import org.springframework.data.annotation.Id;
 
 import com.arangodb.springframework.annotation.ArangoId;
-import com.ecapybara.carbonx.model.emissions.EmissionChart;
+import com.ecapybara.CarbonX.model.emissions.EmissionChart;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 public class Node {

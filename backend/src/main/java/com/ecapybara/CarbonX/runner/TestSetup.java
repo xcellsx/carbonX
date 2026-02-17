@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.runner;
+package com.ecapybara.CarbonX.runner;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -8,11 +8,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.ComponentScan;
 
 import com.arangodb.springframework.core.ArangoOperations;
-import com.ecapybara.carbonx.service.ExperimentalService;
-import com.ecapybara.carbonx.service.ImportExportService;
+import com.ecapybara.CarbonX.service.ExperimentalService;
+import com.ecapybara.CarbonX.service.ImportExportService;
 
 @Slf4j
-@ComponentScan("com.ecapybara.carbonx")
+@ComponentScan("com.ecapybara.CarbonX")
 public class TestSetup implements CommandLineRunner {
   @Autowired
   private ArangoOperations operations;

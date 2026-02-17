@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.utils.csv;
+package com.ecapybara.CarbonX.utils.csv;
 // All credits to code author `carlocarlen`: https://github.com/carlocarlen/export-bean-to-csv/blob/master/src/main/java/dev/carlocarlen/supercsv/service/CsvColumn.java
 
 import org.supercsv.cellprocessor.ift.CellProcessor;

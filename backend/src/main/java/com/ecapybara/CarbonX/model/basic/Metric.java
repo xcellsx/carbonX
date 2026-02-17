@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.model.basic;
+package com.ecapybara.CarbonX.model.basic;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.processor.ConvertEmptyOrBlankStringsToNull;

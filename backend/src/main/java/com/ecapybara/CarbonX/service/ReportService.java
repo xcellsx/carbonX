@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service;
+package com.ecapybara.CarbonX.service;
 
 import java.io.File;
 import java.io.IOException;

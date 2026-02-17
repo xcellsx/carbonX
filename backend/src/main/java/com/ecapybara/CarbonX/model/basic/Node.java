@@ -1,9 +1,9 @@
-package com.ecapybara.carbonx.model.basic;
+package com.ecapybara.CarbonX.model.basic;
 
 import org.springframework.data.annotation.Id;
 
 import com.arangodb.springframework.annotation.ArangoId;
-import com.ecapybara.carbonx.model.ghg.EmissionInformation;
+import com.ecapybara.CarbonX.model.ghg.EmissionInformation;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;

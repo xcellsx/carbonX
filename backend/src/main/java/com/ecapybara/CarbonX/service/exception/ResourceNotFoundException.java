@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service.exception;
+package com.ecapybara.CarbonX.service.exception;
 
 
 import lombok.Getter;

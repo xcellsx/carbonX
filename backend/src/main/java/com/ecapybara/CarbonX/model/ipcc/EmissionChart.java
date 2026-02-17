@@ -1,6 +1,6 @@
-package com.ecapybara.carbonx.model.ipcc;
+package com.ecapybara.CarbonX.model.ipcc;
 
-import com.ecapybara.carbonx.model.basic.Metric;
+import com.ecapybara.CarbonX.model.basic.Metric;
 import com.opencsv.bean.CsvRecurse;
 
 import lombok.Data;

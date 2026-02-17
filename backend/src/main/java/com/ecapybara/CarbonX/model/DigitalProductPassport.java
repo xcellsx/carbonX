@@ -1,11 +1,11 @@
-package com.ecapybara.carbonx.model;
+package com.ecapybara.CarbonX.model;
 
 import org.springframework.data.annotation.Id;
 
 import com.arangodb.springframework.annotation.ArangoId;
 import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.PersistentIndex;
-import com.ecapybara.carbonx.model.emissions.CarbonFootprint;
+import com.ecapybara.CarbonX.model.emissions.CarbonFootprint;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 @Document("DPPs")

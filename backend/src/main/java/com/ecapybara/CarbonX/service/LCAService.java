@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx.service;
+package com.ecapybara.CarbonX.service;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -6,8 +6,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ecapybara.carbonx.model.basic.Node;
-import com.ecapybara.carbonx.service.arango.ArangoQueryService;
+import com.ecapybara.CarbonX.model.basic.Node;
+import com.ecapybara.CarbonX.service.arango.ArangoQueryService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,7 +58,7 @@ public class LCAService {
             "";
     bindVars = Map.of("startNode", node.getId(),
                       "graphName", graphName,
-                      "vertexClass", "com.ecapybara.carbonx.model.issb.Process");
+                      "vertexClass", "com.ecapybara.CarbonX.model.issb.Process");
     response = (ArrayList<Map<String,Double>>) queryService.executeQuery(query, bindVars, 100, null, null, null).block().get("result");
     Map<String,Double> processResult = response.get(0);
     log.info("Calculated values for process nodes -> {}", processResult);

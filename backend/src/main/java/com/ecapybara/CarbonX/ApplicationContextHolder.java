@@ -1,4 +1,4 @@
-package com.ecapybara.carbonx;
+package com.ecapybara.CarbonX;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
