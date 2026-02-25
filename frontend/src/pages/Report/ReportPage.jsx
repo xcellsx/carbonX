@@ -558,9 +558,9 @@ const ReportPage = () => {
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="report" slides={REPORT_CAROUSEL_SLIDES} newUserOnly={false} />
+      <InstructionalCarousel pageId="report" slides={REPORT_CAROUSEL_SLIDES} newUserOnly />
       {currentView === 'detail' && (
-        <InstructionalCarousel pageId="report-view" slides={REPORT_VIEW_CAROUSEL_SLIDES} newUserOnly={false} />
+        <InstructionalCarousel pageId="report-view" slides={REPORT_VIEW_CAROUSEL_SLIDES} newUserOnly />
       )}
       <Navbar />
       <div className="content-section-main">

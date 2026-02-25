@@ -30,5 +30,9 @@ public interface InputRepository extends ArangoRepository<Input, String> {
   @Query("FOR input IN inputs FILTER input._to == @documentId RETURN input._key")
   Iterable<String> findConnectedInputs(@Param("documentId") String documentId);
 
+  /** Find input edge by vertex document ids (one-way: product → process). */
+  @Query("FOR i IN inputs FILTER i._from == @fromId AND i._to == @toId LIMIT 1 RETURN i")
+  List<Input> findByFromAndTo(@Param("fromId") String productId, @Param("toId") String processId);
+
   void removeById(String id);
 }

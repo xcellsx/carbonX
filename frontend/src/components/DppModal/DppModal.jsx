@@ -3,14 +3,13 @@ import { X } from 'lucide-react';
 import './DppModal.css';
 
 /**
- * Reusable modal for displaying Digital Product Passport (DPP) or any pre-formatted text content.
- * @param {boolean} isOpen - Whether the modal is visible
- * @param {function} onClose - Called when overlay or close button is clicked
- * @param {string} [title='Digital Product Passport (DPP)'] - Modal title
- * @param {React.ReactNode} children - Modal body (e.g. formatted DPP text in a <pre>)
+ * Reusable modal for displaying Digital Product Passport (DPP).
+ * Renders children in a scrollable body; supports both plain text and React nodes.
  */
 const DppModal = ({ isOpen, onClose, title = 'Digital Product Passport (DPP)', children }) => {
   if (!isOpen) return null;
+
+  const isString = typeof children === 'string';
 
   return (
     <div className="modal-overlay active" onClick={onClose}>
@@ -21,7 +20,9 @@ const DppModal = ({ isOpen, onClose, title = 'Digital Product Passport (DPP)', c
             <X />
           </button>
         </div>
-        <pre className="dpp-modal-pre">{children}</pre>
+        <div className={`dpp-modal-body ${isString ? 'dpp-modal-body--pre' : ''}`}>
+          {children}
+        </div>
       </div>
     </div>
   );

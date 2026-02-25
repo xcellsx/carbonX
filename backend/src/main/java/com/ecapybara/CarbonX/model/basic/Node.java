@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import com.arangodb.springframework.annotation.ArangoId;
 import com.ecapybara.carbonx.model.ghg.EmissionInformation;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;
 import com.opencsv.bean.processor.ConvertEmptyOrBlankStringsToNull;
@@ -51,6 +52,8 @@ public class Node {
   private EmissionInformation emissionInformation = new EmissionInformation(); // e.g {"Scope 1" : ExtractionEmissionCharts, "Scope 2" : ProcessingEmissionCharts, "Scope 3" : TransportationEmissionCharts}
   
   @Builder.Default
+  @JsonProperty("DPP")
+  @JsonAlias({"DPP", "dpp"})
   @CsvRecurse
   private DigitalProductPassport DPP = new DigitalProductPassport();
 }

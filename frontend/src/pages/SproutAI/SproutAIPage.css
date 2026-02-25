@@ -160,8 +160,37 @@
 .chat-message.assistant .message-content {
   background-color: rgba(var(--greys), 0.1);
   color: rgba(var(--blacks), 1);
-  border-bottom-left-radius: 0;
-  max-width: 100%;
+}
+
+.message-feedback {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.message-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: 1px solid rgba(var(--greys), 0.4);
+  border-radius: 0.25rem;
+  background: rgba(var(--whites), 1);
+  color: rgba(var(--greys), 1);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.message-feedback-btn:hover {
+  border-color: rgba(var(--primary), 0.5);
+  color: rgba(var(--primary), 1);
+}
+
+.message-feedback-btn.active {
+  border-color: rgba(var(--primary), 1);
+  background: rgba(var(--primary), 0.1);
+  color: rgba(var(--primary), 1);
 }
 
 /* --- AI output: Markdown rendering --- */

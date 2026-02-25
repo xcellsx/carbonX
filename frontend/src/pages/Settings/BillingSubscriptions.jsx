@@ -125,6 +125,41 @@ const BillingSubscriptions = ({ onPlanSave }) => {
     setTargetPlan(null);
   };
 
+  /** One-click Pro activation for demos – no billing form required, no payment processed. */
+  const handleTryProNoPayment = () => {
+    const demoBilling = {
+      ...billingInfo,
+      plan: 'pro',
+      nameOnCard: billingInfo.nameOnCard || 'Demo User',
+      cardNumber: billingInfo.cardNumber || '',
+      cvv: billingInfo.cvv || '',
+      cardExpiry: billingInfo.cardExpiry || '',
+      billingAddress: billingInfo.billingAddress || '',
+      postalCode: billingInfo.postalCode || '',
+      country: billingInfo.country || '',
+    };
+    localStorage.setItem(`billing_${userId}`, JSON.stringify(demoBilling));
+    localStorage.setItem('isProUser', 'true');
+    window.dispatchEvent(new Event('subscriptionUpdated'));
+    onPlanSave?.();
+
+    const history = JSON.parse(localStorage.getItem(`billingHistory_${userId}`) || '[]');
+    history.push({
+      id: `#00${history.length + 1}`,
+      date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      product: 'CarbonX Pro (Demo)',
+      amount: '0.00',
+      status: 'Demo',
+    });
+    localStorage.setItem(`billingHistory_${userId}`, JSON.stringify(history));
+
+    setBillingInfo(demoBilling);
+    setInitialBillingInfo(demoBilling);
+    setSavedPlan('pro');
+    setHasPaymentInfo(!!billingInfo.nameOnCard?.trim());
+    setSaveMessage('Pro activated for demo. No payment was taken.');
+  };
+
   // --- UPDATED: handleSaveBillingInfo ---
   const handleSaveBillingInfo = (e) => {
     e.preventDefault();
@@ -197,6 +232,9 @@ const BillingSubscriptions = ({ onPlanSave }) => {
       <div className="sub-header">
         <div className="header-col">
           <p className='descriptor-medium'>CarbonX Subscription Plans</p>
+          <p className="small-regular" style={{ color: 'rgba(var(--greys), 0.9)', marginTop: '0.25rem' }}>
+            No real payment is processed. Click &quot;Get CarbonX Pro&quot; to activate Pro for demo.
+          </p>
         </div>
       </div>
 
@@ -241,11 +279,11 @@ const BillingSubscriptions = ({ onPlanSave }) => {
                   Current Plan
                 </button>
               ) : (
-                // 2. NOT THE SAVED PLAN
+                // 2. NOT THE SAVED PLAN — Pro card: one-click demo activation; others: select plan or contact
                 <button
                   type="button"
                   className={`default ${billingInfo.plan === plan.id ? 'active' : ''}`}
-                  onClick={() => handleSelectPlan(plan.id)}
+                  onClick={() => plan.id === 'pro' ? handleTryProNoPayment() : handleSelectPlan(plan.id)}
                 >
                   {plan.buttonText}
                 </button>
@@ -255,7 +293,6 @@ const BillingSubscriptions = ({ onPlanSave }) => {
         ))}
       </div>
 
-      {/* --- Billing Information --- */}
       <div className="sub-header">
         <div className="header-col">
           <p className='descriptor-medium'>Billing Information</p>

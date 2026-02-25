@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sprout } from 'lucide-react';
-import { chatCompletion } from '../../services/openRouter';
+import { chatCompletion, POPUP_MODEL } from '../../services/openRouter';
 import ReactMarkdown from 'react-markdown';
 import './AIChatPopup.css';
 
@@ -48,8 +48,10 @@ function saveSessions(sessions) {
 /**
  * Popup chat triggered by the AI FAB on Dashboard/Analytics.
  * Persists conversations to the same sproutai_sessions so they appear in SproutAI History.
+ * @param {string} pageContext - e.g. "Analytics" or "Dashboard"
+ * @param {string} contextSummary - Optional summary of current page data (products, metrics, etc.) so the assistant can summarize the page.
  */
-const AIChatPopup = ({ isOpen, onClose, pageContext = '' }) => {
+const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,9 +59,12 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '' }) => {
   const inputRef = useRef(null);
   const sessionIdRef = useRef(null);
 
-  const systemPrompt = pageContext
-    ? `${DEFAULT_SYSTEM} The user is currently on the ${pageContext} page.`
-    : DEFAULT_SYSTEM;
+  const systemPrompt = [
+    pageContext ? `${DEFAULT_SYSTEM} The user is currently on the ${pageContext} page.` : DEFAULT_SYSTEM,
+    contextSummary
+      ? `\n\nCurrent page data (use this to summarize the page or answer questions about the user's data; when asked to "summarise" or "summarize" the Analytics page, use this data):\n${contextSummary}`
+      : '',
+  ].join('');
 
   useEffect(() => {
     if (isOpen) {
@@ -122,7 +127,7 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '' }) => {
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         userMsg,
       ];
-      const reply = await chatCompletion(apiMessages, { max_tokens: 2048, temperature: 0.6 });
+      const reply = await chatCompletion(apiMessages, { model: POPUP_MODEL, max_tokens: 2048, temperature: 0.6 });
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       setMessages((prev) => [

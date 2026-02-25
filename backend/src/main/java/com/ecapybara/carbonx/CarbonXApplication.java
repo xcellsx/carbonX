@@ -2,6 +2,7 @@ package com.ecapybara.carbonx;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 
 import com.ecapybara.carbonx.runner.*;
 
@@ -19,6 +20,6 @@ public class CarbonXApplication {
 		};
 		// System.exit(SpringApplication.exit(SpringApplication.run(runner, args)));
 
-		SpringApplication.run(runner, args);
+		ApplicationContext context = SpringApplication.run(runner, args);
 	}
 }

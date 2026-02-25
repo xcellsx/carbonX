@@ -20,7 +20,7 @@ function getSeen(pageId) {
  * @param {function} onComplete - Called when user dismisses (Got it / Skip)
  * @param {boolean} newUserOnly - If true, only show when user hasn't seen it (localStorage). If false, always show (dev mode).
  */
-const InstructionalCarousel = ({ pageId, slides = [], onComplete, newUserOnly = false }) => {
+const InstructionalCarousel = ({ pageId, slides = [], onComplete, newUserOnly = true }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(() => {
     if (newUserOnly && getSeen(pageId)) return false;

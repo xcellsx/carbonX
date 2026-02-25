@@ -57,7 +57,7 @@ const Navbar = () => {
                   type="button"
                   className={`nav nav-sub ${location.pathname === '/add-products' ? 'active' : ''}`}
                   onClick={() => navigate('/add-products')}
-                >Add Templates
+                >CarbonX Templates
                 </button>
                 <button
                   type="button"

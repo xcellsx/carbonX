@@ -21,7 +21,6 @@ import com.ecapybara.carbonx.model.issb.Process;
 import com.ecapybara.carbonx.model.issb.Product;
 import com.ecapybara.carbonx.repository.*;
 import com.ecapybara.carbonx.service.GraphService;
-import com.ecapybara.carbonx.service.ImportExportService;
 
 @Slf4j
 @ComponentScan("com.ecapybara.carbonx")
@@ -38,8 +37,6 @@ public class OldSetup implements CommandLineRunner {
   private OutputRepository outputRepository;
   @Autowired
   private GraphService graphService;
-  @Autowired
-  private ImportExportService importService;
   
   @Override
   public void run(final String... args) throws Exception {
@@ -115,7 +112,6 @@ public class OldSetup implements CommandLineRunner {
     EdgeDefinition outputs = new EdgeDefinition("outputs", List.of("processes"), List.of("products"));
     Graph defaultGraph = new Graph("default", List.of (inputs, outputs));
     graphService.createGraph(defaultGraph)
-        .doOnSuccess(graph -> log.info("Graph created: {}", graph))
         .doOnError(error -> log.error("Failed to create graph", error))
         .block();  // Wait for completion (OK in CommandLineRunner); // IMPORTANT NOTE: I don't know why it works, but the .subscribe() is crucial to make the graph
 

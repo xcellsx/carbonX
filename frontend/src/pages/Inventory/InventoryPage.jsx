@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
 import { productAPI } from '../../services/api';
+import { getScopeTotalsFromProduct } from '../../utils/emission';
 import Navbar from '../../components/Navbar/Navbar';
 import { Search, X, Triangle, CirclePlus, Trash2, FilePlus, Package, ListOrdered, FileUp } from 'lucide-react';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
@@ -232,6 +233,7 @@ const InventoryPage = () => {
   const [showDppModal, setShowDppModal] = useState(false);
   const [currentDppProduct, setCurrentDppProduct] = useState(null);
   const [expandedRows, setExpandedRows] = useState({});
+  const [calculatingProductId, setCalculatingProductId] = useState(null);
   const [subProductWeights, setSubProductWeights] = useState({});
   const [editableIngredients, setEditableIngredients] = useState({});
   const [productNameEdits, setProductNameEdits] = useState({});
@@ -249,48 +251,48 @@ const InventoryPage = () => {
     setError('');
     try {
       const res = await productAPI.getAllProducts();
-      // Log raw backend response to inspect structure (not segregated like frontend)
-      console.log('[getProducts] raw backend response:', res?.data);
-      console.log('[getProducts] type:', typeof res?.data, Array.isArray(res?.data) ? `array length ${res.data.length}` : '');
       const raw = Array.isArray(res?.data) ? res.data : [];
-      // Normalize items that have nested dpp (e.g. DPP/emission view): use dpp.name/key when top-level missing
+      // Debug: inspect backend shape so we can fix mapping if fields are missing
+      console.log('[getProducts] count:', raw.length, '| first item keys:', raw[0] ? Object.keys(raw[0]) : 'none', '| first item sample:', raw[0] ? { name: raw[0].name, key: raw[0].key, _key: raw[0]._key, id: raw[0].id, _id: raw[0]._id, DPP: raw[0].DPP != null, dpp: raw[0].dpp != null } : null);
+      if (raw.length > 0 && Object.keys(raw[0]).length === 0) console.warn('[getProducts] Backend returned array of empty objects – check backend serialization / response body.');
+      // Normalize: backend sometimes sends key as "" – treat as missing and use id (e.g. "product67" or "products/xyz" -> "xyz")
+      const effectiveKey = (p) => {
+        const k = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim());
+        if (k) return k;
+        const id = p.id ?? p._id;
+        if (id && String(id).includes('/')) return String(id).split('/').pop();
+        return id ? String(id) : '';
+      };
       const normalized = raw.map((p) => {
         const fromDpp = p.dpp;
         const name = p.name ?? fromDpp?.name ?? '';
-        const key = p.key ?? fromDpp?.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+        const key = effectiveKey(p) || (fromDpp?.key && String(fromDpp.key).trim());
         const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
         return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
       });
       const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
       const mapped = filtered.map((p) => {
-        // Calculate total LCA from DPP carbon footprint scopes, or from emissionInformation if present
-        let lcaResult = p.lcaResult ?? 0;
-        if (p.DPP?.carbonFootprint) {
-          const cf = p.DPP.carbonFootprint;
-          lcaResult =
-            (cf.scope1?.value ?? cf.Scope1?.value ?? 0) +
-            (cf.scope2?.value ?? cf.Scope2?.value ?? 0) +
-            (Object.values(cf.scope3 || cf.Scope3 || {}).reduce((sum, m) => sum + (m?.value ?? 0), 0));
-        } else if (p.emissionInformation && lcaResult === 0) {
-          // Fallback: sum scope1/2/3 kg from emissionInformation (e.g. backend DPP view)
-          const ei = p.emissionInformation;
-          const sumScope = (s) => (s && typeof s === 'object' ? Object.values(s).reduce((acc, cat) => acc + (typeof cat === 'object' && cat?.CO2?.kg != null ? cat.CO2.kg : 0) + (cat?.CH4?.kg ?? 0) + (cat?.N2O?.kg ?? 0), 0) : 0);
-          lcaResult = sumScope(ei.scope1) + sumScope(ei.scope2) + sumScope(ei.scope3);
-        }
-        const apiKey = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id) ?? p._id ?? p.id;
+        const productWithEmission = { ...p, DPP: p.DPP ?? p.dpp, emissionInformation: p.emissionInformation };
+        const totals = getScopeTotalsFromProduct(productWithEmission);
+        const apiKey = effectiveKey(p) || (p._key && String(p._key).trim()) || (p.id ?? p._id ?? '');
+        if (!apiKey && p.name) console.warn('[getProducts] Empty productId for product name:', p.name, 'raw p.key/id:', p.key, p.id);
         return {
           productId: apiKey,
           productName: p.name ?? '',
           productQuantity: p.quantityValue ?? p.quantity ?? null,
           productQuantifiableUnit: p.quantifiableUnit ?? null,
           dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
-          lcaResult: lcaResult,
+          lcaResult: totals.total,
+          scope1: totals.scope1,
+          scope2: totals.scope2,
+          scope3: totals.scope3,
           userId: p.userId,
           uploadedFile: p.uploadedFile,
           type: p.type,
           productOrigin: p.productOrigin ?? p.productorigin,
           functionalProperties: p.functionalProperties,
-          DPP: p.DPP,
+          DPP: p.DPP ?? p.dpp ?? null,
+          emissionInformation: p.emissionInformation ?? null,
         };
       });
       const customTemplates = getStoredTemplates();
@@ -715,60 +717,131 @@ function dppDataToTemplate(dppJson) {
     }
   };
 
-  // --- FULL LCA: Call backend to calculate LCA and generate/update DPP
+  // Resolve backend document key from a raw product object (same logic as fetchProducts)
+  const getBackendKey = (p) => {
+    const k = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim());
+    if (k) return k;
+    const id = p.id ?? p._id;
+    if (id && String(id).includes('/')) return String(id).split('/').pop();
+    return id ? String(id) : '';
+  };
+
+  // --- FULL LCA: backend by productId, or for template products match backend by name (template never stored in backend)
   const runFullLcaCalculation = async (productId) => {
     const product = products.find(p => p.productId === productId);
-    if (!product) return;
+    console.log('[LCA] runFullLcaCalculation called', { productId, productName: product?.productName, found: !!product, _fromTemplate: product?._fromTemplate });
+    if (!product) {
+      console.warn('[LCA] Abort: product not found for id', productId);
+      return;
+    }
+    // When quantity is empty (shown as "—"), do not run backend calculation; set scopes to 0.
+    const q = product.productQuantity;
+    const quantityEmpty = (q === null || q === undefined || (typeof q === 'string' && String(q).trim() === ''));
+    if (quantityEmpty) {
+      console.log('[LCA] Quantity empty – skipping backend calculation and setting scopes to 0');
+      setProducts((currentProducts) =>
+        currentProducts.map((prod) =>
+          prod.productId === productId
+            ? { ...prod, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0 }
+            : prod
+        )
+      );
+      return;
+    }
     let dpp;
-    try { dpp = JSON.parse(product.dppData); } catch (e) { return; }
-    if (!Array.isArray(dpp)) return;
+    try { dpp = JSON.parse(product.dppData); } catch (e) {
+      console.warn('[LCA] Abort: invalid dppData', productId);
+      return;
+    }
+    if (!Array.isArray(dpp)) {
+      console.warn('[LCA] Abort: dppData is not array', productId);
+      return;
+    }
 
-    if (product._fromTemplate) return;
-
-    try {
-      // First ensure DPP data is saved
-      await autoSaveProduct(productId, product.dppData);
-      
-      // Call backend to calculate LCA and generate DPP
-      const response = await productAPI.calculateProduct(productId);
-      const updatedProduct = response.data;
-      
-      if (updatedProduct) {
-        // Calculate total carbon footprint from DPP
-        const carbonFootprint = updatedProduct.DPP?.carbonFootprint;
-        let updatedLcaResult = 0;
-        if (carbonFootprint) {
-          // Handle both camelCase (Jackson default) and PascalCase (Java field names)
-          const scope1 = carbonFootprint.scope1 || carbonFootprint.Scope1;
-          const scope2 = carbonFootprint.scope2 || carbonFootprint.Scope2;
-          const scope3 = carbonFootprint.scope3 || carbonFootprint.Scope3;
-          updatedLcaResult = 
-            (scope1?.value ?? 0) +
-            (scope2?.value ?? 0) +
-            (Object.values(scope3 || {}).reduce((sum, m) => sum + (m?.value ?? 0), 0));
+    let backendKey = '';
+    if (product._fromTemplate) {
+      // Template-only: find a backend product with the same name and run LCA on it; do not store template in backend
+      const name = (product.productName || product.name || '').trim();
+      if (!name) {
+        console.warn('[LCA] Template product has no name – cannot match by name');
+        alert('Product has no name. Add a name to run LCA by matching a backend product.');
+        return;
+      }
+      console.log('[LCA] Template product – looking up backend by name:', name);
+      try {
+        const nameRes = await productAPI.getAllProducts({ name });
+        const list = Array.isArray(nameRes?.data) ? nameRes.data : [];
+        const first = list.find((p) => (p.name || '').trim().toLowerCase() === name.toLowerCase()) || list[0];
+        backendKey = first ? getBackendKey(first) : '';
+        if (!backendKey) {
+          console.warn('[LCA] No backend product found with name:', name);
+          alert(`No backend product named "${name}" found. LCA runs on backend data only. Create the product in the backend (e.g. Upload BOM) or ensure a product with this name exists.`);
+          return;
         }
-        
-        // Update local state with backend-calculated DPP and carbon footprint
-        setProducts(currentProducts =>
-          currentProducts.map(prod => {
+        console.log('[LCA] Matched by name – backend key:', backendKey);
+      } catch (e) {
+        console.error('[LCA] Lookup by name failed:', e);
+        alert('Could not look up product by name. Please try again.');
+        return;
+      }
+    } else {
+      if (!productId || String(productId).trim() === '') {
+        console.warn('[LCA] Abort: productId is empty – backend may have sent key as "". Product:', product?.productName);
+        alert('Cannot run LCA: product has no document key. Check that the backend returns a valid key or id for this product.');
+        return;
+      }
+      backendKey = productId;
+    }
+
+    setCalculatingProductId(productId);
+    try {
+      if (!product._fromTemplate) await autoSaveProduct(productId, product.dppData);
+
+      // Run LCA on backend product (by key)
+      console.log('[LCA] Requesting GET /api/experiments/products/' + backendKey + '/lca');
+      const lcaRes = await productAPI.calculateProduct(backendKey);
+      console.log('[LCA] LCA response:', { status: lcaRes?.status, data: lcaRes?.data });
+
+      // Refetch updated backend product to get DPP
+      console.log('[LCA] Refetching product GET /api/products/' + backendKey);
+      const res = await productAPI.getProductById(backendKey);
+      const updatedProduct = res?.data;
+      console.log('[LCA] Refetch response:', { status: res?.status, hasProduct: !!updatedProduct, DPP: !!updatedProduct?.DPP ?? !!updatedProduct?.dpp });
+      if (updatedProduct) {
+        const productWithDPP = {
+          DPP: updatedProduct.DPP ?? updatedProduct.dpp,
+          emissionInformation: updatedProduct.emissionInformation,
+        };
+        const totals = getScopeTotalsFromProduct(productWithDPP);
+        console.log('[LCA] Extracted totals:', totals);
+
+        // Update the row we're showing (template or backend) by productId so UI updates
+        setProducts((currentProducts) =>
+          currentProducts.map((prod) => {
             if (prod.productId === productId) {
               return {
                 ...prod,
-                DPP: updatedProduct.DPP,
-                lcaResult: updatedLcaResult,
-                functionalProperties: updatedProduct.functionalProperties,
+                DPP: updatedProduct.DPP ?? updatedProduct.dpp,
+                emissionInformation: updatedProduct.emissionInformation ?? prod.emissionInformation,
+                lcaResult: totals.total,
+                scope1: totals.scope1,
+                scope2: totals.scope2,
+                scope3: totals.scope3,
+                functionalProperties: updatedProduct.functionalProperties ?? prod.functionalProperties,
               };
             }
             return prod;
           })
         );
-        
-        // Refresh the product list to get the latest data
-        await fetchProducts();
+      } else {
+        console.warn('[LCA] Refetch returned no product – cannot update UI');
       }
     } catch (err) {
-      console.error("Error calculating LCA:", err);
-      alert("Failed to calculate LCA. Please check that all DPP items have valid LCA values.");
+      console.error('[LCA] Error:', err?.response?.status, err?.response?.data ?? err?.message, err);
+      const msg = err?.response?.data?.message || err?.response?.data || err?.message || "LCA calculation failed.";
+      alert(typeof msg === "string" ? msg : "Failed to calculate LCA. Ensure the product is in the supply chain graph and upstream nodes have DPP data.");
+    } finally {
+      setCalculatingProductId((prev) => (prev === productId ? null : prev));
     }
   };
 
@@ -776,45 +849,101 @@ function dppDataToTemplate(dppJson) {
     setDeleteConfirm({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   };
   
-  const formatDpp = (product) => {
-    if (!product) return '[No DPP stored]';
-    let dppData;
-    try { dppData = JSON.parse(product.dppData); } catch (e) { dppData = []; }
-    const metadata = product.metadata || {};
-    
-    let output = "--- PRODUCT DETAILS ---\n";
-    output += `Product Name: ${metadata['Product Name'] || product.productName}\n`;
-    output += `Brand: ${metadata['Brand'] || 'N/A'}\n`;
-    output += `Product GTIN/EAN/UPC: ${metadata['Product GTIN/EAN/UPC'] || 'N/A'}\n`;
-    output += `Country of Origin: ${metadata['Country of Origin'] || 'N/A'}\n`;
-    output += `Certifications: ${metadata['Certifications'] || 'N/A'}\n`;
-    
-    output += "\n--- OTHER METADATA ---\n";
-    Object.keys(metadata).forEach(key => {
-      if (!['Product Name', 'Brand', 'Product GTIN/EAN/UPC', 'Country of Origin', 'Certifications', 'Ingredients', 'Net Weight (kg)', 'Packaging Type', 'Packaging Weight (g)', 'Transportation Mode'].includes(key)) {
-        if(metadata[key]) { output += `${key}: ${metadata[key]}\n`; }
-      }
-    });
-
-    output += "\n--- PRODUCT BREAKDOWN ---\n";
-    if (dppData.length > 0) {
-      dppData.forEach((item, index) => {
-        const isProcess = (item.ingredient || '').startsWith('Process:');
-        const lineLabel = isProcess ? processDisplayLabel(item.ingredient) : `Element: ${item.ingredient || '—'}`;
-        const unit = item.unit || (isProcess ? 's' : 'kg');
-        const effectiveUnit = unit === '-' ? (isProcess ? 's' : 'kg') : unit;
-        const amountDisplay = toDisplayAmount(item.weightKg, effectiveUnit, isProcess);
-        const unitLabel = (isProcess ? TIME_UNITS : WEIGHT_UNITS).find((u) => u.unit === effectiveUnit)?.label || effectiveUnit;
-        output += `  [${index + 1}] ${lineLabel}\n`;
-        output += `      Amount: ${amountDisplay} ${unitLabel}\n`;
-        output += `      LCA Value: ${item.lcaValue ? item.lcaValue.toFixed(3) + ' kgCO2e' : 'Not calculated'}\n`;
-        if (item.isPackaging) output += `      (Packaging Component)\n`;
-        if (item.isTransport) output += `      (Transport Component)\n`;
-      });
-    } else {
-      output += "No elements or processes listed for this product.\n";
+  /** Format a scope value for display (round to 3 decimals, handle map). */
+  const fmtScopeVal = (scope) => {
+    if (scope == null) return '—';
+    if (typeof scope === 'number' && !Number.isNaN(scope)) return `${Number(scope).toFixed(3)} kgCO₂e`;
+    if (typeof scope === 'object') {
+      const kg = scope.kgCO2e ?? scope.kgCO2e;
+      if (kg != null) return `${Number(kg).toFixed(3)} kgCO₂e`;
+      return Object.entries(scope).map(([k, v]) => `${k}: ${v}`).join(', ') || '—';
     }
-    return output;
+    return String(scope);
+  };
+  /** Compact number only for inline scope line (e.g. "11.56"). */
+  const fmtScopeNum = (scope) => {
+    if (scope == null) return '—';
+    if (typeof scope === 'number' && !Number.isNaN(scope)) return Number(scope).toFixed(2);
+    if (typeof scope === 'object' && scope.kgCO2e != null) return Number(scope.kgCO2e).toFixed(2);
+    return '—';
+  };
+
+  /** Render DPP and all backend product info in a structured layout. */
+  const renderDppContent = (product) => {
+    if (!product) return <p className="small-regular">No product selected.</p>;
+
+    const productName = product.productName ?? product.name ?? '—';
+    const dpp = product.DPP ?? product.dpp ?? null;
+
+    const kv = (label, value) => {
+      if (value == null || value === '') return null;
+      return <div className="dpp-kv" key={label}><span className="dpp-kv__key">{label}</span><span>{String(value)}</span></div>;
+    };
+
+    return (
+      <div className="dpp-modal-structured">
+        <section className="dpp-section">
+          <h3 className="dpp-section-title">Product</h3>
+          {kv('name', productName)}
+          {kv('type', product.type)}
+          {kv('id', product.id)}
+          {kv('key', product.key)}
+          {kv('productOrigin', product.productOrigin)}
+          {product.quantityValue != null && kv('quantityValue', product.quantityValue)}
+          {kv('quantifiableUnit', product.quantifiableUnit)}
+          {kv('userId', product.userId)}
+          {kv('uploadedFile', product.uploadedFile)}
+        </section>
+
+        {(!dpp || typeof dpp !== 'object') ? (
+          <section className="dpp-section">
+            <h3 className="dpp-section-title">Digital Product Passport</h3>
+            <p className="small-regular" style={{ color: 'rgba(var(--greys), 0.9)' }}>Run Calculation to Generate DPP.</p>
+          </section>
+        ) : (
+          <>
+            <section className="dpp-section">
+              <h3 className="dpp-section-title">Digital Product Passport</h3>
+              {kv('name', dpp.name)}
+              {kv('manufacturer', dpp.manufacturer)}
+              {kv('serialNumber', dpp.serialNumber)}
+              {kv('batchNumber', dpp.batchNumber)}
+              {kv('id', dpp.id)}
+              {kv('key', dpp.key)}
+            </section>
+
+            <section className="dpp-section">
+              <h3 className="dpp-section-title">Carbon footprint</h3>
+              {(dpp.carbonFootprint ?? dpp.CarbonFootprint) && typeof (dpp.carbonFootprint ?? dpp.CarbonFootprint) === 'object' ? (
+                <div className="dpp-carbon dpp-carbon--compact">
+                  {(() => {
+                    const cf = dpp.carbonFootprint ?? dpp.CarbonFootprint;
+                    const n1 = fmtScopeNum(cf.scope1 ?? cf.Scope1); const n2 = fmtScopeNum(cf.scope2 ?? cf.Scope2); const n3 = fmtScopeNum(cf.scope3 ?? cf.Scope3);
+                    return <span className="dpp-scopes-inline">S1: {n1} · S2: {n2} · S3: {n3} kgCO₂e</span>;
+                  })()}
+                </div>
+              ) : (
+                <p className="small-regular" style={{ color: 'rgba(var(--greys), 0.8)' }}>Not set</p>
+              )}
+            </section>
+
+            {product.emissionInformation && typeof product.emissionInformation === 'object' && Object.keys(product.emissionInformation).length > 0 && (
+              <section className="dpp-section">
+                <h3 className="dpp-section-title">Emission information</h3>
+                <pre className="dpp-json">{JSON.stringify(product.emissionInformation, null, 2)}</pre>
+              </section>
+            )}
+
+            {product.functionalProperties && typeof product.functionalProperties === 'object' && Object.keys(product.functionalProperties).length > 0 && (
+              <section className="dpp-section">
+                <h3 className="dpp-section-title">Functional properties</h3>
+                <pre className="dpp-json">{JSON.stringify(product.functionalProperties, null, 2).slice(0, 800)}{JSON.stringify(product.functionalProperties).length > 800 ? '…' : ''}</pre>
+              </section>
+            )}
+          </>
+        )}
+      </div>
+    );
   };
 
   const formatTotalLca = (value) => {
@@ -835,7 +964,7 @@ function dppDataToTemplate(dppJson) {
       <InstructionalCarousel
         pageId="inventory"
         slides={INVENTORY_CAROUSEL_SLIDES}
-        newUserOnly={false}
+        newUserOnly
       />
       <Navbar />
       <div className="content-section-main">
@@ -866,7 +995,7 @@ function dppDataToTemplate(dppJson) {
                   <th>Product Name</th>
                   <th>Quantity</th>
                   <th>DPP</th>
-                  <th>Total LCA Result</th>
+                  <th>Scope 3</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -909,14 +1038,15 @@ function dppDataToTemplate(dppJson) {
                     <React.Fragment key={p.productId}>
                       <tr>
                         <td>
-                          <button 
-                            className="icon icon-small" 
+                          <button
+                            className="icon icon-small"
+                            disabled={calculatingProductId === p.productId}
+                            title={expandedRows[p.productId] ? 'Collapse' : 'Expand and run LCA'}
                             onClick={() => {
                               const isOpening = !expandedRows[p.productId];
-                              setExpandedRows(prev => ({ ...prev, [p.productId]: !prev[p.productId] }));
-                              if (isOpening) {
-                                runFullLcaCalculation(p.productId);
-                              }
+                              console.log('[LCA] Expand (arrow) clicked', { productId: p.productId, productName: p.productName, isOpening, _fromTemplate: p._fromTemplate });
+                              setExpandedRows((prev) => ({ ...prev, [p.productId]: !prev[p.productId] }));
+                              if (isOpening) runFullLcaCalculation(p.productId);
                             }}
                           >
                             <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
@@ -938,10 +1068,16 @@ function dppDataToTemplate(dppJson) {
                             View DPP
                           </a>
                         </td>
-                        <td><strong>{formatTotalLca(p.lcaResult)}</strong></td>
+                        <td>
+                          {calculatingProductId === p.productId ? (
+                            <span className="lca-calculating" style={{ color: 'rgba(var(--greys), 0.9)', fontStyle: 'italic' }}>Calculating LCA…</span>
+                          ) : (
+                            <strong>{formatTotalLca(p.scope3 ?? 0)}</strong>
+                          )}
+                        </td>
                         <td>
                           <div className='two-row-component-container'>
-                            <button className="icon" title="Add component" onClick={() => handleAddSubcomponent(p.productId)}><CirclePlus /></button>
+                            <button className="icon" title="Add component" onClick={() => { console.log('[Inventory] Add component clicked (this does not run LCA)', p.productId); handleAddSubcomponent(p.productId); }}><CirclePlus /></button>
                             <button className="icon" style = {{backgroundColor: "rgba(var(--danger), 1)"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
                               <Trash2 />
                             </button>
@@ -1110,7 +1246,7 @@ function dppDataToTemplate(dppJson) {
       )}
  
       <DppModal isOpen={showDppModal} onClose={() => setShowDppModal(false)} title="Digital Product Passport (DPP)">
-        {formatDpp(currentDppProduct)}
+        {renderDppContent(currentDppProduct)}
       </DppModal>
  
       <ConfirmationModal

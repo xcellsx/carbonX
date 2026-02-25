@@ -122,3 +122,56 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.25rem;
 }
+
+/* --- Graph table (backend supply chain) --- */
+.graph-table-wrap {
+  padding: 0 0 1.5rem 1.75rem;
+  overflow-x: auto;
+}
+
+.graph-table-message {
+  color: rgba(var(--greys), 1);
+  font-size: var(--normal);
+  padding: 1rem 0;
+  margin: 0;
+}
+
+.graph-table-message.graph-table-error {
+  color: rgba(var(--danger), 1);
+}
+
+.graph-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--small);
+}
+
+.graph-table th,
+.graph-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(var(--greys), 0.2);
+}
+
+.graph-table th {
+  font-weight: var(--bold);
+  color: rgba(var(--greys), 1);
+}
+
+.graph-table-link-type {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+
+.graph-table-link-type.input {
+  background: rgba(var(--primary), 0.15);
+  color: rgba(var(--primary), 1);
+}
+
+.graph-table-link-type.output {
+  background: rgba(var(--greys), 0.2);
+  color: rgba(var(--greys), 1);
+}

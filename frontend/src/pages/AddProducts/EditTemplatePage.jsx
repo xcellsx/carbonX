@@ -4,7 +4,7 @@ import { Plus, Pencil, ChevronDown } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import Navbar from '../../components/Navbar/Navbar';
 import ErrorModal from '../../components/ErrorModal/ErrorModal';
-import { productAPI } from '../../services/api';
+import { productAPI, processAPI } from '../../services/api';
 import './EditTemplatePage.css';
 
 const STORAGE_KEY = 'carbonx-custom-templates';
@@ -105,8 +105,11 @@ const EditTemplatePage = () => {
   const [processes, setProcesses] = useState([]);
   const [errorModal, setErrorModal] = useState({ open: false, message: '' });
   const [rawMaterials, setRawMaterials] = useState([]);
+  const [processesList, setProcessesList] = useState([]);
   const [elementDropdownOpen, setElementDropdownOpen] = useState(null);
+  const [processDropdownOpen, setProcessDropdownOpen] = useState(null);
   const elementDropdownBlurRef = useRef(null);
+  const processDropdownBlurRef = useRef(null);
 
   const fetchRawMaterials = useCallback(async () => {
     try {
@@ -121,13 +124,28 @@ const EditTemplatePage = () => {
     }
   }, []);
 
+  const fetchProcesses = useCallback(async () => {
+    try {
+      const res = await processAPI.getProcesses();
+      const proc = Array.isArray(res?.data) ? res.data : [];
+      const names = proc
+        .map((p) => (p.name ?? p.type ?? '').toString().trim())
+        .filter(Boolean);
+      setProcessesList([...new Set(names)].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })));
+    } catch (_) {
+      setProcessesList([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchRawMaterials();
-  }, [fetchRawMaterials]);
+    fetchProcesses();
+  }, [fetchRawMaterials, fetchProcesses]);
 
   useEffect(() => {
     return () => {
       if (elementDropdownBlurRef.current) clearTimeout(elementDropdownBlurRef.current);
+      if (processDropdownBlurRef.current) clearTimeout(processDropdownBlurRef.current);
     };
   }, []);
 
@@ -262,7 +280,7 @@ const EditTemplatePage = () => {
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="edit-template" slides={EDIT_TEMPLATE_CAROUSEL_SLIDES} newUserOnly={false} />
+      <InstructionalCarousel pageId="edit-template" slides={EDIT_TEMPLATE_CAROUSEL_SLIDES} newUserOnly />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">
@@ -458,16 +476,64 @@ const EditTemplatePage = () => {
                       </td>
                     </tr>
                   ) : (
-                    processes.map((row, i) => (
+                    processes.map((row, i) => {
+                      const query = (row.process || '').trim().toLowerCase();
+                      const filteredProcesses = query
+                        ? processesList.filter((name) => name.toLowerCase().includes(query))
+                        : processesList;
+                      const isDropdownOpen = processDropdownOpen === i;
+                      return (
                       <tr key={i}>
                         <td>
-                          <input
-                            type="text"
-                            className="input-base edit-template-cell-input"
-                            value={row.process}
-                            onChange={(e) => updateProcess(i, 'process', e.target.value)}
-                            placeholder="e.g. Boiling"
-                          />
+                          <div
+                            className="edit-template-element-dropdown-wrap"
+                            onBlur={() => {
+                              processDropdownBlurRef.current = setTimeout(() => setProcessDropdownOpen(null), 150);
+                            }}
+                            onFocus={() => clearTimeout(processDropdownBlurRef.current)}
+                          >
+                            <input
+                              type="text"
+                              className="input-base edit-template-cell-input"
+                              value={row.process}
+                              onChange={(e) => updateProcess(i, 'process', e.target.value)}
+                              onFocus={() => setProcessDropdownOpen(i)}
+                              placeholder="Search or type process..."
+                              autoComplete="off"
+                              aria-expanded={isDropdownOpen}
+                              aria-autocomplete="list"
+                              aria-controls={isDropdownOpen ? `process-list-${i}` : undefined}
+                              id={`process-input-${i}`}
+                            />
+                            <ChevronDown size={16} className="edit-template-element-chevron" aria-hidden />
+                            {isDropdownOpen && (
+                              <ul
+                                id={`process-list-${i}`}
+                                className="edit-template-element-dropdown-list"
+                                role="listbox"
+                                aria-labelledby={`process-input-${i}`}
+                              >
+                                {filteredProcesses.length === 0 ? (
+                                  <li className="edit-template-element-dropdown-item empty">No processes match. Type to add custom.</li>
+                                ) : (
+                                  filteredProcesses.slice(0, 12).map((name) => (
+                                    <li
+                                      key={name}
+                                      role="option"
+                                      className="edit-template-element-dropdown-item"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        updateProcess(i, 'process', name);
+                                        setProcessDropdownOpen(null);
+                                      }}
+                                    >
+                                      {name}
+                                    </li>
+                                  ))
+                                )}
+                              </ul>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <input
@@ -502,7 +568,8 @@ const EditTemplatePage = () => {
                           </button>
                         </td>
                       </tr>
-                    ))
+                    );
+                    })
                   )}
                 </tbody>
               </table>

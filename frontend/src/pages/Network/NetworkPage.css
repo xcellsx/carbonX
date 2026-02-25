@@ -1,11 +1,13 @@
-/* --- Main Graph Container --- */
+/* --- Main Graph Container (increased area) --- */
 .network-graph-container {
-  position: relative; 
+  position: relative;
   width: 100%;
-  height: 600px; /* Fixed height for D3 */
-  background: #fdfdfd; /* A very light background for the SVG */
-  border-radius: 6px;
-  overflow: hidden; /* Ensures SVG corners are rounded */
+  min-height: 820px;
+  height: min(82vh, 1000px);
+  background: #fdfdfd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(var(--blacks), 0.08);
 }
 
 .network-graph-container svg {
@@ -14,17 +16,53 @@
 }
 
 /* --- Loading/Empty Messages --- */
-/* These styles are used inside the .analytics-table-container */
-.no-data-message, .loading-message {
+.network-page .no-data-message,
+.network-page .loading-message {
   text-align: center;
   color: rgba(var(--greys), 1);
   padding: 40px;
   font-style: italic;
   font-size: var(--normal);
-  min-height: 600px; /* Match graph height */
+  min-height: min(82vh, 1000px);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* --- Row: Carbon Scope (left) and View types (right) --- */
+.network-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0 1rem;
+}
+
+.network-controls-row .header-col {
+  min-width: 0;
+}
+
+.network-controls-row .header-col label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.network-view-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.network-view-toggle-wrap .view-label {
+  font-size: var(--small);
+  color: rgba(var(--blacks), 0.85);
+}
+
+.network-view-toggle-wrap .view-label.active {
+  font-weight: 600;
+  color: rgba(var(--primary), 1);
 }
 
 /* --- D3 Graph Styles --- */
@@ -50,48 +88,54 @@
   stroke-width: 1.5px;
 }
 
-/* --- Legend (Top-Left) --- */
-.graph-legend {
+/* --- Merged tooltip: legend + node information --- */
+.network-graph-container .graph-tooltip {
   position: absolute;
-  top: 15px;
-  left: 15px; /* Positioned top-left */
-  background: rgba(var(--whites), 0.9);
-  border: 1px solid rgba(var(--blacks), 0.1);
-  border-radius: 0.5rem; /* Match global style */
+  top: 12px;
+  left: 12px;
+  width: 200px;
+  max-height: 85%;
+  overflow-y: auto;
+  background: rgba(var(--whites), 0.97);
+  border: 1px solid rgba(var(--blacks), 0.08);
+  border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 2px 8px rgba(var(--blacks), 0.1);
+  box-shadow: 0 2px 12px rgba(var(--blacks), 0.1);
   z-index: 10;
   font-family: 'Inter', sans-serif;
   font-size: var(--small);
-  width: 200px; /* Fixed width */
 }
 
-.graph-legend strong {
+.graph-tooltip .graph-tooltip-legend strong,
+.graph-tooltip-legend strong {
   display: block;
   font-weight: var(--bold);
   font-size: 13px;
   color: rgba(var(--primary), 1);
-  margin-bottom: 8px;
-  padding-bottom: 5px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
   border-bottom: 1px solid rgba(var(--blacks), 0.1);
 }
 
-.graph-legend ul {
+.graph-tooltip .graph-tooltip-legend ul,
+.graph-tooltip-legend ul {
   list-style: none;
   padding: 0;
-  margin: 0;
-  max-height: 150px;
+  margin: 0 0 10px 0;
+  max-height: 120px;
   overflow-y: auto;
 }
 
-.legend-item {
+.graph-tooltip .legend-item,
+.graph-tooltip-legend .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   color: rgba(var(--blacks), 1);
 }
 
-.legend-color-swatch {
+.graph-tooltip .legend-color-swatch,
+.graph-tooltip-legend .legend-color-swatch {
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -101,24 +145,61 @@
   border: 1px solid rgba(var(--blacks), 0.1);
 }
 
-/* --- Node Info Box (replaces tooltip) --- */
-.graph-info {
-  position: absolute;
-  top: 150px; /* Position it below the legend */
-  left: 15px;  /* Align with legend */
-  width: 200px; /* Match legend width */
-  background-color: rgba(var(--whites), 1);
-  border: 1px solid rgba(var(--blacks), 0.1);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  font-size: var(--small);
-  line-height: 1.5;
-  box-shadow: 0 4px 12px rgba(var(--blacks), 0.1);
-  z-index: 10;
-  pointer-events: none; /* So it doesn't block mouse events on the SVG */
+.graph-tooltip .graph-tooltip-info {
+  border-top: 1px solid rgba(var(--blacks), 0.08);
+  padding-top: 10px;
+  pointer-events: none;
 }
 
-.graph-info p {
-  margin: 0;
+.graph-tooltip .graph-tooltip-info strong {
+  font-size: 12px;
+  color: rgba(var(--blacks), 0.9);
+}
+
+.graph-tooltip .graph-tooltip-info p {
+  margin: 0 0 4px 0;
   padding: 0;
+  font-size: var(--small);
+}
+
+/* --- Component tabs (Component View) --- */
+.component-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(var(--greys), 0.2);
+}
+
+.component-tab-btn {
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(var(--blacks), 1);
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.component-tab-btn:hover {
+  background-color: rgba(var(--greys), 0.2);
+}
+
+.component-tab-btn.active {
+  color: rgba(var(--primary), 1);
+  border-bottom-color: rgba(var(--primary), 1);
+}
+
+/* Components with no upstream inputs in the graph — greyed out in the tab bar */
+.component-tab-btn.no-inputs {
+  opacity: 0.55;
+  color: rgba(var(--greys), 0.9);
+}
+
+.component-tab-btn.no-inputs.active {
+  color: rgba(var(--primary), 0.75);
+  border-bottom-color: rgba(var(--primary), 0.6);
 }

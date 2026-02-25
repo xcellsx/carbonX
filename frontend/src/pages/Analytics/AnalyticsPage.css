@@ -113,6 +113,36 @@
   border-bottom-color: rgba(var(--primary), 1);
 }
 
+/* --- Chip Group (Scope tabs) --- */
+.chip-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(var(--blacks), 0.8);
+  background-color: rgba(var(--greys), 0.1);
+  border: 1px solid rgba(var(--greys), 0.3);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip:hover {
+  background-color: rgba(var(--greys), 0.2);
+  border-color: rgba(var(--greys), 0.4);
+}
+
+.chip.active {
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+  border-color: rgba(var(--primary), 1);
+}
+
 /* --- Component Analysis (Inputs, Outputs, Impacts) --- */
 .component-analysis-container {
   /* --- UPDATED: Border removed --- */
@@ -129,7 +159,7 @@
 .loading-message,
 .no-data-message {
   text-align: center;
-  padding: 2rem;
+  padding: 1rem;
   color: #64748b;
   font-size: 0.9375rem;
 }
@@ -137,6 +167,8 @@
 .analytics-table-container {
   overflow-x: auto; /* Allow horizontal scroll if table is too wide */
   width: 100%;
+  max-height: 400px; /* Limit table height */
+  overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 .analytics-table {

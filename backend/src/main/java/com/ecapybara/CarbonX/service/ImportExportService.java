@@ -77,10 +77,17 @@ public class ImportExportService {
 
   public Mono<?> importCSV(String targetCollection, String filename) {
     try {
-      // Find CSV file
+      // Find CSV file: support both run from repo root (backend/temp) and from backend dir (temp)
       String projectRoot = System.getProperty("user.dir");
-      Path dir = Paths.get(projectRoot, "temp");
+      Path dir = Paths.get(projectRoot, "backend/temp");
+      if (!Files.isDirectory(dir)) {
+        dir = Paths.get(projectRoot, "temp");
+      }
       Path filepath = dir.resolve(filename);
+      if (!Files.exists(filepath)) {
+        log.warn("CSV not found: {} (user.dir={})", filepath, projectRoot);
+        return Mono.error(new IOException("CSV file not found: " + filepath));
+      }
 
       // Read, convert and save CSV file into database according to request type
       Reader reader = Files.newBufferedReader(filepath);
@@ -116,7 +123,6 @@ public class ImportExportService {
                                           .withIgnoreEmptyLine(true)
                                           .build()
                                           .parse();
-
           inputList.forEach(input -> inputRepository.save(input)); // save each document into the correct repo
 
           return Mono.just(String.format("Import successful for '%s' into INPUT repository!", filename));

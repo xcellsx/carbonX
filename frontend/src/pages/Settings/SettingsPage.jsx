@@ -8,7 +8,7 @@ import { useCompanyForm } from '../../hooks/useCompanyForm';
 import CompanyForm from '../Company/CompanyForm';
 import BillingSubscriptions from './BillingSubscriptions'; 
 import BillingHistory from './BillingHistory';
-import { API_BASE } from '../../services/api';
+import { usersAPI } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
@@ -57,37 +57,54 @@ const SettingsPage = () => {
     localStorage.setItem('settingsTab', activeTab);
   }, [activeTab]);
 
-  // --- UPDATED: Load user data from Backend API on mount ---
+  // --- Load user data: try Backend API first, then fall back to profile saved at login/signup ---
   useEffect(() => {
     const fetchUserData = async () => {
       const currentUserId = localStorage.getItem('userId');
       if (!currentUserId) {
         console.error("SettingsPage: No user ID found in localStorage.");
+        loadProfileFromStorage();
         return;
       }
 
+      const key = currentUserId.includes('/') ? currentUserId.split('/').pop() : currentUserId;
+
       try {
-        const res = await fetch(`${API_BASE}/users/${currentUserId}/profile`);
-        if (res.ok) {
-          const data = await res.json();
-          
-          // Map the API response to your state
-          // Note: 'phone' is not currently returned by your backend endpoint
+        const res = await usersAPI.getByKey(key);
+        const data = res.data;
+        if (data) {
+          const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.fullName || '';
           const loadedDetails = {
-            fullName: data.fullName || '', 
+            fullName: fullName || data.fullName || '',
             email: data.email || '',
-            phone: data.phone || '' 
+            phone: data.phone || '',
           };
-          
           setUserDetails(loadedDetails);
           setInitialUserDetails(loadedDetails);
-        } else {
-          console.error("Failed to fetch user profile:", res.status);
+          return;
         }
       } catch (err) {
-        console.error("Error fetching user profile:", err);
+        console.error("Failed to fetch user profile:", err.response?.status ?? err.message);
       }
+
+      loadProfileFromStorage();
     };
+
+    function loadProfileFromStorage() {
+      try {
+        const saved = localStorage.getItem('carbonx_user_profile');
+        if (saved) {
+          const profile = JSON.parse(saved);
+          const loadedDetails = {
+            fullName: profile.fullName || '',
+            email: profile.email || '',
+            phone: profile.phone || '',
+          };
+          setUserDetails(loadedDetails);
+          setInitialUserDetails(loadedDetails);
+        }
+      } catch (_) {}
+    }
 
     fetchUserData();
   }, []); 
@@ -124,9 +141,8 @@ const SettingsPage = () => {
       return;
     }
 
-    // TODO: Update this to send a POST/PUT request to your backend
-    // Currently it just saves to LocalStorage which won't persist across devices
-    
+    const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+
     // Save Account Details locally for now
     const allUsers = JSON.parse(localStorage.getItem('users')) || [];
     const updatedUsers = allUsers.map(user => {
@@ -138,14 +154,18 @@ const SettingsPage = () => {
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     setInitialUserDetails(userDetails); 
 
+    try {
+      localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName: userDetails.fullName || '', email: userDetails.email || '', phone: userDetails.phone || '' }));
+    } catch (_) {}
+
     if (isPasswordDirty) { 
       console.log('Saving new password...', { password });
       setPassword(''); 
     }
 
-    // Save Company Info
+    // Save Company Info (use same key as Company Info page so it loads in both places)
     const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-    allCompanyData[userId] = companyForm;
+    allCompanyData[storageKey] = companyForm;
     localStorage.setItem('companyData', JSON.stringify(allCompanyData));
     resetCompanyForm(); 
     
@@ -153,7 +173,11 @@ const SettingsPage = () => {
   };
   
   const handleLogout = () => {
+    const companyData = localStorage.getItem('companyData');
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
     localStorage.clear();
+    if (companyData) localStorage.setItem('companyData', companyData);
+    if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
     navigate('/login');
   };
   

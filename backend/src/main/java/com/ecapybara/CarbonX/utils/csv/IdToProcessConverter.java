@@ -25,7 +25,7 @@ public class IdToProcessConverter extends AbstractBeanField<Process, String> {
   }
 
   @Override
-  protected Process convert(String value) {
+  public Process convert(String value) {
     ProcessRepository repo = getProcessRepository();
     return repo.findById(value).orElse(null);
   }

@@ -68,14 +68,19 @@
 
 .edit-template-table-wrap {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid rgba(var(--greys), 0.25);
   border-radius: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .edit-template-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
+  position: relative;
 }
 
 /* Same column layout for both tables: name | amount | unit | action */
@@ -89,6 +94,13 @@
   text-align: left;
   padding: 0.6rem 0.75rem;
   vertical-align: middle;
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure dropdown cells don't clip */
+.edit-template-table td {
+  overflow: visible !important;
 }
 
 .edit-template-table thead tr {
@@ -101,9 +113,16 @@
   font-weight: var(--bold);
 }
 
+.edit-template-table tbody {
+  position: relative;
+  overflow: visible;
+}
+
 .edit-template-table tbody tr {
   background: rgba(var(--whites), 1);
   border-bottom: 1px solid rgba(var(--greys), 0.15);
+  position: relative;
+  overflow: visible;
 }
 
 .edit-template-table tbody tr:last-child {
@@ -136,7 +155,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 100%;
+  top: calc(100% + 0.25rem);
   margin: 0;
   padding: 0.25rem 0;
   list-style: none;
@@ -146,7 +165,10 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   max-height: 220px;
   overflow-y: auto;
-  z-index: 10;
+  overflow-x: hidden;
+  z-index: 99999;
+  min-width: 100%;
+  width: 100%;
 }
 .edit-template-element-dropdown-item {
   padding: 0.4rem 0.75rem;

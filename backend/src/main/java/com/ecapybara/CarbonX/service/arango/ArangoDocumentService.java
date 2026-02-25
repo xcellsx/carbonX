@@ -72,7 +72,7 @@ public class ArangoDocumentService extends BaseArangoService {
                 })
                 .retrieve()
                 .bodyToMono(Map.class)
-                .doOnSuccess(result -> log.info("Successfully retrieved document: {}/{}", collection, key));
+                .doOnSuccess(result -> log.info("Successfully retrieved {}/{} -> {}", collection, key, result));
     }
 
     /**

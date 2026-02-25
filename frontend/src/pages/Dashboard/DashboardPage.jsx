@@ -8,7 +8,7 @@ import {
   Utensils, Leaf, Droplet, ArrowRight, Zap, X,
   Sparkles, CircleCheck, ShieldUser, Wheat, Earth, Dna, Plus,
   Database, Car, Recycle, ShieldAlert, HeartPulse, Tags, Users, Globe, Lock,
-  Factory, ChevronLeft, ChevronRight, LayoutDashboard
+  Factory, ChevronLeft, ChevronRight, LayoutDashboard, Wind, Scale, AlertTriangle, Plane
 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import { API_BASE } from '../../services/api';
@@ -28,6 +28,22 @@ const allMetricDefinitions = [
   { id: 'labour-practices', name: 'Labour Practices', icon: Users },
   { id: 'supply-chain-impacts', name: 'Management of Env. & Social Impacts', icon: Globe },
   { id: 'gmo', name: 'GMO Management', icon: Dna, isPro: true }, 
+  // Transport / Marine Transportation metrics
+  { id: 'transport-ghg', name: 'Greenhouse Gas Emissions', icon: Factory },
+  { id: 'transport-air-quality', name: 'Air Quality', icon: Wind },
+  { id: 'transport-ecological', name: 'Ecological Impacts', icon: Leaf },
+  { id: 'transport-customer-safety', name: 'Customer Health & Safety', icon: ShieldUser },
+  { id: 'transport-business-ethics', name: 'Business Ethics', icon: Scale },
+  { id: 'transport-workforce-safety', name: 'Workforce Health & Safety', icon: Users },
+  { id: 'transport-accident-safety', name: 'Accident & Safety Management', icon: AlertTriangle },
+  // Transport / Airlines (planes) metrics
+  { id: 'airlines-ghg', name: 'Greenhouse Gas Emissions', icon: Plane },
+  { id: 'airlines-air-quality', name: 'Air Quality', icon: Wind },
+  { id: 'airlines-ecological', name: 'Ecological Impacts', icon: Leaf },
+  { id: 'airlines-customer-safety', name: 'Customer Health & Safety', icon: ShieldUser },
+  { id: 'airlines-business-ethics', name: 'Business Ethics', icon: Scale },
+  { id: 'airlines-workforce-safety', name: 'Workforce Health & Safety', icon: Users },
+  { id: 'airlines-accident-safety', name: 'Accident & Safety Management', icon: AlertTriangle },
 ];
 
 const ALL_METRIC_DATA_DEFINITIONS = {
@@ -71,6 +87,43 @@ const ALL_METRIC_DATA_DEFINITIONS = {
   'FB-FR-430a.4': { staticValue: 'User Input', unit: '' }, // Qualitative
   
   'FB-FR-430b.1': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+
+  // --- Transport / Marine Transportation metrics ---
+  'TR-MR-GHG-1': { staticValue: 'User Input', unit: 'kgCO2e' },
+  'TR-MR-GHG-2': { staticValue: 'User Input', unit: '' }, // Discussion and Analysis
+  'TR-MR-GHG-3a': { staticValue: 'User Input', unit: 'GJ' },
+  'TR-MR-GHG-3b': { staticValue: 'User Input', unit: '% heavy fuel oil' },
+  'TR-MR-GHG-3c': { staticValue: 'User Input', unit: '% renewable' },
+  'TR-MR-GHG-4': { staticValue: 'User Input', unit: 'EEDI' },
+  'TR-MR-AQ-1': { staticValue: 'User Input', unit: 'NOx, SOx, PM10' },
+  'TR-MR-ECOL-1': { staticValue: 'User Input', unit: 'hours' },
+  'TR-MR-ECOL-2': { staticValue: 'User Input', unit: '% fleet' },
+  'TR-MR-ECOL-3': { staticValue: 'User Input', unit: 'number / volume' },
+  'TR-MR-CHS-1': { staticValue: 'User Input', unit: 'incidents' },
+  'TR-MR-CHS-2': { staticValue: 'User Input', unit: '%' },
+  'TR-MR-CHS-3': { staticValue: 'User Input', unit: 'per million / voyages' },
+  'TR-MR-BE-1': { staticValue: 'User Input', unit: 'port calls' },
+  'TR-MR-BE-2': { staticValue: 'User Input', unit: '$' },
+  'TR-MR-WHS-1': { staticValue: 'User Input', unit: 'LTIR' },
+  'TR-MR-ASM-1': { staticValue: 'User Input', unit: 'casualties' },
+  'TR-MR-ASM-2': { staticValue: 'User Input', unit: 'conditions' },
+  'TR-MR-ASM-3': { staticValue: 'User Input', unit: 'deficiencies / detentions' },
+
+  // --- Transport / Airlines (planes) metrics ---
+  'TR-AR-GHG-1': { staticValue: 'User Input', unit: 'kgCO2e' },
+  'TR-AR-GHG-2': { staticValue: 'User Input', unit: '' },
+  'TR-AR-GHG-3a': { staticValue: 'User Input', unit: 'GJ' },
+  'TR-AR-GHG-4': { staticValue: 'User Input', unit: 'e.g. kg CO2/RPK' },
+  'TR-AR-AQ-1': { staticValue: 'User Input', unit: 'NOx, SOx, PM' },
+  'TR-AR-ECOL-1': { staticValue: 'User Input', unit: 'hours' },
+  'TR-AR-ECOL-2': { staticValue: 'User Input', unit: '% fleet' },
+  'TR-AR-CHS-1': { staticValue: 'User Input', unit: 'incidents' },
+  'TR-AR-CHS-2': { staticValue: 'User Input', unit: '%' },
+  'TR-AR-BE-1': { staticValue: 'User Input', unit: 'flights' },
+  'TR-AR-BE-2': { staticValue: 'User Input', unit: '$' },
+  'TR-AR-WHS-1': { staticValue: 'User Input', unit: 'LTIR' },
+  'TR-AR-ASM-1': { staticValue: 'User Input', unit: 'incidents' },
+  'TR-AR-ASM-2': { staticValue: 'User Input', unit: 'findings' },
 };
 
 const METRIC_BREAKDOWN_DATA = {
@@ -248,6 +301,111 @@ const METRIC_BREAKDOWN_DATA = {
       },
     ]
   },
+
+  // --- Transport / Marine Transportation (sector: Transportation, industry: Marine Transportation) ---
+  'transport-ghg': {
+    title: 'Greenhouse Gas Emissions', icon: Factory,
+    subMetrics: [
+      { name: 'Gross Global Scope 1 emissions', type: 'Quantitative', dataKey: 'TR-MR-GHG-1', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Scope 1 from marine operations. Consider fuel switching and efficiency measures to meet reduction targets.' },
+      { name: 'Discussion of long-term and short-term strategy or plan to manage Scope 1 emissions, emissions reduction targets and an analysis of performance against those targets', type: 'Discussion and Analysis', dataKey: 'TR-MR-GHG-2', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Document a clear roadmap with near-term and long-term targets aligned with IMO ambitions.' },
+      { name: '(1) Total energy consumed (2) percentage heavy fuel oil, and percentage renewable', type: 'Quantitative', dataKey: 'TR-MR-GHG-3a', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Track energy mix to identify decarbonisation levers.' },
+      { name: 'Average Energy Efficiency Design Index (EEDI)', type: 'Quantitative', dataKey: 'TR-MR-GHG-4', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: EEDI improvement supports compliance and fuel savings.' },
+    ]
+  },
+  'transport-air-quality': {
+    title: 'Air Quality', icon: Wind,
+    subMetrics: [
+      { name: 'Air emissions of the following pollutants: (1) NOx (excluding N2O), (2) SOx and (3) particulate matter (PM10)', type: 'Quantitative', dataKey: 'TR-MR-AQ-1', sasbCategory: 'Air Quality', proContent: 'Analysis: Monitor NOx, SOx and PM10 to align with emission control areas and port requirements.' },
+    ]
+  },
+  'transport-ecological': {
+    title: 'Ecological Impacts', icon: Leaf,
+    subMetrics: [
+      { name: 'Shipping duration in marine protected areas or areas of protected conservation status', type: 'Quantitative', dataKey: 'TR-MR-ECOL-1', sasbCategory: 'Ecological Impacts', proContent: 'Analysis: Track time in sensitive areas to manage biodiversity and reputational risk.' },
+      { name: 'Percentage of fleet implementing ballast water (1) exchange and (2) treatment', type: 'Quantitative', dataKey: 'TR-MR-ECOL-2', sasbCategory: 'Ecological Impacts', proContent: 'Analysis: Ballast water management supports regulatory compliance and invasive species control.' },
+      { name: 'Number and aggregated volume of spills and releases to the environment', type: 'Quantitative', dataKey: 'TR-MR-ECOL-3', sasbCategory: 'Ecological Impacts', proContent: 'Analysis: Zero spill targets and response readiness reduce environmental and liability risk.' },
+    ]
+  },
+  'transport-customer-safety': {
+    title: 'Customer Health & Safety', icon: ShieldUser,
+    subMetrics: [
+      { name: 'Number of alleged crime incidents involving passengers or employees', type: 'Quantitative', dataKey: 'TR-MR-CHS-1', sasbCategory: 'Customer Health & Safety', proContent: 'Analysis: Security protocols and reporting support passenger and crew safety.' },
+      { name: 'Percentage of fleet inspections failed', type: 'Quantitative', dataKey: 'TR-MR-CHS-2', sasbCategory: 'Customer Health & Safety', proContent: 'Analysis: Reduce failed inspections through preventive maintenance and crew training.' },
+      { name: '(1) Serious injuries per million passengers and (2) number of voyages with a gastrointestinal illness count exceeding 25', type: 'Quantitative', dataKey: 'TR-MR-CHS-3', sasbCategory: 'Customer Health & Safety', proContent: 'Analysis: Track leading indicators to improve health and safety outcomes.' },
+    ]
+  },
+  'transport-business-ethics': {
+    title: 'Business Ethics', icon: Scale,
+    subMetrics: [
+      { name: 'Number of calls at ports in the countries that have the 20 lowest rankings in Transparency International\'s Corruption Perception Index', type: 'Quantitative', dataKey: 'TR-MR-BE-1', sasbCategory: 'Business Ethics', proContent: 'Analysis: Monitor port exposure to high-corruption jurisdictions and strengthen due diligence.' },
+      { name: 'Total amount of monetary losses as a result of legal proceedings associated with bribery or corruption', type: 'Quantitative', dataKey: 'TR-MR-BE-2', sasbCategory: 'Business Ethics', proContent: 'Analysis: Robust anti-bribery policies and training reduce legal and reputational risk.' },
+    ]
+  },
+  'transport-workforce-safety': {
+    title: 'Workforce Health & Safety', icon: Users,
+    subMetrics: [
+      { name: 'Lost time incident rate (LTIR)', type: 'Quantitative', dataKey: 'TR-MR-WHS-1', sasbCategory: 'Workforce Health & Safety', proContent: 'Analysis: LTIR trends indicate effectiveness of safety programmes and training.' },
+    ]
+  },
+  'transport-accident-safety': {
+    title: 'Accident & Safety Management', icon: AlertTriangle,
+    subMetrics: [
+      { name: '(1) Number of marine casualties, (2) percentage classified as very serious', type: 'Quantitative', dataKey: 'TR-MR-ASM-1', sasbCategory: 'Accident & Safety Management', proContent: 'Analysis: Root cause analysis and lessons learned support continuous improvement.' },
+      { name: 'Number of conditions of Class or Recommendations', type: 'Quantitative', dataKey: 'TR-MR-ASM-2', sasbCategory: 'Accident & Safety Management', proContent: 'Analysis: Address class conditions promptly to maintain vessel eligibility and safety.' },
+      { name: 'Number of port state control (1) deficiencies and (2) detentions', type: 'Quantitative', dataKey: 'TR-MR-ASM-3', sasbCategory: 'Accident & Safety Management', proContent: 'Analysis: Minimise PSC findings through proactive maintenance and compliance.' },
+    ]
+  },
+
+  // --- Transport / Airlines (planes) - sector: Transportation, industry: Airlines ---
+  'airlines-ghg': {
+    title: 'Greenhouse Gas Emissions', icon: Plane,
+    subMetrics: [
+      { name: 'Gross Global Scope 1 emissions (aviation fuel)', type: 'Quantitative', dataKey: 'TR-AR-GHG-1', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Scope 1 from aircraft operations. Consider SAF blend and fleet renewal to meet CORSIA and net-zero targets.' },
+      { name: 'Discussion of strategy and targets for Scope 1 emissions and performance', type: 'Discussion and Analysis', dataKey: 'TR-AR-GHG-2', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Align roadmap with ICAO CORSIA and science-based targets.' },
+      { name: 'Total energy consumed and percentage renewable / SAF', type: 'Quantitative', dataKey: 'TR-AR-GHG-3a', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Track SAF uptake and energy efficiency (e.g. kg CO2/RPK).' },
+      { name: 'Fuel efficiency (e.g. kg CO2 per revenue passenger-km)', type: 'Quantitative', dataKey: 'TR-AR-GHG-4', sasbCategory: 'Greenhouse Gas Emissions', proContent: 'Analysis: Fleet and operational efficiency drive emissions intensity.' },
+    ]
+  },
+  'airlines-air-quality': {
+    title: 'Air Quality', icon: Wind,
+    subMetrics: [
+      { name: 'Air emissions: NOx, SOx, particulate matter (ground and cruise)', type: 'Quantitative', dataKey: 'TR-AR-AQ-1', sasbCategory: 'Air Quality', proContent: 'Analysis: Monitor NOx and PM to align with airport and ICAO standards.' },
+    ]
+  },
+  'airlines-ecological': {
+    title: 'Ecological Impacts', icon: Leaf,
+    subMetrics: [
+      { name: 'Aircraft operations in or near protected/sensitive areas', type: 'Quantitative', dataKey: 'TR-AR-ECOL-1', sasbCategory: 'Ecological Impacts', proContent: 'Analysis: Track exposure to sensitive habitats and noise-sensitive areas.' },
+      { name: 'Percentage of fleet with noise and emissions certifications (e.g. Chapter 14)', type: 'Quantitative', dataKey: 'TR-AR-ECOL-2', sasbCategory: 'Ecological Impacts', proContent: 'Analysis: Fleet modernisation reduces noise and local emissions.' },
+    ]
+  },
+  'airlines-customer-safety': {
+    title: 'Customer Health & Safety', icon: ShieldUser,
+    subMetrics: [
+      { name: 'Number of alleged security or safety incidents involving passengers or crew', type: 'Quantitative', dataKey: 'TR-AR-CHS-1', sasbCategory: 'Customer Health & Safety', proContent: 'Analysis: Security and cabin safety protocols support passenger and crew welfare.' },
+      { name: 'Percentage of fleet or audits failing safety/security inspections', type: 'Quantitative', dataKey: 'TR-AR-CHS-2', sasbCategory: 'Customer Health & Safety', proContent: 'Analysis: Reduce findings through preventive maintenance and training.' },
+    ]
+  },
+  'airlines-business-ethics': {
+    title: 'Business Ethics', icon: Scale,
+    subMetrics: [
+      { name: 'Operations in high-corruption-risk jurisdictions (e.g. low CPI)', type: 'Quantitative', dataKey: 'TR-AR-BE-1', sasbCategory: 'Business Ethics', proContent: 'Analysis: Monitor exposure and strengthen due diligence and anti-bribery controls.' },
+      { name: 'Monetary losses from legal proceedings (bribery/corruption)', type: 'Quantitative', dataKey: 'TR-AR-BE-2', sasbCategory: 'Business Ethics', proContent: 'Analysis: Robust compliance programmes reduce legal and reputational risk.' },
+    ]
+  },
+  'airlines-workforce-safety': {
+    title: 'Workforce Health & Safety', icon: Users,
+    subMetrics: [
+      { name: 'Lost time incident rate (LTIR) – ground and flight crew', type: 'Quantitative', dataKey: 'TR-AR-WHS-1', sasbCategory: 'Workforce Health & Safety', proContent: 'Analysis: LTIR trends indicate effectiveness of safety and fatigue management.' },
+    ]
+  },
+  'airlines-accident-safety': {
+    title: 'Accident & Safety Management', icon: AlertTriangle,
+    subMetrics: [
+      { name: 'Number of accidents/incidents and percentage classified as serious', type: 'Quantitative', dataKey: 'TR-AR-ASM-1', sasbCategory: 'Accident & Safety Management', proContent: 'Analysis: Learning from incidents supports continuous safety improvement.' },
+      { name: 'Number of regulatory or audit findings (e.g. IOSA, state authority)', type: 'Quantitative', dataKey: 'TR-AR-ASM-2', sasbCategory: 'Accident & Safety Management', proContent: 'Analysis: Address findings promptly to maintain operating authority.' },
+    ]
+  },
 };
 
 const DASHBOARD_CAROUSEL_SLIDES = [
@@ -388,14 +546,57 @@ const DashboardPage = () => {
           "gmo"
         ];
 
+        const marineTransportList = [
+          "transport-ghg",
+          "transport-air-quality",
+          "transport-ecological",
+          "transport-customer-safety",
+          "transport-business-ethics",
+          "transport-workforce-safety",
+          "transport-accident-safety",
+        ];
+
+        const airlinesList = [
+          "airlines-ghg",
+          "airlines-air-quality",
+          "airlines-ecological",
+          "airlines-customer-safety",
+          "airlines-business-ethics",
+          "airlines-workforce-safety",
+          "airlines-accident-safety",
+        ];
+
+        const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        const storageKey = currentUserId.includes('/') ? currentUserId.split('/').pop() : currentUserId;
+        const userCompany = allCompanyData[currentUserId] ?? allCompanyData[storageKey] ?? null;
+        const sector = (userCompany?.sector || '').trim();
+        const industry = (userCompany?.industry || '').trim();
+
+        const isFnb = sector === 'Food & Beverages' || sector === 'FNB' || sector === 'F&B';
+        const isMarineTransport = sector === 'Transportation' && industry === 'Marine Transportation';
+        const isAirlines = sector === 'Transportation' && industry === 'Airlines';
+
+        let metricList;
+        if (isFnb) {
+          metricList = standardList;
+        } else if (isMarineTransport) {
+          metricList = marineTransportList;
+        } else if (isAirlines) {
+          metricList = airlinesList;
+        } else {
+          metricList = standardList;
+        }
+
         setMetrics({
-          metricList: standardList,
+          metricList,
           data: baseData,
-          topContributors: []
+          topContributors: [],
+          sector: sector || null,
+          industry: industry || null,
         });
 
-        if (standardList.length > 0) {
-          setActiveMetricId(prevId => prevId || standardList[0]);
+        if (metricList.length > 0) {
+          setActiveMetricId(prevId => (metricList.includes(prevId) ? prevId : metricList[0]));
         }
       } catch (error) {
         console.error("Error loading dashboard:", error);
@@ -584,7 +785,7 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="dashboard" slides={DASHBOARD_CAROUSEL_SLIDES} newUserOnly={false} />
+      <InstructionalCarousel pageId="dashboard" slides={DASHBOARD_CAROUSEL_SLIDES} newUserOnly />
       <Navbar />
 
       <div className="content-section-main">
@@ -600,7 +801,9 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
               <p className='descriptor-medium'>Key Metrics</p>
               {hasProducts ? (
                 <p style = {{color: "rgba(var(--greys), 1)"}}>
-                  Showing {metricsForIndustry.length} of {allMetricDefinitions.length} metrics
+                  {metrics?.sector
+                    ? `Showing ${metricsForIndustry.length} metrics for ${metrics.sector}${metrics.industry ? ` · ${metrics.industry}` : ''}`
+                    : `Showing ${metricsForIndustry.length} metrics`}
                 </p>
               ) : (
                 <p style = {{color: "rgba(var(--greys), 1)"}}>

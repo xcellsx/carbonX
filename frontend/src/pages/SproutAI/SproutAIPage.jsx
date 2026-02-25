@@ -4,10 +4,11 @@ import ReactMarkdown from 'react-markdown';
 import './SproutAIPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationModal';
-import { Send, FileText, MessageSquare, Sprout, PlusCircle, Trash2, Sparkles } from 'lucide-react';
+import { Send, FileText, MessageSquare, Sprout, PlusCircle, Trash2, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import { chatCompletion, reportSummaryForChat, generateStructuredReport } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
+import { validateReportSchema } from '../../utils/reportSchema';
 
 const MarkdownMessage = ({ content }) => (
   <div className="message-markdown">
@@ -17,6 +18,24 @@ const MarkdownMessage = ({ content }) => (
 
 const SESSIONS_KEY = 'sproutai_sessions';
 const CURRENT_MESSAGES_KEY = 'sproutai_current_messages';
+const FEEDBACK_KEY = 'sproutai_feedback';
+
+function loadFeedbackMap() {
+  try {
+    const s = localStorage.getItem(FEEDBACK_KEY);
+    if (s) {
+      const o = JSON.parse(s);
+      return typeof o === 'object' && o !== null ? o : {};
+    }
+  } catch (e) {}
+  return {};
+}
+
+function saveFeedbackMap(map) {
+  try {
+    localStorage.setItem(FEEDBACK_KEY, JSON.stringify(map));
+  } catch (e) {}
+}
 
 const SYSTEM_PROMPT = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You answer questions about Scope 1/2/3 emissions, life cycle assessment (LCA), carbon reporting, and general sustainability. When a user asks you to generate or write a report, give a brief acknowledgment only (e.g. that you're generating it); the full report is produced separately. For normal chat questions, be concise and helpful.`;
 
@@ -71,6 +90,9 @@ const SproutAiPage = () => {
   const lastSentRef = useRef({ text: '', time: 0 });
   /* If user opened a session from History but hasn't sent any message, don't create a duplicate on tab switch */
   const viewingSessionIdRef = useRef(null);
+  const openedSessionIdRef = useRef(null);
+  const currentChatIdRef = useRef(`cur_${Date.now()}`);
+  const [feedbackMap, setFeedbackMap] = useState(loadFeedbackMap);
 
   useEffect(() => {
     if (chatHistoryRef.current) {
@@ -106,6 +128,21 @@ const SproutAiPage = () => {
         messages: [...messages],
         createdAt: new Date().toISOString(),
       };
+      const oldCurId = currentChatIdRef.current;
+      const newId = newSession.id;
+      setFeedbackMap((prev) => {
+        const next = { ...prev };
+        Object.keys(prev).forEach((k) => {
+          if (k.startsWith(`${oldCurId}_`)) {
+            const idx = k.slice(oldCurId.length + 1);
+            next[`${newId}_${idx}`] = prev[k];
+            delete next[k];
+          }
+        });
+        saveFeedbackMap(next);
+        return next;
+      });
+      currentChatIdRef.current = `cur_${Date.now()}`;
       setSessions(prev => [newSession, ...prev]);
       setMessages([]);
     }
@@ -114,6 +151,8 @@ const SproutAiPage = () => {
   const startNewChat = () => {
     if (messages.length === 0) return;
     viewingSessionIdRef.current = null;
+    openedSessionIdRef.current = null;
+    currentChatIdRef.current = `cur_${Date.now()}`;
     const title = summarizeSessionTitle(messages);
     const newSession = {
       id: `sess_${Date.now()}`,
@@ -138,8 +177,25 @@ const SproutAiPage = () => {
 
   const openSessionInChat = (session) => {
     viewingSessionIdRef.current = session.id;
+    openedSessionIdRef.current = session.id;
     setMessages(session.messages);
     setActiveTab('chat');
+  };
+
+  const getEffectiveSessionId = () => {
+    if (openedSessionIdRef.current) return openedSessionIdRef.current;
+    if (messages.length > 0) return currentChatIdRef.current;
+    return null;
+  };
+
+  const setFeedback = (sessionId, messageIndex, helpful) => {
+    if (!sessionId) return;
+    const key = `${sessionId}_${messageIndex}`;
+    setFeedbackMap((prev) => {
+      const next = { ...prev, [key]: helpful };
+      saveFeedbackMap(next);
+      return next;
+    });
   };
 
   const isReportRequest = (text) => {
@@ -168,6 +224,9 @@ const SproutAiPage = () => {
     }
     lastSentRef.current = { text: textToSend, time: now };
 
+    if (messages.length === 0 && !openedSessionIdRef.current) {
+      currentChatIdRef.current = `cur_${Date.now()}`;
+    }
     viewingSessionIdRef.current = null;
     const newMessages = [...messages, { sender: 'user', text: textToSend }];
     setMessages(newMessages);
@@ -191,6 +250,25 @@ const SproutAiPage = () => {
           reportSummaryForChat(fullRequest),
           generateStructuredReport(fullRequest).catch(() => null),
         ]);
+        if (fullData) {
+          const validation = validateReportSchema(fullData);
+          if (!validation.valid) {
+            console.warn('[Sprout AI] Report schema validation failed:', validation.errors);
+            try {
+              const stats = JSON.parse(localStorage.getItem('sproutai_report_validation') || '{}');
+              stats.fail = (stats.fail || 0) + 1;
+              stats.lastErrors = validation.errors.slice(0, 5);
+              stats.lastAt = new Date().toISOString();
+              localStorage.setItem('sproutai_report_validation', JSON.stringify(stats));
+            } catch (_) {}
+          } else {
+            try {
+              const stats = JSON.parse(localStorage.getItem('sproutai_report_validation') || '{}');
+              stats.pass = (stats.pass || 0) + 1;
+              localStorage.setItem('sproutai_report_validation', JSON.stringify(stats));
+            } catch (_) {}
+          }
+        }
         const fallbackTitle = textToSend.slice(0, 60) + (textToSend.length > 60 ? '…' : '');
         const reportName = fullData?.reportTitle || fallbackTitle;
         const description = fullData?.reportSummary || (fullData ? 'AI-generated sustainability report.' : 'AI-generated report based on your request.');
@@ -222,7 +300,7 @@ const SproutAiPage = () => {
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="sproutai" slides={SPROUTAI_CAROUSEL_SLIDES} newUserOnly={false} />
+      <InstructionalCarousel pageId="sproutai" slides={SPROUTAI_CAROUSEL_SLIDES} newUserOnly />
       <Navbar />
       <div className="content-section-main" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         
@@ -284,6 +362,26 @@ const SproutAiPage = () => {
                           <MarkdownMessage content={msg.text || msg.content} />
                         ) : (
                           (msg.text || msg.content)
+                        )}
+                        {msg.sender === 'assistant' && getEffectiveSessionId() && (
+                          <div className="message-feedback" aria-label="Was this helpful?">
+                            <button
+                              type="button"
+                              className={`message-feedback-btn ${feedbackMap[`${getEffectiveSessionId()}_${index}`] === true ? 'active' : ''}`}
+                              onClick={() => setFeedback(getEffectiveSessionId(), index, true)}
+                              aria-label="Helpful"
+                            >
+                              <ThumbsUp size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className={`message-feedback-btn ${feedbackMap[`${getEffectiveSessionId()}_${index}`] === false ? 'active' : ''}`}
+                              onClick={() => setFeedback(getEffectiveSessionId(), index, false)}
+                              aria-label="Not helpful"
+                            >
+                              <ThumbsDown size={14} />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

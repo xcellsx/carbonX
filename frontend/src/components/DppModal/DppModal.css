@@ -1,13 +1,74 @@
-.dpp-modal-pre {
-  max-width: 650px;
-  max-height: 60vh;
+.dpp-modal-body {
+  max-height: 65vh;
   overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  background: var(--main-bg);
   padding: 16px;
-  border-radius: 8px;
   margin: 0;
+}
+
+.dpp-modal-body--pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--main-bg);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.dpp-modal-body .dpp-section {
+  margin-bottom: 1.25rem;
+}
+
+.dpp-modal-body .dpp-section-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(var(--greys), 0.95);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(var(--greys), 0.3);
+}
+
+.dpp-modal-body .dpp-kv {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.35rem 1rem;
+  font-size: 0.9rem;
+  align-items: baseline;
+}
+
+.dpp-modal-body .dpp-kv__key {
+  color: rgba(var(--greys), 0.9);
+}
+
+.dpp-modal-body .dpp-carbon {
+  background: rgba(var(--greys), 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 0.5rem;
+}
+
+.dpp-modal-body .dpp-carbon .dpp-kv {
+  grid-template-columns: 80px 1fr;
+}
+
+.dpp-modal-body .dpp-carbon--compact {
+  padding: 10px 14px;
+}
+
+.dpp-modal-body .dpp-scopes-inline {
+  font-size: 0.9rem;
+  color: rgba(var(--greys), 0.95);
+}
+
+.dpp-modal-body .dpp-json {
+  background: rgba(var(--greys), 0.06);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow: auto;
+  margin-top: 0.5rem;
 }
 
 .dpp-modal-content {

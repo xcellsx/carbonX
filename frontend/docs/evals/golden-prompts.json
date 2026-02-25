@@ -1,0 +1,34 @@
+{
+  "chat": [
+    {
+      "id": "scope-definition",
+      "prompt": "What are Scope 1, Scope 2, and Scope 3 emissions?",
+      "expectKeywords": ["scope 1", "scope 2", "scope 3", "direct", "indirect", "emission"],
+      "description": "Must explain GHG scopes correctly"
+    },
+    {
+      "id": "lca-brief",
+      "prompt": "What is life cycle assessment (LCA)?",
+      "expectKeywords": ["life cycle", "LCA", "product", "impact", "carbon"],
+      "description": "Must describe LCA in sustainability context"
+    },
+    {
+      "id": "carbon-reporting",
+      "prompt": "How do companies report carbon footprint?",
+      "expectKeywords": ["report", "carbon", "footprint", "GHG", "standard"],
+      "description": "Must mention reporting or standards"
+    }
+  ],
+  "report": [
+    {
+      "id": "report-sustainability",
+      "prompt": "Generate a sustainability report for a fictional F&B company called GreenBite for FY2025.",
+      "description": "Must return valid JSON with all required keys and substantive content"
+    },
+    {
+      "id": "report-carbon",
+      "prompt": "Write a carbon report for a retail company focusing on Scope 3.",
+      "description": "Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets"
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import com.ecapybara.carbonx.model.basic.Graph;
 import com.ecapybara.carbonx.repository.*;
 import com.ecapybara.carbonx.service.GraphService;
 import com.ecapybara.carbonx.service.ImportExportService;
+import com.ecapybara.carbonx.service.arango.ArangoCollectionService;
 
 @Slf4j
 @ComponentScan("com.ecapybara.carbonx")
@@ -32,6 +33,8 @@ public class InitialSetup implements CommandLineRunner {
   private GraphService graphService;
   @Autowired
   private ImportExportService importExportService;
+  @Autowired
+  private ArangoCollectionService arangoCollectionService;
   
   @Override
   public void run(final String... args) throws Exception {
@@ -40,19 +43,19 @@ public class InitialSetup implements CommandLineRunner {
     operations.dropDatabase();
 
     // Create and save products
-    importExportService.importCSV("products", "masterProducts.csv");
+    importExportService.importCSV("products", "testProducts.csv");
     log.info("-> {} PRODUCT entries created", productRepository.count());
 
     // Create and save processes
-    importExportService.importCSV("processes", "masterProcesses.csv");
+    importExportService.importCSV("processes", "testProcesses.csv");
     log.info("-> {} PROCESS entries created", processRepository.count());
 
     // Create and save input relationships between entities
-    importExportService.importCSV("inputs", "masterInputs.csv");
+    importExportService.importCSV("inputs", "testInputs.csv");
     log.info("-> {} INPUTS entries created", inputRepository.count());
 
     // Create and save input relationships between entities
-    importExportService.importCSV("outputs", "masterOutputs.csv");
+    importExportService.importCSV("outputs", "testOutputs.csv");
     log.info("-> {} OUTPUTS entries created", outputRepository.count());
 
     // Create graph
@@ -60,16 +63,17 @@ public class InitialSetup implements CommandLineRunner {
     EdgeDefinition outputs = new EdgeDefinition("outputs", List.of("processes"), List.of("products"));
     Graph defaultGraph = new Graph("default", List.of(inputs, outputs));
     graphService.createGraph(defaultGraph)
-        .doOnSuccess(graph -> log.info("Graph created: {}", graph))
         .doOnError(error -> log.error("Failed to create graph", error))
         .block();  // Wait for completion (OK in CommandLineRunner); // IMPORTANT NOTE: I don't know why it works, but the .subscribe() is crucial to make the graph
 
-    // Export files
-    // importExportService.exportCSV("products", "exportProducts.csv").doOnError(error -> log.error("Failed to export PRODUCTS -> ", error));
-    // importExportService.exportCSV("processes", "exportProcesses.csv").doOnError(error -> log.error("Failed to export PROCESSES -> ", error));
-    // log.info("-> Successfully exported PROCESSES into complexProcesses.csv");
-    // importExportService.exportCSV("inputs", "exportInputs.csv").doOnError(error -> log.error("Failed to export INPUTS -> ", error));
-    // importExportService.exportCSV("outputs", "exportOutputs.csv").doOnError(error -> log.error("Failed to export OUTPUTS -> ", error));
+    // Ensure users collection exists for auth (login/signup). Without this, login returns 500.
+    try {
+      arangoCollectionService.getCollection("users").block();
+      log.info("-> USERS collection already exists");
+    } catch (Exception e) {
+      arangoCollectionService.createCollection("users", 2, null, null, null, null, null).block();
+      log.info("-> USERS collection created");
+    }
     
     System.out.println("------------- # SETUP COMPLETED # -------------");
   }

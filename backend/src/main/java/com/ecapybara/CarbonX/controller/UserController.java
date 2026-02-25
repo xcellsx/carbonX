@@ -1,6 +1,8 @@
 package com.ecapybara.carbonx.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ecapybara.carbonx.config.AppLogger;
 import com.ecapybara.carbonx.model.basic.User;
 import com.ecapybara.carbonx.repository.UserRepository;
-import com.ecapybara.carbonx.service.DocumentService;
+import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Mono;
 
@@ -33,10 +37,15 @@ public class UserController {
   @Autowired
   private UserRepository userRepository;
   @Autowired
-  private DocumentService documentService;
+  private ArangoDocumentService documentService;
+  @Autowired
+  private ObjectMapper objectMapper;
 
   private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
   final Sort sort = Sort.by(Direction.DESC, "id");
+
+  /** Valid email: something @ something . something */
+  private static final Pattern VALID_EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
   @GetMapping
   public List<User> getUsers(@RequestParam(name = "email", required = false) String email, @RequestParam(name = "active", required = false) Boolean active) {
@@ -56,19 +65,31 @@ public class UserController {
 
   @GetMapping("/{key}")
   public Mono<User> getUser(@PathVariable String key) {
-    return documentService.getDocument("users", key)
-            .bodyToMono(User.class)
-            .doOnNext(body -> log.info("API Response:\n{}", body));
+    Map<String,Object> rawDocument = documentService.getDocument("users", key, null, null)
+                                                    .block();
+    User user = objectMapper.convertValue(rawDocument, User.class);                                             
+    return Mono.just(user);
   }
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-  @ResponseStatus(value = HttpStatus.CREATED)
-  public User createUser(@RequestBody User user) {
+  public ResponseEntity<?> createUser(@RequestBody User user) {
+    if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+      return ResponseEntity.badRequest().body(Map.of("message", "Email is required."));
+    }
+    String email = user.getEmail().trim().toLowerCase();
+    if (!VALID_EMAIL.matcher(email).matches()) {
+      return ResponseEntity.badRequest().body(Map.of("message", "Please enter a valid email address."));
+    }
+    List<User> existing = userRepository.findByEmail(sort, email);
+    if (existing != null && !existing.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.CONFLICT)
+          .body(Map.of("message", "An account with this email already exists."));
+    }
 
+    user.setEmail(email);
     userRepository.save(user);
     user = userRepository.findByEmail(sort, user.getEmail()).get(0);
-    System.out.println("Created user saved into USER database:");
-    System.out.println(user.toString());
-    return user;
+    log.info("Created user saved into USER database: {}", user);
+    return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
 }

@@ -4,12 +4,14 @@ import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import dashboard from '../../assets/dashboard.png';
+import { authAPI } from '../../services/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,8 +22,9 @@ const LoginPage = () => {
     }
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -31,8 +34,28 @@ const LoginPage = () => {
     } else {
       localStorage.removeItem('rememberedEmail');
     }
-    localStorage.setItem('userId', `local-${Date.now()}`);
-    navigate('/dashboard');
+
+    setLoading(true);
+    try {
+      const { data } = await authAPI.login({ email, password });
+      localStorage.removeItem('isProUser');
+      localStorage.removeItem('settingsTab');
+      localStorage.setItem('userId', data.id || data.key || `user-${Date.now()}`);
+      const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.email || '';
+      try {
+        localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName, email: data.email || email, phone: data.phone || '' }));
+      } catch (_) {}
+      navigate('/dashboard');
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (msg === 'Account is not registered.') {
+        setError('Account is not registered');
+      } else {
+        setError(msg || 'An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,7 +89,9 @@ const LoginPage = () => {
               <Link className="link" to="/forgot-password">Forget Password</Link>
             </div>
             {error && <div className="submit-error">{error}</div>}
-            <button className="default" type="submit">Sign In</button>
+            <button className="default" type="submit" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
           </form>
           <div className="prompt">
             Don’t have an account? {''}

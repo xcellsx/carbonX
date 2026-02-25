@@ -3,13 +3,18 @@
  * Set VITE_OPENROUTER_API_KEY in .env (see .env.example).
  *
  * Models:
- * - Default (chat, report summary): Gemini 2.5 Pro – strong reasoning, large context.
- * - Report generation: Perplexity Sonar Pro – web-backed retrieval for up-to-date, factual report content.
+ * - Main SproutAI interface (chat, report summary): Gemini 2.5 Pro.
+ * - Popup chatbot (Dashboard/Analytics): Perplexity Sonar Pro – web-backed, in-context Q&A.
+ * - Report writing (structured JSON): Claude – long-form, structured report generation.
  */
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+/** Main SproutAI page: general chat + report summary in chat. */
 const DEFAULT_MODEL = 'google/gemini-2.5-pro';
-const REPORT_MODEL = 'perplexity/sonar-pro';
+/** Popup chatbot on Dashboard/Analytics. */
+export const POPUP_MODEL = 'perplexity/sonar-pro';
+/** Full structured report JSON generation. */
+const REPORT_MODEL = 'anthropic/claude-3.5-sonnet';
 
 /**
  * @param {Array<{ role: 'user' | 'assistant' | 'system', content: string }>} messages
@@ -91,6 +96,51 @@ Respond with ONLY a valid JSON object (no markdown, no code fence, no extra text
 - futureTargets (array of objects): each with area, goal, status (all strings) – 3-5 items
 
 Every string must be substantive, professional, and specific to the user's topic. No generic filler.`;
+
+/**
+ * Product Analysis suggestions: use main SproutAI (Gemini 2.5) for short, data-grounded advice.
+ * Why Gemini 2.5: task is analytical and instruction-following (no web search like Perplexity, no long report like Claude).
+ * @param {{ productName: string, topContributors: Array<{name: string, amount: string}>, componentNames?: string[], hasPackaging?: boolean, hasTransport?: boolean }} context
+ * @returns {Promise<string[]>} Array of 3–5 suggestion strings; empty on parse/API failure (caller should fallback).
+ */
+const PRODUCT_ANALYSIS_SYSTEM = `You are Sprout AI, a sustainability analyst for CarbonX. Given a product and its emission data, suggest 3–5 brief, actionable improvements to reduce carbon footprint. Be specific to the product and the top contributors. Keep each suggestion to one short sentence. Do not use generic filler.
+
+Respond with ONLY a JSON array of strings, e.g. ["Suggestion one.", "Suggestion two."]. No markdown, no code fence, no other text.`;
+
+export async function generateProductAnalysisSuggestions(context) {
+  if (!context?.productName && (!context?.topContributors || context.topContributors.length === 0)) {
+    return [];
+  }
+  const lines = [
+    `Product: ${context.productName || 'Unknown'}`,
+    'Top emission contributors:',
+    ...(context.topContributors || []).slice(0, 5).map((c) => `- ${c.name}: ${c.amount}`),
+  ];
+  if (context.componentNames?.length) {
+    lines.push(`Components: ${context.componentNames.slice(0, 15).join(', ')}`);
+  }
+  if (context.hasPackaging) lines.push('Includes packaging.');
+  if (context.hasTransport) lines.push('Includes transport.');
+  const userContent = lines.join('\n');
+
+  try {
+    const raw = await chatCompletion(
+      [
+        { role: 'system', content: PRODUCT_ANALYSIS_SYSTEM },
+        { role: 'user', content: userContent },
+      ],
+      { model: DEFAULT_MODEL, max_tokens: 512, temperature: 0.5 }
+    );
+    let text = raw.trim();
+    const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeMatch) text = codeMatch[1].trim();
+    const arr = JSON.parse(text);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((s) => typeof s === 'string' && s.trim().length > 0).slice(0, 5).map((s) => s.trim());
+  } catch (_) {
+    return [];
+  }
+}
 
 /**
  * Generate full structured report JSON for the Report page.

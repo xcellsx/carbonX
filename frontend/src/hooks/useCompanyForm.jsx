@@ -10,25 +10,25 @@ export const useCompanyForm = () => {
     companyName: '',
     sector: '',
     industry: '',
-    companysize: '',
     reportingYear: ''
   });
   
   // --- NEW: Store the initial state ---
   const [initialForm, setInitialForm] = useState(form);
 
-  // Load data from localStorage
+  // Load data from localStorage (use normalized key so "users/xyz" and "xyz" both find the same data)
   useEffect(() => {
     const currentUserId = localStorage.getItem('userId');
     
     if (currentUserId) {
       const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-      const userCompanyData = allCompanyData[currentUserId];
+      const storageKey = currentUserId.includes('/') ? currentUserId.split('/').pop() : currentUserId;
+      const userCompanyData = allCompanyData[currentUserId] ?? allCompanyData[storageKey];
       
       if (userCompanyData) {
-        setForm(userCompanyData);
-        // --- NEW: Set the initial state on load ---
-        setInitialForm(userCompanyData);
+        const { companysize, ...rest } = userCompanyData;
+        setForm({ companyName: '', sector: '', industry: '', reportingYear: '', ...rest });
+        setInitialForm({ companyName: '', sector: '', industry: '', reportingYear: '', ...rest });
       }
     }
   }, []); 

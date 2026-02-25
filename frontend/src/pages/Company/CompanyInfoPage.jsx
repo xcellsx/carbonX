@@ -14,7 +14,10 @@ const CompanyInfoPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const isFormComplete = Object.values(form).every(val => val && val.trim().length > 0);
+  const requiredFields = ['companyName', 'sector', 'industry', 'reportingYear'];
+  const isFormComplete = requiredFields.every(
+    (key) => form[key] != null && String(form[key]).trim().length > 0
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,9 +29,9 @@ const CompanyInfoPage = () => {
     }
     setError('');
 
-    // Save company info locally (backend company-info not set up yet)
+    const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
     const allCompanyData = JSON.parse(localStorage.getItem('companyData')) || {};
-    allCompanyData[userId] = form;
+    allCompanyData[storageKey] = form;
     localStorage.setItem('companyData', JSON.stringify(allCompanyData));
 
     const allMetricsData = JSON.parse(localStorage.getItem('metricsData_v2')) || {};

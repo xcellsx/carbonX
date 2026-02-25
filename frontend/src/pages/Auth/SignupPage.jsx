@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import dashboard from '../../assets/dashboard.png';
+import { authAPI, usersAPI } from '../../services/api';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    usersAPI.getAll()
+      .then((res) => {
+        console.log('Existing users:', res.data);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          console.log('Existing user emails:', res.data.map((u) => u.email));
+        }
+      })
+      .catch((err) => console.warn('Could not fetch existing users:', err.message));
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
 
@@ -27,11 +40,30 @@ const SignupPage = () => {
       return;
     }
 
-    // Redirect without backend auth for now
-    localStorage.removeItem('isProUser');
-    localStorage.removeItem('settingsTab');
-    localStorage.setItem('userId', `local-${Date.now()}`);
-    navigate('/company-info');
+    if (password.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters.' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data } = await authAPI.register({ fullName, email, password });
+      localStorage.removeItem('isProUser');
+      localStorage.removeItem('settingsTab');
+      localStorage.setItem('userId', data.id || data.key || `user-${Date.now()}`);
+      const savedFullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || fullName || '';
+      try {
+        localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName: savedFullName, email: data.email || email, phone: '' }));
+      } catch (_) {}
+      navigate('/company-info');
+    } catch (err) {
+      const status = err.response?.status;
+      const body = err.response?.data;
+      const msg = body?.message || (status === 409 ? 'An account with this email already exists.' : 'Sign up failed. Please try again.');
+      setMessage({ type: 'error', text: msg });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +100,9 @@ const SignupPage = () => {
                 <div className={`submit-${message.type}`}>{message.text}</div>
             )}
             
-            <button className="default" type="submit">Sign Up</button>
+            <button className="default" type="submit" disabled={loading}>
+              {loading ? 'Signing up…' : 'Sign Up'}
+            </button>
           </form>
           <div className="prompt">
             Already have an account? {' '}

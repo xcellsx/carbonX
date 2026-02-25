@@ -1,0 +1,20 @@
+meta {
+  name: getProductGraph
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/network/product-graph
+  body: none
+  auth: inherit
+}
+
+params:query {
+  productId: tomato sauce
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
