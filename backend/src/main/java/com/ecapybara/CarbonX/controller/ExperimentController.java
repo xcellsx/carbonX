@@ -50,6 +50,8 @@ public class ExperimentController {
   ProductController productController;
   @Autowired
   ProcessController processController;
+  @Autowired
+  com.ecapybara.carbonx.service.UserProductLcaService userProductLcaService;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -84,28 +86,61 @@ public class ExperimentController {
   }
 
   @GetMapping("/{targetCollection}/{documentKey}/lca")
-  public Mono<?> getLCA(@PathVariable String targetCollection, @PathVariable String documentKey) {
+  public Mono<?> getLCA(
+      @PathVariable String targetCollection,
+      @PathVariable String documentKey,
+      @org.springframework.web.bind.annotation.RequestParam(name = "userId", required = false) String userId) {
     // Get the node
     switch (targetCollection) {
       case "products":
-        Map<String, Object> rawDocument = documentService.getDocument(targetCollection, documentKey, null, null).block();
+        String productKey = documentKey != null && documentKey.contains("/") ? documentKey.substring(documentKey.lastIndexOf('/') + 1) : documentKey;
+        Map<String, Object> rawDocument = documentService.getDocument(targetCollection, productKey, null, null).block();
         log.info("Raw document -> {}", rawDocument);
         Product product = objectMapper.convertValue(rawDocument, Product.class);
         log.info("Converted product -> {}", rawDocument);
         product = lcaService.calculateRoughCarbonFootprint(product, "default");
-        productController.editProduct(product.getKey(), product);
-        return Mono.just(product.getDPP().getCarbonFootprint());
+        double totalLca = totalKgCO2e(product.getDPP());
+        productController.updateProductLcaValue(productKey, totalLca);
+        if (userId != null && !userId.isEmpty()) {
+          userProductLcaService.upsert(userId, productKey, totalLca);
+        }
+        var dpp = product.getDPP();
+        if (dpp == null || dpp.getCarbonFootprint() == null) {
+          log.warn("Product {} has no DPP or carbonFootprint after LCA; returning empty footprint", productKey);
+          return Mono.just(java.util.Map.<String, Object>of(
+              "scope1", java.util.Map.of("kgCO2e", totalLca),
+              "scope2", java.util.Map.of("kgCO2e", 0.0),
+              "scope3", java.util.Map.of("kgCO2e", 0.0)));
+        }
+        return Mono.just(dpp.getCarbonFootprint());
       case "processes":
         Process process = documentService.getDocument(targetCollection, documentKey, null, null)
                                           .map(rawMap -> objectMapper.convertValue(rawMap, Process.class))
                                           .block();
-        log.info("Raw product DPP -> {}", process.getDPP());
+        log.info("Raw product DPP -> {}", process != null ? process.getDPP() : null);
         process = lcaService.calculateRoughCarbonFootprint(process, "default");
         processController.editProcess(process.getKey(), process);
-        return Mono.just(process.getDPP().getCarbonFootprint());
+        var processDpp = process != null ? process.getDPP() : null;
+        if (processDpp == null || processDpp.getCarbonFootprint() == null) {
+          log.warn("Process {} has no DPP or carbonFootprint after LCA", documentKey);
+          return Mono.just(java.util.Map.<String, Object>of(
+              "scope1", java.util.Map.of("kgCO2e", 0.0),
+              "scope2", java.util.Map.of("kgCO2e", 0.0),
+              "scope3", java.util.Map.of("kgCO2e", 0.0)));
+        }
+        return Mono.just(processDpp.getCarbonFootprint());
       default:
         return Mono.error(new RuntimeException("Invalid target collection name!"));
     }
+  }
+
+  private static double totalKgCO2e(com.ecapybara.carbonx.model.basic.DigitalProductPassport dpp) {
+    if (dpp == null || dpp.getCarbonFootprint() == null) return 0;
+    var cf = dpp.getCarbonFootprint();
+    double s1 = cf.getScope1() != null && cf.getScope1().containsKey("kgCO2e") ? cf.getScope1().get("kgCO2e") : 0;
+    double s2 = cf.getScope2() != null && cf.getScope2().containsKey("kgCO2e") ? cf.getScope2().get("kgCO2e") : 0;
+    double s3 = cf.getScope3() != null && cf.getScope3().containsKey("kgCO2e") ? cf.getScope3().get("kgCO2e") : 0;
+    return s1 + s2 + s3;
   }
 
   @PostMapping("/report")

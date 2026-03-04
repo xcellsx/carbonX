@@ -55,6 +55,38 @@
   justify-content: flex-start;
 }
 
+/* --- AI Insights Loading State --- */
+.product-analysis-loading {
+  grid-column: 1 / -1;
+  padding: 2rem;
+  text-align: center;
+}
+
+.product-analysis-loading-text {
+  display: inline-block;
+  background: linear-gradient(120deg, rgba(var(--primary), 1), rgba(var(--secondary), 1), rgba(var(--primary), 1));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: analytics-gradient-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes analytics-gradient-pulse {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.6;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.6;
+  }
+}
+
 /* --- Blur Overlay --- */
 .blur-overlay {
   position: absolute;

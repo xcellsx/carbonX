@@ -4,7 +4,7 @@ import './AnalyticsPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown, Sparkles, Lock, X, BarChart3 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
-import { API_BASE, productAPI } from '../../services/api';
+import { API_BASE, productAPI, getLocalLcaMap } from '../../services/api';
 import { generateProductAnalysisSuggestions } from '../../services/openRouter';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import ProModal from '../../components/ProModal/ProModal';
@@ -81,13 +81,16 @@ const ANALYTICS_CAROUSEL_SLIDES = [
   { title: 'AI summary', description: 'Use the sparkles button to open the AI assistant and ask for a summary of your analytics or to explore your impact data in plain language.', icon: <Sparkles size={40} /> },
 ];
 
-function templateToProduct(template) {
+function templateToProduct(template, localLcaMap = {}) {
   const dpp = templateToDppData(template);
+  const templateProductId = `template-${template.id}`;
+  const rawLca = localLcaMap[templateProductId];
+  const lcaResult = (rawLca != null && !Number.isNaN(Number(rawLca))) ? Number(rawLca) : 0;
   return {
-    productId: `template-${template.id}`,
+    productId: templateProductId,
     productName: template.name || 'Unnamed template',
     dppData: JSON.stringify(dpp),
-    lcaResult: 0,
+    lcaResult,
   };
 }
 
@@ -140,8 +143,12 @@ const AnalyticsPage = () => {
   const [selectedProductId, setSelectedProductId] = useState(
     sessionStorage.getItem('analytics_selectedProductId') || ''
   );
-  const [selectedComponentIndex, setSelectedComponentIndex] = useState(
-    parseInt(sessionStorage.getItem('analytics_selectedComponentIndex') || '0', 10)
+  // Separate indices for elements and processes so their tables are fully independent
+  const [selectedElementIndex, setSelectedElementIndex] = useState(
+    parseInt(sessionStorage.getItem('analytics_selectedElementIndex') || '0', 10)
+  );
+  const [selectedProcessIndex, setSelectedProcessIndex] = useState(
+    parseInt(sessionStorage.getItem('analytics_selectedProcessIndex') || '0', 10)
   );
 
   // Combined data state
@@ -149,16 +156,18 @@ const AnalyticsPage = () => {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [error, setError] = useState('');
   
-  // Component product with emissionInformation
-  const [inputProducts, setInputProducts] = useState([]);
-  const [loadingInputs, setLoadingInputs] = useState(false);
+  // Separate input products for elements and processes
+  const [elementInputProducts, setElementInputProducts] = useState([]);
+  const [processInputProducts, setProcessInputProducts] = useState([]);
+  const [loadingElementInputs, setLoadingElementInputs] = useState(false);
+  const [loadingProcessInputs, setLoadingProcessInputs] = useState(false);
   
   // Raw products data from API (for component matching)
   const [rawProductsData, setRawProductsData] = useState([]);
   
   // UI State
-  const [activeScopeElements, setActiveScopeElements] = useState('scope1'); // scope1, scope2, scope3 for Elements
-  const [activeScopeProcesses, setActiveScopeProcesses] = useState('scope1'); // scope1, scope2, scope3 for Processes
+  const [activeScopeElements, setActiveScopeElements] = useState('scope1');
+  const [activeScopeProcesses, setActiveScopeProcesses] = useState('scope1');
   const [showProModal, setShowProModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
@@ -211,12 +220,14 @@ const AnalyticsPage = () => {
         // Filter by userId only for the products dropdown (user's products)
         const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
         
+        const localLcaMap = getLocalLcaMap(userId);
         mapped = filtered.map((p) => {
           const productId = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id) ?? p._id ?? p.id;
           backendNames.add(p.name || '');
-          // Calculate LCA from DPP scopes
-          let lcaResult = p.lcaResult ?? 0;
-          if (p.DPP?.carbonFootprint) {
+          // Prefer localStorage-persisted LCA from Inventory, then fall back to DPP scopes
+          const localLca = productId != null ? localLcaMap[String(productId)] : null;
+          let lcaResult = (localLca != null && !Number.isNaN(Number(localLca))) ? Number(localLca) : (p.lcaResult ?? 0);
+          if (lcaResult === 0 && p.DPP?.carbonFootprint) {
             const cf = p.DPP.carbonFootprint;
             lcaResult =
               (cf.scope1?.value ?? cf.Scope1?.value ?? 0) +
@@ -236,10 +247,11 @@ const AnalyticsPage = () => {
         console.warn('Analytics: could not fetch API products', err);
         setRawProductsData([]); // Set empty array on error
       }
+      const localLcaMap = getLocalLcaMap(userId);
       const customTemplates = getStoredTemplates();
       const templateProducts = customTemplates
         .filter((t) => !backendNames.has(t.name || ''))
-        .map((t) => templateToProduct(t));
+        .map((t) => templateToProduct(t, localLcaMap));
       const merged = [...mapped, ...templateProducts].sort((a, b) =>
         (a.productName || '').localeCompare(b.productName || '', undefined, { sensitivity: 'base' })
       );
@@ -268,37 +280,17 @@ const AnalyticsPage = () => {
 
   // Fetch component product with emissionInformation from rawProductsData (backend getProducts API)
   // Simply maps component name to product name from getProducts API
-  const fetchInputProducts = useCallback(async (componentName, componentMaterialId) => {
-    console.log('[Analytics] Looking for component:', componentName, 'materialId:', componentMaterialId);
-    console.log('[Analytics] Raw products data count:', rawProductsData.length);
-    console.log('[Analytics] Available raw product names:', rawProductsData.map(p => p?.name));
-    
-    setLoadingInputs(true);
+  const fetchInputProducts = useCallback(async (componentName, componentMaterialId, setProducts, setLoading) => {
+    setLoading(true);
     try {
       let inputProductsData = [];
-      
       if (!componentName || rawProductsData.length === 0) {
-        if (!componentName) {
-          console.log('[Analytics] ⚠️ No component name provided');
-        } else {
-          console.log('[Analytics] ⚠️ Raw products data is empty - check if getProducts API returned data');
-        }
-        setInputProducts([]);
+        setProducts([]);
         return;
       }
-      
-      // Normalize strings for case-insensitive matching (handle whitespace and case differences)
-      const normalizeString = (str) => {
-        return String(str || '').toLowerCase().trim().replace(/\s+/g, ' ');
-      };
-      
+      const normalizeString = (str) => String(str || '').toLowerCase().trim().replace(/\s+/g, ' ');
       const normalizedComponentName = normalizeString(componentName);
-      console.log('[Analytics] Normalized component name:', normalizedComponentName);
-      
-      // Search in rawProductsData (from getProducts API) - this is the source of truth
       let matchedProduct = null;
-      
-      // First try matching by materialId if available
       if (componentMaterialId) {
         const productId = componentMaterialId.toString();
         matchedProduct = rawProductsData.find((p) => {
@@ -306,55 +298,32 @@ const AnalyticsPage = () => {
           const pIdStr = pId?.toString();
           return pIdStr === productId || pIdStr === `products/${productId}` || pIdStr === `products/${productId.split('/').pop()}`;
         });
-        
-        if (matchedProduct) {
-          console.log('[Analytics] ✅ Match found by materialId:', componentMaterialId);
-        }
       }
-      
-      // If no materialId match, match by name (direct mapping: component name -> product name)
       if (!matchedProduct) {
         matchedProduct = rawProductsData.find((p) => {
           if (!p || !p.name) return false;
-          const productName = normalizeString(p.name);
-          return productName === normalizedComponentName;
+          return normalizeString(p.name) === normalizedComponentName;
         });
-        
-        if (matchedProduct) {
-          console.log('[Analytics] ✅ Match found by name:', componentName, '->', matchedProduct.name);
-        } else {
-          console.log('[Analytics] ❌ No match found for component:', componentName);
-          console.log('[Analytics] Available product names:', rawProductsData.map(p => p?.name));
-        }
       }
-      
-      // If found, extract the product data with emissionInformation
       if (matchedProduct) {
-        const productId = matchedProduct.key ?? matchedProduct._key ?? 
-          (matchedProduct.id && String(matchedProduct.id).includes('/') 
-            ? String(matchedProduct.id).split('/').pop() 
-            : matchedProduct.id) ?? matchedProduct._id ?? matchedProduct.id;
-        
-        console.log('[Analytics] ✅ Found product:', matchedProduct.name);
-        console.log('[Analytics] Product emissionInformation:', matchedProduct.emissionInformation);
-        
+        const productId = matchedProduct.key ?? matchedProduct._key ??
+          (matchedProduct.id && String(matchedProduct.id).includes('/') ? String(matchedProduct.id).split('/').pop() : matchedProduct.id) ?? matchedProduct._id ?? matchedProduct.id;
         inputProductsData = [{
           id: productId,
           name: matchedProduct.name,
           emissionInformation: matchedProduct.emissionInformation,
         }];
       }
-      
-      setInputProducts(inputProductsData);
+      setProducts(inputProductsData);
     } catch (err) {
       console.error('Failed to fetch component product:', err);
-      setInputProducts([]);
+      setProducts([]);
     } finally {
-      setLoadingInputs(false);
+      setLoading(false);
     }
   }, [rawProductsData]);
 
-  // Generate AI insights for Product Analysis
+  // Generate AI insights for Product Analysis — always product-level totals, not per-ingredient
   const generateProductInsights = useCallback(async (product) => {
     if (!product || !isProUser) {
       setProductInsights(null);
@@ -362,83 +331,69 @@ const AnalyticsPage = () => {
     }
     setLoadingInsights(true);
     try {
-      // Parse DPP data to get components
+      // Use product-level scope totals (localStorage-persisted LCA values take priority)
+      const localLcaByName = (() => { try { return JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}'); } catch { return {}; } })();
+      const nameKey = (product.productName || '').toLowerCase().trim();
+      const cachedByName = nameKey ? localLcaByName[nameKey] : null;
+
+      // Prefer localStorage scope breakdown, then product fields, then raw DPP totals
+      const rawTotals = getScopeTotalsFromProduct(product);
+      const scope1 = cachedByName?.scope1 ?? product.scope1 ?? rawTotals.scope1 ?? 0;
+      const scope2 = cachedByName?.scope2 ?? product.scope2 ?? rawTotals.scope2 ?? 0;
+      const scope3 = cachedByName?.scope3 ?? product.scope3 ?? rawTotals.scope3 ?? 0;
+      const total  = cachedByName?.total  ?? product.lcaResult ?? rawTotals.total ?? 0;
+
+      // Build contributors as Scope 1/2/3 breakdown of the whole product
+      const scopeEntries = [
+        { name: 'Scope 1 (Direct)', val: scope1 },
+        { name: 'Scope 2 (Purchased Energy)', val: scope2 },
+        { name: 'Scope 3 (Value Chain)', val: scope3 },
+      ].filter((e) => e.val > 0).sort((a, b) => b.val - a.val);
+
+      const contributors = scopeEntries.length > 0
+        ? scopeEntries.map((e) => ({
+            name: e.name,
+            amount: `${Number(e.val).toFixed(3)} kgCO2e`,
+          }))
+        : [{ name: 'No emission data available', amount: '-' }];
+
+      // Parse components for context (packaging/transport flags only)
       let components = [];
-      try {
-        components = JSON.parse(product.dppData || '[]');
-      } catch (e) {
-        setProductInsights(null);
-        setLoadingInsights(false);
-        return;
-      }
+      try { components = JSON.parse(product.dppData || '[]'); } catch (_) {}
 
-      // Calculate top contributors from components (data-driven; not AI)
-      let contributors = components
-        .map((comp) => ({
-          name: comp.ingredient || comp.component || 'Unknown',
-          amount: comp.lcaValue ?? 0,
-        }))
-        .filter((c) => c.amount > 0)
-        .sort((a, b) => b.amount - a.amount)
-        .slice(0, 5)
-        .map((c) => ({
-          name: c.name,
-          amount: `${Number(c.amount).toFixed(3)} kgCO2e`,
-        }));
-
-      // Fallback: when DPP components have no lcaValue, use product-level scope totals (DPP or emissionInformation)
-      if (contributors.length === 0) {
-        const totals = getScopeTotalsFromProduct(product);
-        const scopeEntries = [
-          [totals.scope1, 'Scope 1'],
-          [totals.scope2, 'Scope 2'],
-          [totals.scope3, 'Scope 3'],
-        ].filter(([val]) => val > 0);
-        if (scopeEntries.length > 0) {
-          contributors = scopeEntries
-            .sort((a, b) => b[0] - a[0])
-            .slice(0, 5)
-            .map(([val, label]) => ({ name: label, amount: `${Number(val).toFixed(3)} kgCO2e` }));
-        }
-      }
-
-      // Rule-based fallback suggestions (used if AI call fails or returns empty)
+      // Rule-based fallback suggestions
       const fallbackSuggestions = [];
-      const highEmissions = contributors.filter((c) => parseFloat(String(c.amount)) > 0.1);
-      if (highEmissions.length > 0) {
-        fallbackSuggestions.push(`Focus on reducing emissions from ${highEmissions[0].name}, which contributes ${highEmissions[0].amount}.`);
+      if (scope3 > 0 && scope3 >= scope1 && scope3 >= scope2) {
+        fallbackSuggestions.push(`Scope 3 (${Number(scope3).toFixed(2)} kgCO2e) is your largest emission source — focus on supply chain and procurement.`);
+      } else if (scope1 > 0) {
+        fallbackSuggestions.push(`Scope 1 emissions (${Number(scope1).toFixed(2)} kgCO2e) are your largest source — consider fuel-switching or efficiency improvements.`);
+      } else if (scope2 > 0) {
+        fallbackSuggestions.push(`Scope 2 emissions (${Number(scope2).toFixed(2)} kgCO2e) dominate — switching to renewable electricity could significantly cut your footprint.`);
       }
-      if (components.some((c) => c.isPackaging)) {
-        fallbackSuggestions.push('Consider switching to recycled or biodegradable packaging materials.');
-      }
-      if (components.some((c) => c.isTransport)) {
-        fallbackSuggestions.push('Optimize transportation routes and consider alternative transport methods.');
-      }
-      if (fallbackSuggestions.length === 0) {
-        fallbackSuggestions.push('Continue monitoring your product emissions and look for opportunities to reduce impact.');
-      }
+      if (components.some((c) => c.isPackaging)) fallbackSuggestions.push('Consider switching to recycled or biodegradable packaging materials.');
+      if (components.some((c) => c.isTransport)) fallbackSuggestions.push('Optimise transportation routes and consider lower-emission alternatives.');
+      if (fallbackSuggestions.length === 0) fallbackSuggestions.push('Continue monitoring your product emissions and identify opportunities to reduce impact.');
 
-      // AI-generated suggestions (Gemini 2.5); fallback to rule-based if API fails or key missing
+      // AI-generated suggestions
       let suggestions = fallbackSuggestions;
       try {
         const aiSuggestions = await generateProductAnalysisSuggestions({
           productName: product.productName || product.productId || 'Product',
           topContributors: contributors,
-          componentNames: components.map((c) => (c.ingredient || c.component || '').toString().trim()).filter(Boolean),
+          scope1: Number(scope1).toFixed(3),
+          scope2: Number(scope2).toFixed(3),
+          scope3: Number(scope3).toFixed(3),
+          total: Number(total).toFixed(3),
           hasPackaging: components.some((c) => c.isPackaging),
           hasTransport: components.some((c) => c.isTransport),
         });
-        if (aiSuggestions.length > 0) {
-          suggestions = aiSuggestions;
-        }
+        if (aiSuggestions.length > 0) suggestions = aiSuggestions;
       } catch (e) {
         console.warn('Analytics: AI suggestions failed, using fallback', e);
       }
 
       setProductInsights({
-        topContributors: contributors.length > 0 ? contributors : [
-          { name: 'No emission data available', amount: '-' }
-        ],
+        topContributors: contributors,
         suggestions: suggestions.length > 0 ? suggestions : ['No specific suggestions available at this time.'],
       });
     } catch (err) {
@@ -453,17 +408,19 @@ const AnalyticsPage = () => {
   useEffect(() => {
     if (products.length > 0 && selectedProductId) {
       const productExists = products.find(p => p.productId == selectedProductId);
-      
       if (productExists) {
-        fetchAnalyticsDataForProduct(selectedProductId, selectedComponentIndex, products);
+        fetchAnalyticsDataForProduct(selectedProductId, 0, products);
         generateProductInsights(productExists);
       } else {
         setSelectedProductId('');
         sessionStorage.removeItem('analytics_selectedProductId');
-        setSelectedComponentIndex(0);
-        sessionStorage.removeItem('analytics_selectedComponentIndex');
+        setSelectedElementIndex(0);
+        setSelectedProcessIndex(0);
+        sessionStorage.removeItem('analytics_selectedElementIndex');
+        sessionStorage.removeItem('analytics_selectedProcessIndex');
         setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-        setInputProducts([]);
+        setElementInputProducts([]);
+        setProcessInputProducts([]);
         setProductInsights(null);
       }
     }
@@ -476,10 +433,12 @@ const AnalyticsPage = () => {
     setSelectedProductId(newProductId);
     sessionStorage.setItem('analytics_selectedProductId', newProductId); 
 
-    setSelectedComponentIndex(0); 
-    sessionStorage.setItem('analytics_selectedComponentIndex', '0'); 
-    setActiveScopeElements('scope1'); // Reset to scope1
-    setActiveScopeProcesses('scope1'); // Reset to scope1
+    setSelectedElementIndex(0);
+    setSelectedProcessIndex(0);
+    sessionStorage.setItem('analytics_selectedElementIndex', '0');
+    sessionStorage.setItem('analytics_selectedProcessIndex', '0');
+    setActiveScopeElements('scope1');
+    setActiveScopeProcesses('scope1');
     
     if (newProductId) {
       const allProducts = products; 
@@ -506,11 +465,14 @@ const AnalyticsPage = () => {
     }
   };
 
-  // --- Handle Component Tab Selection ---
-  const handleComponentSelect = (index) => {
-    setSelectedComponentIndex(index);
-    sessionStorage.setItem('analytics_selectedComponentIndex', index); 
-    fetchAnalyticsDataForProduct(selectedProductId, index, products);
+  // --- Handle Element / Process Tab Selection ---
+  const handleElementSelect = (localIdx) => {
+    setSelectedElementIndex(localIdx);
+    sessionStorage.setItem('analytics_selectedElementIndex', localIdx);
+  };
+  const handleProcessSelect = (localIdx) => {
+    setSelectedProcessIndex(localIdx);
+    sessionStorage.setItem('analytics_selectedProcessIndex', localIdx);
   };
 
   // --- Helper to parse components for tabs ---
@@ -525,17 +487,23 @@ const AnalyticsPage = () => {
   }
 
   // Split components into Elements and Processes
-  const elements = components.filter((comp) => {
-    const ingredient = (comp.ingredient || '').toString().trim();
-    return !ingredient.startsWith('Process:') && !comp.isTransport && !comp.isPackaging;
-  });
-  const processes = components.filter((comp) => {
-    const ingredient = (comp.ingredient || '').toString().trim();
-    return ingredient.startsWith('Process:');
-  });
+  const elements = components
+    .filter((comp) => {
+      const ingredient = (comp.ingredient || '').toString().trim();
+      return !ingredient.startsWith('Process:') && !comp.isTransport && !comp.isPackaging;
+    })
+    .sort((a, b) => (a.ingredient || '').localeCompare(b.ingredient || '', undefined, { sensitivity: 'base' }));
 
-  const selectedComponent = components[selectedComponentIndex];
-  const isSelectedProcess = ((selectedComponent?.ingredient || '').toString().trim()).startsWith('Process:');
+  const processes = components
+    .filter((comp) => {
+      const ingredient = (comp.ingredient || '').toString().trim();
+      return ingredient.startsWith('Process:');
+    })
+    .sort((a, b) => {
+      const nameA = (a.ingredient || '').replace(/^Process:\s*/i, '');
+      const nameB = (b.ingredient || '').replace(/^Process:\s*/i, '');
+      return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+    });
   
   // Extract scope data from emissionInformation
   const extractScopeFromEmissionInfo = (emissionInfo, scopeKey) => {
@@ -630,30 +598,24 @@ const AnalyticsPage = () => {
     return results;
   };
 
-  // Get scope data from component product's emissionInformation
-  const getScopeDataFromInputs = (scopeKey) => {
-    console.log('[Analytics] getScopeDataFromInputs:', { scopeKey, inputProductsCount: inputProducts.length, inputProducts });
-    
-    if (inputProducts.length === 0) return [];
-    
+  // Extract a numeric category number from a label like "Category 3" or "category3" → 3, else Infinity
+  const categoryOrder = (label) => {
+    const m = String(label || '').match(/\d+/);
+    return m ? parseInt(m[0], 10) : Infinity;
+  };
+
+  // Get scope data from a given set of input products' emissionInformation
+  const getScopeDataFromInputs = (scopeKey, inputProductsList) => {
+    if (!inputProductsList || inputProductsList.length === 0) return [];
     const allScopeData = [];
-    
-    inputProducts.forEach((componentProduct) => {
-      console.log('[Analytics] Processing component product:', componentProduct.name, 'emissionInformation:', componentProduct.emissionInformation);
-      if (!componentProduct.emissionInformation) {
-        console.log('[Analytics] No emissionInformation for:', componentProduct.name);
-        return;
-      }
-      
+    inputProductsList.forEach((componentProduct) => {
+      if (!componentProduct.emissionInformation) return;
       const scopeData = extractScopeFromEmissionInfo(componentProduct.emissionInformation, scopeKey);
-      console.log('[Analytics] Extracted scope data for', componentProduct.name, scopeKey, ':', scopeData);
-      scopeData.forEach((item) => {
-        allScopeData.push(item);
-      });
+      scopeData.forEach((item) => allScopeData.push(item));
     });
-    
-    console.log('[Analytics] All scope data from component:', allScopeData);
-    // Sort by amount descending
+    if (scopeKey === 'scope3') {
+      return allScopeData.sort((a, b) => categoryOrder(a.category) - categoryOrder(b.category));
+    }
     return allScopeData.sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
   };
 
@@ -703,41 +665,72 @@ const AnalyticsPage = () => {
       return [];
     };
     
+    const scope3Data = formatScopeData(scope3, 'Scope 3')
+      .sort((a, b) => categoryOrder(a.category) - categoryOrder(b.category));
     return {
       scope1: formatScopeData(scope1, 'Scope 1'),
       scope2: formatScopeData(scope2, 'Scope 2'),
-      scope3: formatScopeData(scope3, 'Scope 3'),
+      scope3: scope3Data,
     };
   };
 
-  // Get scope data - prefer inputs from graph, fallback to DPP
-  const getScopeData = (scopeKey) => {
-    const inputData = getScopeDataFromInputs(scopeKey);
-    if (inputData.length > 0) {
-      return inputData;
-    }
-    // Fallback to DPP data
+  // Get scope data for elements — prefer element input products, fallback to DPP
+  const getElementScopeData = (scopeKey) => {
+    const inputData = getScopeDataFromInputs(scopeKey, elementInputProducts);
+    if (inputData.length > 0) return inputData;
     const dppData = getScopeDataFromDPP();
     return dppData[scopeKey] || [];
   };
 
-  // Update component product when component changes
+  // Get scope data for processes — prefer process input products, fallback to DPP
+  const getProcessScopeData = (scopeKey) => {
+    const inputData = getScopeDataFromInputs(scopeKey, processInputProducts);
+    if (inputData.length > 0) return inputData;
+    const dppData = getScopeDataFromDPP();
+    return dppData[scopeKey] || [];
+  };
+
+  // Legacy helper used by AI context summary — merge both
+  const getScopeData = (scopeKey) => {
+    const el = getScopeDataFromInputs(scopeKey, elementInputProducts);
+    const pr = getScopeDataFromInputs(scopeKey, processInputProducts);
+    const merged = [...el, ...pr];
+    if (merged.length > 0) return merged;
+    const dppData = getScopeDataFromDPP();
+    return dppData[scopeKey] || [];
+  };
+
+  // Update element input products when selected element changes
   useEffect(() => {
-    if (!selectedProduct || !selectedComponent) {
-      setInputProducts([]);
+    if (!selectedProduct || elements.length === 0) {
+      setElementInputProducts([]);
       return;
     }
-    
-    const componentName = (selectedComponent.ingredient || '').toString().trim().replace(/^Process:\s*/, '');
-    const componentMaterialId = selectedComponent.materialId || null;
-    fetchInputProducts(componentName, componentMaterialId);
-  }, [selectedComponentIndex, selectedProductId, fetchInputProducts]);
+    const el = elements[selectedElementIndex] ?? elements[0];
+    if (!el) { setElementInputProducts([]); return; }
+    const componentName = (el.ingredient || '').toString().trim();
+    const componentMaterialId = el.materialId || null;
+    fetchInputProducts(componentName, componentMaterialId, setElementInputProducts, setLoadingElementInputs);
+  }, [selectedElementIndex, selectedProductId, fetchInputProducts, elements.length]);
 
-  // When Top 5 was "No emission data available" but we have scope data from the selected component, use that so the card and AI see the same data as the table
+  // Update process input products when selected process changes
+  useEffect(() => {
+    if (!selectedProduct || processes.length === 0) {
+      setProcessInputProducts([]);
+      return;
+    }
+    const proc = processes[selectedProcessIndex] ?? processes[0];
+    if (!proc) { setProcessInputProducts([]); return; }
+    const componentName = (proc.ingredient || '').toString().trim().replace(/^Process:\s*/, '');
+    const componentMaterialId = proc.materialId || null;
+    fetchInputProducts(componentName, componentMaterialId, setProcessInputProducts, setLoadingProcessInputs);
+  }, [selectedProcessIndex, selectedProductId, fetchInputProducts, processes.length]);
+
+  // When Top 5 was "No emission data available" but we have scope data, use that so the card and AI see the same data as the table
   useEffect(() => {
     if (!productInsights?.topContributors?.length) return;
     if (productInsights.topContributors.length !== 1 || productInsights.topContributors[0].name !== 'No emission data available') return;
-    if (inputProducts.length === 0) return;
+    if (elementInputProducts.length === 0 && processInputProducts.length === 0) return;
     const s1 = getScopeData('scope1');
     const s2 = getScopeData('scope2');
     const s3 = getScopeData('scope3');
@@ -747,11 +740,26 @@ const AnalyticsPage = () => {
       .slice(0, 5);
     if (merged.length === 0) return;
     setProductInsights((prev) => (prev ? { ...prev, topContributors: merged } : prev));
-  }, [inputProducts, productInsights, activeScopeElements]);
+  }, [elementInputProducts, processInputProducts, productInsights, activeScopeElements]);
 
   // --- RENDER SCOPE TABLE DATA ---
-  const renderScopeTableData = (scopeKey) => {
-    const data = getScopeData(scopeKey);
+  const renderScopeTableData = (scopeKey, getScopeDataFn) => {
+    const data = getScopeDataFn(scopeKey);
+    // Overlay calculated LCA values from localStorage where available
+    const localLcaMap = getLocalLcaMap(userId);
+    const enriched = data.map((item) => {
+      // Try to find a matching product in localLcaMap by category name
+      const matchKey = Object.keys(localLcaMap).find(
+        (k) => (k || '').toLowerCase().includes((item.category || '').toLowerCase())
+      );
+      const calcVal = matchKey != null ? Number(localLcaMap[matchKey]) : null;
+      return {
+        ...item,
+        amount: (calcVal != null && !Number.isNaN(calcVal) && calcVal > 0)
+          ? calcVal.toFixed(3)
+          : item.amount,
+      };
+    });
     const headers = ['Category', 'Amount', 'Unit'];
 
     return (
@@ -770,8 +778,8 @@ const AnalyticsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {data.length > 0 ? (
-              data.map((item, idx) => (
+            {enriched.length > 0 ? (
+              enriched.map((item, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '12px', width: '50%', whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word', verticalAlign: 'top' }}>
                     {item.category}
@@ -787,7 +795,7 @@ const AnalyticsPage = () => {
             ) : (
               <tr>
                 <td colSpan={headers.length} className="no-data-message" style={{ textAlign: 'center', padding: '12px', fontStyle: 'italic', color: '#888' }}>
-                  No {scopeKey.toUpperCase()} data available for this product.
+                  No {scopeKey.replace('scope', 'Scope ')} data available for this component.
                 </td>
               </tr>
             )}
@@ -808,9 +816,10 @@ const AnalyticsPage = () => {
     if (selectedProduct) {
       lines.push(`Currently selected product: ${selectedProduct.productName || selectedProduct.productId}`);
       if (components.length > 0) {
-        const comp = components[selectedComponentIndex];
-        const compName = comp ? (comp.ingredient || '').toString().trim() : '';
-        lines.push(`Selected component: ${compName || `#${selectedComponentIndex + 1} of ${components.length}`}`);
+        const el = elements[selectedElementIndex];
+        const pr = processes[selectedProcessIndex];
+        if (el) lines.push(`Selected element: ${(el.ingredient || '').toString().trim() || `Element ${selectedElementIndex + 1}`}`);
+        if (pr) lines.push(`Selected process: ${(pr.ingredient || '').toString().trim().replace(/^Process:\s*/, '') || `Process ${selectedProcessIndex + 1}`}`);
         lines.push(`Total components (ingredients + processes): ${components.length}`);
       }
       const scope1 = getScopeData('scope1');
@@ -824,18 +833,16 @@ const AnalyticsPage = () => {
       }
     }
     if (productInsights) {
-      const top5Contributors = (productInsights.topContributors || []).slice(0, 5);
-      if (top5Contributors.length > 0) {
-        lines.push('Top 5 emission contributors:');
-        top5Contributors.forEach((c, i) => {
-          lines.push(`  ${i + 1}. ${c.name}: ${c.amount}`);
-        });
+      const scopeBreakdown = (productInsights.topContributors || []);
+      if (scopeBreakdown.length > 0) {
+        lines.push('Product emissions by scope:');
+        scopeBreakdown.forEach((c) => lines.push(`  - ${c.name}: ${c.amount}`));
       }
       const suggestions = productInsights.suggestions || [];
-      if (suggestions.length > 0) lines.push(`Suggestions (${suggestions.length}): ${suggestions.slice(0, 3).join(' ')}`);
+      if (suggestions.length > 0) lines.push(`Suggestions: ${suggestions.slice(0, 3).join(' ')}`);
     }
     return lines.join('\n') || 'No analytics data loaded yet.';
-  }, [products, selectedProductId, selectedProduct, components, selectedComponentIndex, productInsights, inputProducts, activeScopeElements]);
+  }, [products, selectedProductId, selectedProduct, components, selectedElementIndex, selectedProcessIndex, productInsights, elementInputProducts, processInputProducts, activeScopeElements]);
 
   return (
     <div className="container">
@@ -910,13 +917,15 @@ const AnalyticsPage = () => {
                 )}
                 <div className={`product-analysis-content ${!isProUser ? 'blurred' : ''}`}>
                   {loadingInsights ? (
-                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-                      <p className="normal-regular">Generating AI insights...</p>
+                    <div className="product-analysis-loading">
+                      <p className="normal-regular product-analysis-loading-text">
+                        Generating AI insights...
+                      </p>
                     </div>
                   ) : productInsights ? (
                     <>
                       <div className="analysis-column">
-                        <p className="medium-bold">Top 5 Highest Contributors</p>
+                        <p className="medium-bold">Emissions by Scope</p>
                         <ul className="analysis-list">
                           {productInsights.topContributors.map((item, i) => (
                             <li key={i}>
@@ -956,113 +965,81 @@ const AnalyticsPage = () => {
             <>
               {/* Elements Section with Table */}
               {elements.length > 0 && (
-                <>
-                  <div style={{ marginBottom: elements.length > 0 && processes.length > 0 ? '1rem' : '2rem' }}>
-                    <p className="medium-bold" style={{ marginBottom: '1rem' }}>Elements</p>
-                    <nav className="component-tabs" style={{ marginBottom: '1rem' }}>
-                      {elements.map((element, idx) => {
-                        const originalIndex = components.indexOf(element);
-                        return (
+                <div style={{ marginBottom: processes.length > 0 ? '2rem' : '2rem' }}>
+                  <p className="medium-bold" style={{ marginBottom: '1rem' }}>Elements</p>
+                  <nav className="component-tabs" style={{ marginBottom: '1rem' }}>
+                    {elements.map((element, idx) => (
+                      <button
+                        key={idx}
+                        className={`component-tab-btn ${idx === selectedElementIndex ? 'active' : ''}`}
+                        onClick={() => handleElementSelect(idx)}
+                      >
+                        {element.ingredient || `Element ${idx + 1}`}
+                      </button>
+                    ))}
+                  </nav>
+                  {selectedProduct && (
+                    <div className="component-analysis-container">
+                      <div className="chip-group" style={{ marginBottom: '1rem' }}>
+                        {['scope1', 'scope2', 'scope3'].map((s) => (
                           <button
-                            key={originalIndex}
-                            className={`component-tab-btn ${originalIndex === selectedComponentIndex ? 'active' : ''}`}
-                            onClick={() => handleComponentSelect(originalIndex)}
+                            key={s}
+                            className={`chip ${activeScopeElements === s ? 'active' : ''}`}
+                            onClick={() => setActiveScopeElements(s)}
                           >
-                            {element.ingredient || `Element ${idx + 1}`}
+                            {s.replace('scope', 'Scope ')}
                           </button>
-                        );
-                      })}
-                    </nav>
-                    
-                    {/* Elements Scope Table */}
-                    {selectedProduct && (
-                      <div className="component-analysis-container">
-                        <div className="chip-group" style={{ marginBottom: '1rem'}}>
-                          <button 
-                            className={`chip ${activeScopeElements === 'scope1' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeElements('scope1')}
-                          >
-                            Scope 1
-                          </button>
-                          <button 
-                            className={`chip ${activeScopeElements === 'scope2' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeElements('scope2')}
-                          >
-                            Scope 2
-                          </button>
-                          <button 
-                            className={`chip ${activeScopeElements === 'scope3' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeElements('scope3')}
-                          >
-                            Scope 3
-                          </button>
-                        </div>
-
-                        {loadingAnalytics || loadingInputs ? (
-                          <div className="loading-message">Loading analytics data...</div>
-                        ) : (
-                          renderScopeTableData(activeScopeElements)
-                        )}
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </>
+                      {loadingAnalytics || loadingElementInputs ? (
+                        <div className="loading-message">Loading data…</div>
+                      ) : (
+                        renderScopeTableData(activeScopeElements, getElementScopeData)
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Processes Section with Table */}
               {processes.length > 0 && (
-                <>
-                  <div style={{ marginBottom: '2rem', marginTop: elements.length > 0 ? '0.5rem' : '0' }}>
-                    <p className="medium-bold" style={{ marginBottom: '1rem' }}>Processes</p>
-                    <nav className="component-tabs" style={{ marginBottom: '1rem' }}>
-                      {processes.map((process, idx) => {
-                        const originalIndex = components.indexOf(process);
-                        const processName = (process.ingredient || '').toString().trim().replace(/^Process:\s*/, '');
-                        return (
+                <div style={{ marginBottom: '2rem' }}>
+                  <p className="medium-bold" style={{ marginBottom: '1rem' }}>Processes</p>
+                  <nav className="component-tabs" style={{ marginBottom: '1rem' }}>
+                    {processes.map((process, idx) => {
+                      const processName = (process.ingredient || '').toString().trim().replace(/^Process:\s*/, '');
+                      return (
+                        <button
+                          key={idx}
+                          className={`component-tab-btn ${idx === selectedProcessIndex ? 'active' : ''}`}
+                          onClick={() => handleProcessSelect(idx)}
+                        >
+                          {processName || `Process ${idx + 1}`}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                  {selectedProduct && (
+                    <div className="component-analysis-container">
+                      <div className="chip-group" style={{ marginBottom: '1rem' }}>
+                        {['scope1', 'scope2', 'scope3'].map((s) => (
                           <button
-                            key={originalIndex}
-                            className={`component-tab-btn ${originalIndex === selectedComponentIndex ? 'active' : ''}`}
-                            onClick={() => handleComponentSelect(originalIndex)}
+                            key={s}
+                            className={`chip ${activeScopeProcesses === s ? 'active' : ''}`}
+                            onClick={() => setActiveScopeProcesses(s)}
                           >
-                            {processName || `Process ${idx + 1}`}
+                            {s.replace('scope', 'Scope ')}
                           </button>
-                        );
-                      })}
-                    </nav>
-                    
-                    {/* Processes Scope Table */}
-                    {selectedProduct && (
-                      <div className="component-analysis-container">
-                        <div className="chip-group" style={{ marginBottom: '1rem'}}>
-                          <button 
-                            className={`chip ${activeScopeProcesses === 'scope1' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeProcesses('scope1')}
-                          >
-                            Scope 1
-                          </button>
-                          <button 
-                            className={`chip ${activeScopeProcesses === 'scope2' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeProcesses('scope2')}
-                          >
-                            Scope 2
-                          </button>
-                          <button 
-                            className={`chip ${activeScopeProcesses === 'scope3' ? 'active' : ''}`}
-                            onClick={() => setActiveScopeProcesses('scope3')}
-                          >
-                            Scope 3
-                          </button>
-                        </div>
-
-                        {loadingAnalytics || loadingInputs ? (
-                          <div className="loading-message">Loading analytics data...</div>
-                        ) : (
-                          renderScopeTableData(activeScopeProcesses)
-                        )}
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </>
+                      {loadingAnalytics || loadingProcessInputs ? (
+                        <div className="loading-message">Loading data…</div>
+                      ) : (
+                        renderScopeTableData(activeScopeProcesses, getProcessScopeData)
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </>
           ) : (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
-import { productAPI } from '../../services/api';
+import { productAPI, userLcaAPI, normalizeUserIdKey } from '../../services/api';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import Navbar from '../../components/Navbar/Navbar';
 import { Search, X, Triangle, CirclePlus, Trash2, FilePlus, Package, ListOrdered, FileUp } from 'lucide-react';
@@ -111,17 +111,26 @@ function templateToDppData(template) {
 }
 
 /** Convert a custom template to an inventory product row (productName + dppData). */
-function templateToProduct(template) {
+function templateToProduct(template, localLcaMap = {}, lcaCacheByName = {}) {
   const dpp = templateToDppData(template);
   const q = template.quantity;
   const quantityNum = q != null && q !== '' ? Number(q) : null;
+  const templateProductId = `template-${template.id}`;
+  const rawLca = localLcaMap[templateProductId];
+  const lcaResult = (rawLca != null && !Number.isNaN(Number(rawLca))) ? Number(rawLca) : 0;
+  // Read scope breakdown from name cache if available
+  const nameKey = (template.name || '').toLowerCase().trim();
+  const cached = nameKey ? lcaCacheByName[nameKey] : null;
   return {
-    productId: `template-${template.id}`,
+    productId: templateProductId,
     productName: template.name || 'Unnamed template',
     productQuantity: Number.isNaN(quantityNum) ? null : quantityNum,
     productQuantifiableUnit: null,
     dppData: JSON.stringify(dpp),
-    lcaResult: 0,
+    lcaResult,
+    scope1: cached?.scope1 ?? 0,
+    scope2: cached?.scope2 ?? 0,
+    scope3: cached?.scope3 ?? 0,
     userId: '',
     type: 'product',
     _fromTemplate: true,
@@ -213,6 +222,39 @@ const parseJsonFile = (file) => {
   });
 };
 
+// Local-only cache for LCA totals so they persist across page reloads without touching the backend.
+// Shape: { [productNameLower]: { scope1, scope2, scope3, total, updatedAt } }
+const LCA_CACHE_KEY = 'carbonx_lca_cache_by_name_v1';
+
+// LCA stored by userId + productKey (localStorage only, no backend). Survives refresh/navigation.
+// Shape: { [normalizedUserId]: { [productKey]: lcaValue } }
+const LCA_LOCAL_BY_USER_PRODUCT_KEY = 'carbonx_lca_by_user_product_v1';
+
+function getLocalLcaMap(userId) {
+  try {
+    const raw = localStorage.getItem(LCA_LOCAL_BY_USER_PRODUCT_KEY) || '{}';
+    const store = JSON.parse(raw) || {};
+    const uid = normalizeUserIdKey(userId);
+    return (uid && store[uid] && typeof store[uid] === 'object') ? store[uid] : {};
+  } catch {
+    return {};
+  }
+}
+
+function setLocalLca(userId, productKey, lcaValue) {
+  try {
+    const raw = localStorage.getItem(LCA_LOCAL_BY_USER_PRODUCT_KEY) || '{}';
+    const store = JSON.parse(raw) || {};
+    const uid = normalizeUserIdKey(userId);
+    if (!uid) return;
+    if (!store[uid]) store[uid] = {};
+    store[uid][String(productKey)] = lcaValue;
+    localStorage.setItem(LCA_LOCAL_BY_USER_PRODUCT_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.warn('[LCA] setLocalLca failed', e);
+  }
+}
+
 const InventoryPage = () => {
   const location = useLocation();
   const [userId] = useState(localStorage.getItem('userId') || '');
@@ -242,7 +284,8 @@ const InventoryPage = () => {
   });
 
   const fetchProducts = useCallback(async () => {
-    if (!userId) {
+    const validUserId = userId && String(userId).trim() !== '' && String(userId) !== 'undefined';
+    if (!validUserId) {
       setError('No user session found. Please log in.');
       setLoading(false);
       return;
@@ -250,10 +293,10 @@ const InventoryPage = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await productAPI.getAllProducts();
+      const res = await productAPI.getAllProducts({});
       const raw = Array.isArray(res?.data) ? res.data : [];
       // Debug: inspect backend shape so we can fix mapping if fields are missing
-      console.log('[getProducts] count:', raw.length, '| first item keys:', raw[0] ? Object.keys(raw[0]) : 'none', '| first item sample:', raw[0] ? { name: raw[0].name, key: raw[0].key, _key: raw[0]._key, id: raw[0].id, _id: raw[0]._id, DPP: raw[0].DPP != null, dpp: raw[0].dpp != null } : null);
+      console.log('[getProducts] count:', raw.length, '| first item keys:', raw[0] ? Object.keys(raw[0]) : 'none', '| first item sample:', raw[0] ? { name: raw[0].name, key: raw[0].key, _key: raw[0]._key, lcaValue: raw[0].lcaValue, LCAvalue: raw[0].LCAvalue, LCAValue: raw[0].LCAValue } : null);
       if (raw.length > 0 && Object.keys(raw[0]).length === 0) console.warn('[getProducts] Backend returned array of empty objects – check backend serialization / response body.');
       // Normalize: backend sometimes sends key as "" – treat as missing and use id (e.g. "product67" or "products/xyz" -> "xyz")
       const effectiveKey = (p) => {
@@ -270,19 +313,52 @@ const InventoryPage = () => {
         const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
         return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
       });
-      const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
+      const filtered = userId ? normalized.filter((p) => normalizeUserIdKey(p.userId) === normalizeUserIdKey(userId)) : normalized;
+      // LCA: localStorage first (no backend required), then optional backend user LCA
+      const validUserId = userId && String(userId).trim() !== '' && String(userId) !== 'undefined';
+      const localLcaMap = getLocalLcaMap(userId);
+      let userLcaMap = {};
+      try {
+        if (validUserId) {
+          const userLcaRes = await userLcaAPI.getByUserId(userId);
+          userLcaMap = (userLcaRes?.data && typeof userLcaRes.data === 'object') ? userLcaRes.data : {};
+        }
+      } catch (e) {
+        // Backend optional
+      }
+      // Load any locally cached LCA totals from previous calculations (keyed by product name only).
+      let lcaCacheByName = {};
+      try {
+        const cacheRaw = localStorage.getItem(LCA_CACHE_KEY) || '{}';
+        lcaCacheByName = JSON.parse(cacheRaw) || {};
+      } catch {
+        lcaCacheByName = {};
+      }
+
       const mapped = filtered.map((p) => {
         const productWithEmission = { ...p, DPP: p.DPP ?? p.dpp, emissionInformation: p.emissionInformation };
         const totals = getScopeTotalsFromProduct(productWithEmission);
         const apiKey = effectiveKey(p) || (p._key && String(p._key).trim()) || (p.id ?? p._id ?? '');
         if (!apiKey && p.name) console.warn('[getProducts] Empty productId for product name:', p.name, 'raw p.key/id:', p.key, p.id);
-        return {
+        // Prefer persisted LCA value from backend (support any casing: lcaValue, lcavalue, LCAvalue, LCAValue)
+        let rawLca = p.lcaValue ?? p.lcavalue ?? p.LCAvalue ?? p.LCAValue;
+        if (rawLca == null && typeof p === 'object') {
+          const lcaKey = Object.keys(p).find((k) => String(k).toLowerCase() === 'lcavalue');
+          if (lcaKey) rawLca = p[lcaKey];
+        }
+        const persistedLca = rawLca != null && rawLca !== '' && !Number.isNaN(Number(rawLca)) ? Number(rawLca) : null;
+        // Prefer: localStorage (no backend) > backend user LCA > product-level > totals
+        const rawLocalLca = localLcaMap[apiKey] ?? localLcaMap[String(apiKey)];
+        const localLca = (rawLocalLca != null && !Number.isNaN(Number(rawLocalLca))) ? Number(rawLocalLca) : null;
+        const rawUserLca = userLcaMap[apiKey] ?? userLcaMap[String(apiKey)];
+        const userLca = (rawUserLca != null && !Number.isNaN(Number(rawUserLca))) ? Number(rawUserLca) : null;
+        const base = {
           productId: apiKey,
           productName: p.name ?? '',
           productQuantity: p.quantityValue ?? p.quantity ?? null,
           productQuantifiableUnit: p.quantifiableUnit ?? null,
           dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
-          lcaResult: totals.total,
+          lcaResult: localLca ?? userLca ?? persistedLca ?? totals.total,
           scope1: totals.scope1,
           scope2: totals.scope2,
           scope3: totals.scope3,
@@ -294,17 +370,32 @@ const InventoryPage = () => {
           DPP: p.DPP ?? p.dpp ?? null,
           emissionInformation: p.emissionInformation ?? null,
         };
+
+        // Overlay name cache only if no localStorage or backend LCA
+        const nameNorm = (s) => String(s || '').toLowerCase().trim();
+        const cacheEntry = base.productName && localLca == null && userLca == null && persistedLca == null ? lcaCacheByName[nameNorm(base.productName)] : null;
+        if (cacheEntry && typeof cacheEntry === 'object') {
+          if (typeof cacheEntry.total === 'number') base.lcaResult = cacheEntry.total;
+          if (typeof cacheEntry.scope1 === 'number') base.scope1 = cacheEntry.scope1;
+          if (typeof cacheEntry.scope2 === 'number') base.scope2 = cacheEntry.scope2;
+          if (typeof cacheEntry.scope3 === 'number') base.scope3 = cacheEntry.scope3;
+        }
+
+        return base;
       });
       const customTemplates = getStoredTemplates();
       const backendNames = new Set(mapped.map((prod) => prod.productName));
       const templateProducts = customTemplates
         .filter((t) => !backendNames.has(t.name || ''))
-        .map((t) => templateToProduct(t));
+        .map((t) => templateToProduct(t, localLcaMap, lcaCacheByName));
       setProducts([...mapped, ...templateProducts]);
     } catch (err) {
       console.error("Failed to fetch products:", err);
       const customTemplates = getStoredTemplates();
-      const templateProducts = customTemplates.map((t) => templateToProduct(t));
+      const fallbackLcaMap = getLocalLcaMap(userId);
+      let fallbackNameCache = {};
+      try { fallbackNameCache = JSON.parse(localStorage.getItem(LCA_CACHE_KEY) || '{}'); } catch { fallbackNameCache = {}; }
+      const templateProducts = customTemplates.map((t) => templateToProduct(t, fallbackLcaMap, fallbackNameCache));
       setProducts(templateProducts); // no backend names on error, show all templates
       // Don't set error so empty state shows: "Click + to add your first product"
     } finally {
@@ -321,7 +412,8 @@ const InventoryPage = () => {
   }, [products]);
 
   // Re-sync template-derived products from localStorage when on Inventory
-  // so edits made on Edit Template or Browse Templates are reflected here
+  // so edits made on Edit Template or Browse Templates are reflected here.
+  // No products.length dependency — that caused an infinite re-fetch loop.
   const syncTemplatesIntoProducts = useCallback(() => {
     setProducts((prev) => {
       if (prev.length === 0) return prev;
@@ -346,9 +438,8 @@ const InventoryPage = () => {
   }, []);
 
   useEffect(() => {
-    if (location.pathname !== '/inventory') return;
     syncTemplatesIntoProducts();
-  }, [location.pathname, products.length, syncTemplatesIntoProducts]);
+  }, [syncTemplatesIntoProducts]);
 
   // When user returns to this tab after editing a template elsewhere, re-sync
   useEffect(() => {
@@ -797,44 +888,82 @@ function dppDataToTemplate(dppJson) {
     try {
       if (!product._fromTemplate) await autoSaveProduct(productId, product.dppData);
 
-      // Run LCA on backend product (by key)
-      console.log('[LCA] Requesting GET /api/experiments/products/' + backendKey + '/lca');
-      const lcaRes = await productAPI.calculateProduct(backendKey);
+      // Run LCA on backend product (by key); pass userId so backend can save to user_product_lca
+      console.log('[LCA] Requesting GET /api/experiments/products/' + backendKey + '/lca', userId ? { userId } : '');
+      const lcaRes = await productAPI.calculateProduct(backendKey, userId);
       console.log('[LCA] LCA response:', { status: lcaRes?.status, data: lcaRes?.data });
 
-      // Refetch updated backend product to get DPP
+      // Backend persists only lcaValue; totals come from the LCA response (carbonFootprint).
+      const carbonFootprint = lcaRes?.data;
+      const productWithCf = carbonFootprint ? { DPP: { carbonFootprint }, emissionInformation: null } : null;
+      const totals = productWithCf ? getScopeTotalsFromProduct(productWithCf) : { scope1: 0, scope2: 0, scope3: 0, total: 0 };
+      console.log('[LCA] Totals from response:', totals);
+
+      // Persist LCA in localStorage only (no backend). Survives refresh and navigation.
+      // For template products, also save under the template's own productId so it survives reload
+      // (template products are not in the backend product list, so backendKey won't match on reload).
+      if (userId) {
+        setLocalLca(userId, backendKey, totals.total);
+        if (product._fromTemplate && productId !== backendKey) {
+          setLocalLca(userId, productId, totals.total);
+        }
+        console.log('[LCA] Saved to localStorage:', { productKey: backendKey, templateId: product._fromTemplate ? productId : null, total: totals.total });
+      }
+      // Optional: persist to backend (comment out to use localStorage only)
+      // try { await userLcaAPI.save(userId, backendKey, totals.total); } catch (e) {}
+      // try { await productAPI.saveProductLca(backendKey, totals.total); } catch (e) {}
+
+      // Refetch products so LCA (Total) comes from localStorage and persists across navigation
+      try {
+        await fetchProducts();
+      } catch (_) {}
       console.log('[LCA] Refetching product GET /api/products/' + backendKey);
       const res = await productAPI.getProductById(backendKey);
       const updatedProduct = res?.data;
-      console.log('[LCA] Refetch response:', { status: res?.status, hasProduct: !!updatedProduct, DPP: !!updatedProduct?.DPP ?? !!updatedProduct?.dpp });
-      if (updatedProduct) {
-        const productWithDPP = {
-          DPP: updatedProduct.DPP ?? updatedProduct.dpp,
-          emissionInformation: updatedProduct.emissionInformation,
-        };
-        const totals = getScopeTotalsFromProduct(productWithDPP);
-        console.log('[LCA] Extracted totals:', totals);
+      console.log('[LCA] Refetch response:', { status: res?.status, hasProduct: !!updatedProduct, lcaValue: updatedProduct?.lcaValue ?? updatedProduct?.LCAvalue ?? updatedProduct?.LCAValue });
+      if (updatedProduct || totals.total > 0) {
+        // Use persisted lcaValue when present, else total from response (support both key casings)
+        const refetchedLca = updatedProduct?.lcaValue ?? updatedProduct?.lcavalue ?? updatedProduct?.LCAvalue ?? updatedProduct?.LCAValue;
+        const lcaResult = typeof refetchedLca === 'number' ? refetchedLca : totals.total;
 
-        // Update the row we're showing (template or backend) by productId so UI updates
+        // Optional: keep local cache as fallback for template products or old sessions
+        try {
+          const cacheRaw = localStorage.getItem(LCA_CACHE_KEY) || '{}';
+          const cache = JSON.parse(cacheRaw) || {};
+          const entry = {
+            scope1: totals.scope1 || 0,
+            scope2: totals.scope2 || 0,
+            scope3: totals.scope3 || 0,
+            total: lcaResult,
+            updatedAt: Date.now(),
+          };
+          const prodName = (product.productName || product.name || '').toString().trim();
+          if (prodName) cache[prodName.toLowerCase()] = entry;
+          localStorage.setItem(LCA_CACHE_KEY, JSON.stringify(cache));
+        } catch (e) {
+          console.warn('[LCA] Failed to update local LCA cache', e);
+        }
+
+        // Update the row so UI shows the new LCA (from response + persisted lcaValue)
         setProducts((currentProducts) =>
           currentProducts.map((prod) => {
             if (prod.productId === productId) {
               return {
                 ...prod,
-                DPP: updatedProduct.DPP ?? updatedProduct.dpp,
-                emissionInformation: updatedProduct.emissionInformation ?? prod.emissionInformation,
-                lcaResult: totals.total,
+                DPP: updatedProduct?.DPP ?? updatedProduct?.dpp ?? prod.DPP,
+                emissionInformation: updatedProduct?.emissionInformation ?? prod.emissionInformation,
+                lcaResult,
                 scope1: totals.scope1,
                 scope2: totals.scope2,
                 scope3: totals.scope3,
-                functionalProperties: updatedProduct.functionalProperties ?? prod.functionalProperties,
+                functionalProperties: updatedProduct?.functionalProperties ?? prod.functionalProperties,
               };
             }
             return prod;
           })
         );
       } else {
-        console.warn('[LCA] Refetch returned no product – cannot update UI');
+        console.warn('[LCA] No product or totals – cannot update UI');
       }
     } catch (err) {
       console.error('[LCA] Error:', err?.response?.status, err?.response?.data ?? err?.message, err);
@@ -995,7 +1124,7 @@ function dppDataToTemplate(dppJson) {
                   <th>Product Name</th>
                   <th>Quantity</th>
                   <th>DPP</th>
-                  <th>Scope 3</th>
+                  <th>LCA (Scope 3)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1041,12 +1170,12 @@ function dppDataToTemplate(dppJson) {
                           <button
                             className="icon icon-small"
                             disabled={calculatingProductId === p.productId}
-                            title={expandedRows[p.productId] ? 'Collapse' : 'Expand and run LCA'}
+                            title={expandedRows[p.productId] ? 'Collapse' : 'Expand'}
                             onClick={() => {
                               const isOpening = !expandedRows[p.productId];
-                              console.log('[LCA] Expand (arrow) clicked', { productId: p.productId, productName: p.productName, isOpening, _fromTemplate: p._fromTemplate });
                               setExpandedRows((prev) => ({ ...prev, [p.productId]: !prev[p.productId] }));
-                              if (isOpening) runFullLcaCalculation(p.productId);
+                              // Only run LCA if opening and no value has been calculated yet
+                              if (isOpening && !(p.lcaResult > 0)) runFullLcaCalculation(p.productId);
                             }}
                           >
                             <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />

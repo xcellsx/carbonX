@@ -282,6 +282,20 @@ const AddProductsPage = () => {
     saveCustomTemplates([...customTemplates, newTemplate]);
   };
 
+  const handleCustomQuantityChange = (templateId, newQuantity) => {
+    setCustomTemplates((prev) => {
+      const next = prev.map((t) =>
+        t.id === templateId ? { ...t, quantity: newQuantity } : t
+      );
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch (e) {
+        console.warn('Could not save custom templates', e);
+      }
+      return next;
+    });
+  };
+
   const handleDeleteCustom = (id, e) => {
     e?.stopPropagation?.();
     saveCustomTemplates(customTemplates.filter((t) => t.id !== id));
@@ -478,10 +492,12 @@ const AddProductsPage = () => {
                     .map((t) => (
                     <TemplateCard
                       key={t.id}
+                      templateId={t.id}
                       name={t.name}
                       ingredients={t.ingredients}
                       processes={t.processes}
                       quantity={t.quantity}
+                      onQuantityChange={handleCustomQuantityChange}
                       onEdit={() => openEditCustom(t)}
                       onDelete={(e) => handleDeleteCustom(t.id, e)}
                     />

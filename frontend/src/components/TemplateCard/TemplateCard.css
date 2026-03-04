@@ -53,3 +53,13 @@
   color: rgba(var(--primary), 1);
   font-weight: var(--regular);
 }
+
+.template-card-quantity-input {
+  width: 4rem;
+  padding: 0.2rem 0.4rem;
+  font-size: var(--small);
+  border: 1px solid rgba(var(--greys), 0.4);
+  border-radius: 4px;
+  margin-left: 0.25rem;
+  box-sizing: border-box;
+}

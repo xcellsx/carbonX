@@ -74,7 +74,15 @@ public class InitialSetup implements CommandLineRunner {
       arangoCollectionService.createCollection("users", 2, null, null, null, null, null).block();
       log.info("-> USERS collection created");
     }
-    
+    // Ensure user_product_lca collection exists for user-scoped LCA persistence.
+    try {
+      arangoCollectionService.getCollection("user_product_lca").block();
+      log.info("-> USER_PRODUCT_LCA collection already exists");
+    } catch (Exception e) {
+      arangoCollectionService.createCollection("user_product_lca", 2, null, null, null, null, null).block();
+      log.info("-> USER_PRODUCT_LCA collection created");
+    }
+
     System.out.println("------------- # SETUP COMPLETED # -------------");
   }
 }

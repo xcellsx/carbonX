@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ReportPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import {
   ChevronDown, Plus, Search, Trash2, Eye, Pencil, Download, ChevronLeft,
   ArrowUp, ArrowDown, Minus, CircleCheck, RefreshCw, BookOpen,
-  Target, Users, ShieldCheck, Leaf, X, Sprout, FileText
+  Target, Users, ShieldCheck, Leaf, X, Sprout, FileText, Sparkles, RotateCcw
 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
+import { chatCompletion } from '../../services/openRouter';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -16,6 +17,7 @@ import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationMo
 import DownloadFormatModal from '../../components/DownloadFormatModal/DownloadFormatModal';
 import { exportReportToDocxBlob } from '../../utils/reportToDocx';
 import { useProSubscription } from '../../hooks/useProSubscription';
+import { getEffectiveTargets } from '../../utils/reportTargets';
 
 // --- Generate Report Modal ---
 const GenerateReportModal = ({ isOpen, onClose, onNavigate }) => {
@@ -51,7 +53,7 @@ const ReportSection = ({ icon: Icon, title, children }) => (
 );
 
 // --- Report Content Display (Web View) ---
-const ReportContent = ({ data, onBack, onGoToSproutAI }) => {
+const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) => {
   if (!data) {
     return (
       <div className="report-container">
@@ -72,17 +74,75 @@ const ReportContent = ({ data, onBack, onGoToSproutAI }) => {
 
   const isAiGenerated = data.aiGenerated || !data.companyProfile;
 
+  // Derive company name and reporting year for header from stored Company Info when available.
+  let headerCompanyName = data.companyName || data.productName || 'Sustainability Report';
+  let headerReportingYear = null;
+  try {
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+    const userId = localStorage.getItem('userId') || '';
+    const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+    const company = allCompanyData[userId] ?? allCompanyData[storageKey] ?? null;
+    if (company && typeof company === 'object') {
+      if (company.companyName) headerCompanyName = company.companyName;
+      const rawYear = (company.reportingYear || '').toString().trim();
+      const yearMatch = rawYear.match(/\b(20\d{2})\b/);
+      if (yearMatch) {
+        headerReportingYear = `FY${yearMatch[1]}`;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // If we still don't have a sane reporting year, default to previous calendar year (e.g. if today is 2026, show FY2025).
+  if (!headerReportingYear) {
+    const nowYear = new Date().getFullYear();
+    headerReportingYear = `FY${nowYear - 1}`;
+  }
+
   return (
     <div className="report-container">
-      <button type="button" onClick={onBack} className="nav report-back-btn" style={{ marginBottom: '1.5rem', background: 'transparent', padding: '0.5rem 0' }}>
-        <ChevronLeft size={18} />
-        <span style={{fontSize: '1rem'}}>Back to all reports</span>
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <button type="button" onClick={onBack} className="nav report-back-btn" style={{ background: 'transparent', padding: '0.5rem 0' }}>
+          <ChevronLeft size={18} />
+          <span style={{fontSize: '1rem'}}>Back to all reports</span>
+        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {onDownload && (
+            <button
+              type="button"
+              onClick={onDownload}
+              className="icon"
+              title="Download report"
+              style={{ backgroundColor: 'rgba(var(--success), 1)', color: '#fff' }}
+            >
+              <Download size={18} />
+            </button>
+          )}
+          {onAIClick && (
+            <button
+              type="button"
+              onClick={onAIClick}
+              className="icon"
+              title="Edit report with AI"
+              style={{ backgroundColor: 'rgba(var(--primary), 1)', color: '#fff' }}
+            >
+              <Sparkles size={18} />
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="report-header-section" style={{textAlign: 'center', paddingBottom: '3rem', borderBottom: '1px solid #eee', marginBottom: '3rem'}}>
-        <h1 style={{fontSize: '2.5rem', marginBottom: '0.5rem'}}>Carbon Report</h1>
-        <p className="medium-regular" style={{fontSize: '1.25rem', color: '#666'}}>Reporting Year: <span className="medium-bold">FY2025</span></p>
-        <p className="medium-regular" style={{color: '#666'}}>Scope: <span className="medium-bold">{data.productName || '—'}</span></p>
+        <h1 style={{fontSize: '2.5rem', marginBottom: '0.5rem'}}>
+          {data.reportTitle || `${headerCompanyName} Sustainability Report`}
+        </h1>
+        <p className="medium-regular" style={{fontSize: '1.25rem', color: '#666'}}>
+          Reporting Year: <span className="medium-bold">{headerReportingYear || '—'}</span>
+        </p>
+        <p className="medium-regular" style={{color: '#666'}}>
+          Scope: <span className="medium-bold">{data.productName || headerCompanyName || '—'}</span>
+        </p>
         <div className="framework-tags" style={{justifyContent: 'center', marginTop: '1.5rem'}}>
           {data.frameworks?.map(f => <span key={f} className="framework-tag">{f}</span>)}
         </div>
@@ -186,6 +246,11 @@ const ReportContent = ({ data, onBack, onGoToSproutAI }) => {
 
       {/* 6. TARGETS */}
       <ReportSection icon={Target} title="6. 2030 Sustainability Roadmap">
+          {(!data.futureTargets || data.futureTargets.length === 0) && (
+            <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)', fontStyle: 'italic', marginBottom: '1rem', fontSize: '0.875rem' }}>
+              No targets were specified — the following are suggested benchmarks aligned to the Singapore Green Plan 2030 and SBTi 1.5°C pathway. Use the AI editor to customise them.
+            </p>
+          )}
           <div className="inventory-table-container">
             <table className="inventory-table" style={{width: '100%'}}>
                 <thead>
@@ -196,7 +261,7 @@ const ReportContent = ({ data, onBack, onGoToSproutAI }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {data.futureTargets?.map((t, i) => (
+                    {getEffectiveTargets(data).map((t, i) => (
                         <tr key={i}>
                             <td className="medium-bold">{t.area}</td>
                             <td>{t.goal}</td>
@@ -238,8 +303,17 @@ const ReportPage = () => {
   const [deleteConfirm, setDeleteConfirm] = useState({isOpen: false, title: '', message: '', onConfirm: () => {},});
   const [showNewReportModal, setShowNewReportModal] = useState(false);
   const [downloadModalReport, setDownloadModalReport] = useState(null);
+  const [showEditorPanel, setShowEditorPanel] = useState(false);
+  const [editorInput, setEditorInput] = useState('');
+  const [editorLoading, setEditorLoading] = useState(false);
+  const [editorError, setEditorError] = useState('');
+  const [editorHistory, setEditorHistory] = useState([]); // stack of previous fullData for undo
+  const [viewingReportId, setViewingReportId] = useState(null);
+  const editorInputRef = useRef(null);
 
-  // --- EXTENSIVE PUBLICATION-READY DATA (Golden Lion Brand) ---
+  // --- Demo/sample report data (fictional Golden Lion brand).
+  // Used ONLY when the user explicitly clicks the "Load demo report" button.
+  // All normal reports shown here are generated by SproutAI using live AI models.
   const FULL_SAMPLE_REPORT = {
     productName: "Dried White Sesame (Batch 2024-Q4)",
     boardStatement: "Dear Stakeholders,\n\nThe Board of Directors of Golden Lion is pleased to present our Annual Sustainability Report for FY2025. In a year marked by global climate challenges, we remained steadfast in our mission to deliver high-quality food products while aggressively reducing our carbon footprint. \n\nSustainability is not merely a compliance requirement for us; it is a core pillar of our business strategy. The Board has direct oversight of ESG risks and opportunities, ensuring that climate resilience is integrated into every financial and operational decision. This year, we successfully validated our 2030 emissions reduction targets and expanded our responsible sourcing program to cover 80% of our raw material spend.\n\nWe are committed to transparency and are proud to align this report with the Global Reporting Initiative (GRI) Standards and the TCFD recommendations.",
@@ -355,6 +429,8 @@ const ReportPage = () => {
     const report = reportsList.find(r => r.id === openReportIdFromState);
     if (report) {
       setSelectedReportData(report.fullData || null);
+      setViewingReportId(report.id || null);
+      setEditorHistory([]);
       setCurrentView('detail');
     }
     window.history.replaceState({}, '', location.pathname);
@@ -363,8 +439,8 @@ const ReportPage = () => {
   const resetToSample = () => {
       const parsed = [{
            id: 1,
-           reportName: "FY2025 Carbon Disclosure",
-           description: "Annual carbon footprint & sustainability analysis.",
+           reportName: "Demo: FY2025 Carbon Disclosure",
+           description: "Demo report with fictional data for presentation/testing.",
            date: "2025-11-23",
            fullData: FULL_SAMPLE_REPORT
       }];
@@ -392,10 +468,80 @@ const ReportPage = () => {
 
   const handleViewReport = (report) => {
     setSelectedReportData(report.fullData || null);
+    setViewingReportId(report.id || null);
+    setEditorHistory([]);
     setCurrentView('detail');
   };
 
   const safeFileName = (name) => (name || 'report').replace(/[^a-zA-Z0-9-_.\s]/g, '').replace(/\s+/g, '_').slice(0, 80);
+
+  const handleSparkleClick = () => {
+    setShowEditorPanel(true);
+    setEditorError('');
+    setTimeout(() => editorInputRef.current?.focus(), 100);
+  };
+
+  const handleEditorUndo = () => {
+    if (editorHistory.length === 0) return;
+    const prev = editorHistory[editorHistory.length - 1];
+    setEditorHistory(h => h.slice(0, -1));
+    setSelectedReportData(prev);
+    // Also persist the undo to localStorage
+    setReportsList(list => {
+      const updated = list.map(r => r.fullData === selectedReportData ? { ...r, fullData: prev } : r);
+      localStorage.setItem('carbonx_reports', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleEditorApply = async () => {
+    const instruction = editorInput.trim();
+    if (!instruction || !selectedReportData || editorLoading) return;
+    setEditorLoading(true);
+    setEditorError('');
+
+    const EDITOR_SYSTEM = `You are an AI report editor. The user will give you a JSON sustainability report and an editing instruction.
+Apply the instruction to modify the report, then return ONLY the updated JSON object — no markdown, no code fences, no extra text.
+Preserve all fields that are not affected by the instruction. The JSON must have the same top-level structure as the input.`;
+
+    const userMsg = `Editing instruction: ${instruction}
+
+Current report JSON:
+${JSON.stringify(selectedReportData, null, 2).slice(0, 8000)}`;
+
+    try {
+      const raw = await chatCompletion(
+        [
+          { role: 'system', content: EDITOR_SYSTEM },
+          { role: 'user', content: userMsg },
+        ],
+        { model: 'google/gemini-2.0-flash-001', max_tokens: 4096, temperature: 0.4 }
+      );
+      let text = raw.trim();
+      const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (codeMatch) text = codeMatch[1].trim();
+      const updated = JSON.parse(text);
+      if (!updated || typeof updated !== 'object') throw new Error('AI returned invalid JSON');
+
+      // Save previous state for undo
+      setEditorHistory(h => [...h, selectedReportData]);
+      setSelectedReportData(updated);
+      setEditorInput('');
+
+      // Persist to localStorage using the report ID
+      setReportsList(list => {
+        const updatedList = list.map(r =>
+          r.id === viewingReportId ? { ...r, fullData: updated } : r
+        );
+        localStorage.setItem('carbonx_reports', JSON.stringify(updatedList));
+        return updatedList;
+      });
+    } catch (err) {
+      setEditorError(`Failed to apply changes: ${err.message}. Please try a simpler instruction.`);
+    } finally {
+      setEditorLoading(false);
+    }
+  };
 
   // --- PDF GENERATION (report content only; no hardcoded template) ---
   const handleDownloadReport = (report) => {
@@ -478,33 +624,55 @@ const ReportPage = () => {
              const stratStr = item.strategy || '';
              const perfStr = item.performance || '';
              const outStr = item.outlook || '';
-             doc.setFontSize(12);
+             // Page overflow guard before each item
+             if (finalY > 240) { doc.addPage(); finalY = 20; }
+             doc.setFontSize(11);
              doc.setTextColor(0);
              doc.setFont("helvetica", "bold");
-             doc.text(titleStr, 14, finalY);
-             doc.setFontSize(10);
-             doc.setTextColor(22, 163, 74);
-             doc.text(keyStr, 196, finalY, { align: 'right' });
-             finalY += 6;
+             const titleLines = doc.splitTextToSize(titleStr, 182);
+             doc.text(titleLines, 14, finalY);
+             finalY += (titleLines.length * 5) + 2;
+             if (keyStr) {
+               doc.setFontSize(9);
+               doc.setTextColor(22, 163, 74);
+               doc.setFont("helvetica", "normal");
+               const keyLines = doc.splitTextToSize(keyStr, 182);
+               doc.text(keyLines, 14, finalY);
+               finalY += (keyLines.length * 4) + 3;
+             }
              doc.setFontSize(9);
              doc.setTextColor(80);
              doc.setFont("helvetica", "italic");
              const strat = doc.splitTextToSize(stratStr ? `"${stratStr}"` : '', 182);
-             doc.text(strat, 14, finalY);
-             finalY += (strat.length * 4) + 4;
-             doc.setFont("helvetica", "normal");
-             doc.setTextColor(0);
-             doc.text("Performance:", 14, finalY);
-             doc.setTextColor(60);
-             const perf = doc.splitTextToSize(perfStr, 160);
-             doc.text(perf, 38, finalY);
-             finalY += (perf.length * 4) + 4;
-             doc.setTextColor(0);
-             doc.text("Outlook:", 14, finalY);
-             doc.setTextColor(60);
-             const out = doc.splitTextToSize(outStr, 160);
-             doc.text(out, 38, finalY);
-             finalY += (out.length * 4) + 10;
+             if (strat.length > 0 && strat[0]) {
+               doc.text(strat, 14, finalY);
+               finalY += (strat.length * 4) + 3;
+             }
+             doc.setFont("helvetica", "bold");
+             doc.setTextColor(40);
+             doc.setFontSize(9);
+             if (perfStr) {
+               if (finalY > 265) { doc.addPage(); finalY = 20; }
+               doc.text("Performance:", 14, finalY);
+               doc.setFont("helvetica", "normal");
+               doc.setTextColor(60);
+               const perf = doc.splitTextToSize(perfStr, 158);
+               doc.text(perf, 40, finalY);
+               finalY += (perf.length * 4) + 3;
+             }
+             if (outStr) {
+               if (finalY > 265) { doc.addPage(); finalY = 20; }
+               doc.setFont("helvetica", "bold");
+               doc.setTextColor(40);
+               doc.text("Outlook:", 14, finalY);
+               doc.setFont("helvetica", "normal");
+               doc.setTextColor(60);
+               const out = doc.splitTextToSize(outStr, 158);
+               doc.text(out, 40, finalY);
+               finalY += (out.length * 4) + 8;
+             } else {
+               finalY += 5;
+             }
         });
     };
 
@@ -521,14 +689,34 @@ const ReportPage = () => {
     doc.text("6. 2030 Sustainability Roadmap", 14, finalY);
     finalY += 10;
     
-    const targetRows = data.futureTargets?.map(t => [t.area, t.goal, t.status]) || [];
+    const targetRows = getEffectiveTargets(data).map(t => [t.area || '', t.goal || '', t.status || '']);
     autoTable(doc, {
         startY: finalY,
         head: [['Target Area', '2030 Goal', 'Current Status']],
         body: targetRows,
         theme: 'grid',
-        headStyles: { fillColor: [51, 71, 97] },
-        styles: { fontSize: 10, cellPadding: 3 }
+        tableWidth: 'wrap',
+        margin: { left: 14, right: 14 },
+        headStyles: {
+          fillColor: [51, 71, 97],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 10,
+        },
+        bodyStyles: {
+          textColor: [30, 30, 30],
+          fontSize: 9,
+          cellPadding: 4,
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250],
+        },
+        columnStyles: {
+          0: { cellWidth: 45 },
+          1: { cellWidth: 95 },
+          2: { cellWidth: 45 },
+        },
+        styles: { overflow: 'linebreak', lineColor: [200, 200, 200], lineWidth: 0.3 },
     });
 
     doc.save(`${safeFileName(report.reportName || data.productName)}.pdf`);
@@ -550,6 +738,9 @@ const ReportPage = () => {
   const handleBackToList = () => {
     setCurrentView('list');
     setSelectedReportData(null);
+    setShowEditorPanel(false);
+    setEditorHistory([]);
+    setViewingReportId(null);
   };
 
   const filteredReports = reportsList.filter(report =>
@@ -578,7 +769,7 @@ const ReportPage = () => {
               <div className = "sub-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredReports.length} of {reportsList.length} reports</p>
                 <div className = "two-row-component-container">
-                  <button className="icon" title="Reset to Full Sample" onClick={resetToSample} style={{backgroundColor: '#f3f4f6', color: '#666'}}>
+                  <button className="icon" title="Load demo report (fictional data)" onClick={resetToSample} style={{backgroundColor: '#f3f4f6', color: '#666'}}>
                      <RefreshCw size={16} />
                   </button>
                   <div className = "input-base search-bar">
@@ -648,7 +839,18 @@ const ReportPage = () => {
         ) : (
           <div className="content-container-main">
             <div className="analytics-card"> 
-              <ReportContent data={selectedReportData} onBack={handleBackToList} onGoToSproutAI={() => navigate('/chat')} />
+              <ReportContent
+                data={selectedReportData}
+                onBack={handleBackToList}
+                onGoToSproutAI={() => navigate('/chat')}
+                onAIClick={handleSparkleClick}
+                onDownload={() => {
+                  const liveReport = reportsList.find(r => r.id === viewingReportId);
+                  setDownloadModalReport(liveReport
+                    ? { ...liveReport, fullData: selectedReportData }
+                    : { reportName: 'report', fullData: selectedReportData });
+                }}
+              />
             </div>
           </div>
         )}
@@ -667,6 +869,73 @@ const ReportPage = () => {
         onSelectPdf={() => downloadModalReport && handleDownloadReport(downloadModalReport)}
         onSelectDocx={() => downloadModalReport && handleDownloadDocx(downloadModalReport)}
       />
+
+      {/* AI Report Editor Panel */}
+      {showEditorPanel && currentView === 'detail' && (
+        <div className="report-editor-panel">
+          <div className="report-editor-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Sparkles size={16} color="rgba(var(--primary), 1)" />
+              <span className="medium-bold" style={{ fontSize: 'var(--normal)' }}>AI Report Editor</span>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {editorHistory.length > 0 && (
+                <button
+                  type="button"
+                  className="report-editor-undo"
+                  onClick={handleEditorUndo}
+                  title="Undo last change"
+                  disabled={editorLoading}
+                >
+                  <RotateCcw size={14} />
+                  Undo
+                </button>
+              )}
+              <button type="button" className="report-editor-close" onClick={() => setShowEditorPanel(false)} aria-label="Close">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+
+          <p className="normal-regular" style={{ fontSize: 'var(--small)', color: 'rgba(var(--greys), 1)', marginBottom: '0.75rem' }}>
+            Describe the change you want — e.g. "remove the energy consumption section", "update the board statement to be more concise", "add a target for net zero by 2040".
+          </p>
+
+          {editorError && (
+            <p className="submit-error" style={{ marginBottom: '0.5rem', fontSize: 'var(--small)' }}>{editorError}</p>
+          )}
+
+          <div className="report-editor-input-row">
+            <textarea
+              ref={editorInputRef}
+              className="report-editor-textarea"
+              placeholder="What would you like to change?"
+              value={editorInput}
+              onChange={e => setEditorInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleEditorApply(); }}
+              disabled={editorLoading}
+              rows={3}
+            />
+            <button
+              type="button"
+              className="icon" style={{ backgroundColor: 'rgba(var(--primary), 1)', color: '#fff' }}
+              onClick={handleEditorApply}
+              disabled={editorLoading || !editorInput.trim()}
+              title="Apply change (Ctrl+Enter)"
+            >
+              {editorLoading
+                ? <div className="report-editor-spinner" />
+                : <CircleCheck size={18} />
+              }
+            </button>
+          </div>
+          {editorLoading && (
+            <p className="normal-regular" style={{ fontSize: 'var(--small)', color: 'rgba(var(--greys), 1)', marginTop: '0.5rem' }}>
+              Applying changes…
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

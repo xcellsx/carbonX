@@ -65,6 +65,31 @@
   color: rgba(var(--primary), 1);
 }
 
+/* Loading state: soft gradient pulse on icon + text while suggestions are generated */
+.chat-welcome-loading .sproutai-welcome-text {
+  animation: sproutai-welcome-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(120deg, rgba(var(--primary), 1), rgba(var(--secondary), 1), rgba(var(--primary), 1));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes sproutai-welcome-pulse {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.6;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.6;
+  }
+}
+
 /* --- Main Chat Layout --- */
 .chat-container {
   flex-grow: 1;
@@ -131,6 +156,11 @@
 
 .chat-footer {
   flex-shrink: 0;
+}
+
+/* Reserve vertical space for suggestion cards so the welcome text doesn't jump when they appear. */
+.chat-footer-empty {
+  min-height: 132px; /* roughly height of one row of suggestion cards + spacing */
 }
 
 /* --- Chat Messages --- */
@@ -338,6 +368,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-right: 16px;
 }
 .send-button:hover {
   background-color: rgba(var(--primary), 0.8);
@@ -500,4 +531,109 @@
 .sproutai-history-delete:hover {
   opacity: 0.9;
   transform: scale(1.05);
+}
+
+/* --- Report Ready Toast --- */
+.report-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--primary), 0.3);
+  border-left: 4px solid rgba(var(--primary), 1);
+  border-radius: 0.5rem;
+  padding: 0.875rem 1rem;
+  box-shadow: 0 4px 16px rgba(var(--blacks), 0.12);
+  max-width: 360px;
+  animation: toast-slide-in 0.25s ease-out;
+}
+
+@keyframes toast-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.report-toast-icon {
+  flex-shrink: 0;
+  color: rgba(var(--primary), 1);
+}
+
+.report-toast-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.report-toast-title {
+  font-weight: var(--bold);
+  font-size: var(--normal);
+  color: rgba(var(--blacks), 1);
+}
+
+.report-toast-sub {
+  font-size: var(--small);
+  color: rgba(var(--greys), 1);
+}
+
+.report-toast-view {
+  flex-shrink: 0;
+  background-color: rgba(var(--primary), 1);
+  color: rgba(var(--whites), 1);
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: var(--small);
+  font-weight: var(--bold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.report-toast-view:hover {
+  background-color: rgba(var(--primary), 0.85);
+}
+
+.report-toast-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(var(--greys), 1);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.report-toast-close:hover {
+  color: rgba(var(--blacks), 1);
+  background-color: rgba(var(--blacks), 0.06);
+}
+
+.report-toast--failed {
+  border-left-color: rgba(var(--danger), 1);
+}
+
+.report-toast--failed .report-toast-title {
+  color: rgba(var(--danger), 1);
+}
+
+.report-toast-spinner {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(var(--primary), 0.2);
+  border-top-color: rgba(var(--primary), 1);
+  border-radius: 50%;
+  animation: report-toast-spin 0.75s linear infinite;
+}
+
+@keyframes report-toast-spin {
+  to { transform: rotate(360deg); }
 }

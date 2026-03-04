@@ -255,10 +255,12 @@ const EditTemplatePage = () => {
     }
 
     const list = getStoredTemplates();
+    const qTrim = (quantity || '').toString().trim();
+    const numQ = qTrim === '' ? undefined : Number(qTrim);
     const payload = {
       id: isNew ? `custom-${Date.now()}` : id,
       name,
-      quantity: quantity.trim() === '' ? undefined : (Number(quantity) || quantity.trim()),
+      quantity: numQ !== undefined && !Number.isNaN(numQ) ? numQ : (qTrim === '' ? undefined : qTrim),
       ingredients: validIngredients,
       processes: validProcesses,
     };

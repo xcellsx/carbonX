@@ -4,6 +4,14 @@ import axios from 'axios';
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 export const API_BASE = `${API_BASE_URL}/api`;
 
+/** Arango ids are like "users/421"; API expects document key only (e.g. "421") for paths. */
+export function normalizeUserIdKey(userId) {
+  if (userId == null || typeof userId !== 'string') return userId;
+  const s = userId.trim();
+  if (s.includes('/')) return s.split('/').slice(1)[0] || s;
+  return s;
+}
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -31,8 +39,12 @@ export const productAPI = {
   // DELETE /api/products/:id
   deleteProduct: (id) => api.delete(`/products/${id}`),
 
-  // Use existing backend: GET /api/experiments/products/:documentKey/lca (runs LCA, persists DPP, returns carbonFootprint)
-  calculateProduct: (id) => api.get(`/experiments/products/${id}/lca`),
+  // GET .../lca runs LCA and persists lcaValue; optionally call saveProductLca after to ensure persistence
+  calculateProduct: (id, userId = null) =>
+    api.get(`/experiments/products/${id}/lca`, { params: userId != null ? { userId: normalizeUserIdKey(userId) } : {} }),
+
+  // PUT /api/products/:id/lca – persist only LCA value (same save path as backend)
+  saveProductLca: (id, lcaValue) => api.put(`/products/${id}/lca`, { lcaValue }),
 };
 
 // Process API – matches Java backend ProcessController
@@ -86,6 +98,47 @@ export const usersAPI = {
   getAll: () => api.get('/company/users'),
   /** Get user by document key. Pass key only (e.g. from id "users/xyz" use "xyz"). */
   getByKey: (key) => api.get(`/company/users/${encodeURIComponent(key)}`),
+};
+
+// localStorage key for user-scoped LCA values saved by Inventory after calculation.
+// Shape: { [normalizedUserId]: { [productKey]: lcaValue } }
+const LCA_LOCAL_BY_USER_PRODUCT_KEY = 'carbonx_lca_by_user_product_v1';
+
+/**
+ * Returns a map of { productKey: lcaValue } for the given user, reading from localStorage.
+ * Used by all pages to overlay calculated LCA values that were persisted by Inventory.
+ */
+export function getLocalLcaMap(userId) {
+  try {
+    const raw = localStorage.getItem(LCA_LOCAL_BY_USER_PRODUCT_KEY) || '{}';
+    const store = JSON.parse(raw) || {};
+    const uid = normalizeUserIdKey(userId);
+    return (uid && store[uid] && typeof store[uid] === 'object') ? store[uid] : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Returns a map of { productNameLower: { scope1, scope2, scope3, total } } from the LCA name cache.
+ * Populated by Inventory after each LCA calculation. Used by Dashboard for scope totals.
+ */
+export function getLocalLcaCacheByName() {
+  try {
+    const raw = localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}';
+    return JSON.parse(raw) || {};
+  } catch {
+    return {};
+  }
+}
+
+// User-scoped LCA storage: persist and load LCA by userId + productKey (reliable across page reloads)
+export const userLcaAPI = {
+  /** GET /api/users/:userId/lca → { productKey: lcaValue, ... } — userId can be full id (e.g. users/421) or key */
+  getByUserId: (userId) => api.get(`/users/${encodeURIComponent(normalizeUserIdKey(userId))}/lca`),
+  /** PUT /api/users/:userId/lca/:productKey  body: { lcaValue } */
+  save: (userId, productKey, lcaValue) =>
+    api.put(`/users/${encodeURIComponent(normalizeUserIdKey(userId))}/lca/${encodeURIComponent(productKey)}`, { lcaValue }),
 };
 
 export default api;

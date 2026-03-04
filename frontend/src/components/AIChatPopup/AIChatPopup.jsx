@@ -6,14 +6,22 @@ import './AIChatPopup.css';
 
 const SESSIONS_KEY = 'sproutai_sessions';
 
-const DEFAULT_SYSTEM = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You answer questions about Scope 1/2/3 emissions, metrics, analytics, inventory, and general sustainability.
+const DEFAULT_SYSTEM = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You ONLY answer questions about:
+- Scope 1/2/3 emissions and carbon footprints
+- Metrics and trends on the current CarbonX page (Dashboard/Analytics/Report)
+- Sustainability reports: board statements, ESG pillars, targets, and performance
+- Inventory products, LCAs, and supply-chain impacts
+- ESG / sustainability strategy related to the user's data
+- How the company compares against global and Singapore sustainability benchmarks and targets
 
-Format your replies for easy reading:
-- Use **bold** for key terms and important phrases.
-- Use short paragraphs (2–4 sentences max); add a blank line between paragraphs.
-- For lists of items, facts, or steps, use bullet points (- or *).
-- For multiple distinct topics, use ### subheadings.
-- Do not output one long wall of text; break content into clear, scannable sections.`;
+When the user asks about benchmarks, targets, or "how far are we", use the GHG BENCHMARKS & TARGETS section in the page context alongside the company's COMPANY GHG DATA to give a specific, quantified answer — for example: "Your Scope 1+2 of X kgCO2e is Y% above the SBTi 2030 pathway" or "To meet the Paris 1.5°C target you need to cut total emissions by Z%". Always be specific and use the actual numbers provided.
+
+The chat window is small, so keep answers concise:
+- Aim for 2–4 short sentences, or at most 3–6 brief bullet points.
+- Do not use long sections or multiple headings unless the user explicitly asks for a detailed explanation.
+- Focus on the single most important insight or next step.
+
+If the user asks about anything outside sustainability, climate, ESG, or their CarbonX data (for example: personal topics, entertainment, unrelated tech, or general trivia), politely refuse and respond with a short sentence such as: "I'm focused on sustainability and your CarbonX data, so I can't help with that topic." Do NOT answer off-topic questions.`;
 
 function summarizeSessionTitle(messages) {
   const firstUser = messages.find(m => m.role === 'user');
@@ -62,7 +70,7 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
   const systemPrompt = [
     pageContext ? `${DEFAULT_SYSTEM} The user is currently on the ${pageContext} page.` : DEFAULT_SYSTEM,
     contextSummary
-      ? `\n\nCurrent page data (use this to summarize the page or answer questions about the user's data; when asked to "summarise" or "summarize" the Analytics page, use this data):\n${contextSummary}`
+      ? `\n\nCurrent page data (use this to summarize the page or answer questions about the user's data; when asked to "summarise" or "summarize" the page or compare against benchmarks/targets, use this data):\n${contextSummary}`
       : '',
   ].join('');
 
@@ -127,7 +135,7 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         userMsg,
       ];
-      const reply = await chatCompletion(apiMessages, { model: POPUP_MODEL, max_tokens: 2048, temperature: 0.6 });
+      const reply = await chatCompletion(apiMessages, { model: POPUP_MODEL, max_tokens: 600, temperature: 0.6 });
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       setMessages((prev) => [
@@ -170,21 +178,51 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
             <>
               <p className="ai-chat-popup-prompt">What can I help you with today?</p>
               <div className="ai-chat-popup-suggestions">
+                {pageContext === 'Dashboard' && (
+                  <button
+                    type="button"
+                    className="ai-chat-popup-suggestion-btn"
+                    onClick={() => handleSend('Summarise my dashboard data and highlight any key metrics or areas of concern.')}
+                    disabled={loading}
+                  >
+                    Summarise Dashboard
+                  </button>
+                )}
+                {pageContext === 'Analytics' && (
+                  <button
+                    type="button"
+                    className="ai-chat-popup-suggestion-btn"
+                    onClick={() => handleSend('Summarise my analytics data and highlight the top emission contributors.')}
+                    disabled={loading}
+                  >
+                    Summarise Analytics
+                  </button>
+                )}
+                {pageContext === 'Report' && (
+                  <button
+                    type="button"
+                    className="ai-chat-popup-suggestion-btn"
+                    onClick={() => handleSend('Summarise this sustainability report and highlight the key findings, achievements, and areas for improvement.')}
+                    disabled={loading}
+                  >
+                    Summarise Report
+                  </button>
+                )}
                 <button
                   type="button"
                   className="ai-chat-popup-suggestion-btn"
-                  onClick={() => handleSend('Summarize my dashboard.')}
+                  onClick={() => handleSend('How does my company compare against global and Singapore sustainability targets and benchmarks? Show me the gap for each scope.')}
                   disabled={loading}
                 >
-                  Summarize My Dashboard
+                  Benchmark vs Targets
                 </button>
                 <button
                   type="button"
                   className="ai-chat-popup-suggestion-btn"
-                  onClick={() => handleSend('Summarize my analytics.')}
+                  onClick={() => handleSend('What actions can I take to reduce my carbon footprint based on my current data?')}
                   disabled={loading}
                 >
-                  Summarize My Analytics
+                  Reduction Actions
                 </button>
               </div>
             </>

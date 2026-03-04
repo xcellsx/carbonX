@@ -6,6 +6,7 @@ import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.PersistentIndex;
 import com.arangodb.springframework.annotation.Relations;
 import com.ecapybara.carbonx.model.basic.Node;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.processor.ConvertEmptyOrBlankStringsToNull;
 import com.opencsv.bean.processor.PreAssignmentProcessor;
@@ -33,6 +34,10 @@ public class Product extends Node {
   @Relations(edges = Input.class, lazy=true)
   private Collection<Process> usedIn;
   */
+
+  /** Persisted total LCA result (kgCO2e). Set by LCA calculation endpoint; no other DPP details are stored. */
+  @JsonProperty("lcaValue")
+  private Double lcaValue;
 
   @Override
   public String toString() {

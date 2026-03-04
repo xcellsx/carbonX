@@ -247,3 +247,144 @@ h5.report-section-header {
 }
 
 /* Modal overlay + button rows are defined globally in `index.css` */
+
+/* --- AI Report Editor Panel --- */
+.report-editor-panel {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 200;
+  width: 360px;
+  background: rgba(var(--whites), 1);
+  border: 1px solid rgba(var(--primary), 0.25);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(var(--blacks), 0.14);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: editor-panel-slide-in 0.2s ease-out;
+}
+
+@keyframes editor-panel-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.report-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.report-editor-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(var(--greys), 1);
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.report-editor-close:hover {
+  background: rgba(var(--blacks), 0.06);
+  color: rgba(var(--blacks), 1);
+}
+
+.report-editor-undo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid rgba(var(--greys), 0.4);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: var(--small);
+  color: rgba(var(--greys), 1);
+  cursor: pointer;
+}
+
+.report-editor-undo:hover:not(:disabled) {
+  border-color: rgba(var(--primary), 0.5);
+  color: rgba(var(--primary), 1);
+}
+
+.report-editor-undo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.report-editor-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.report-editor-textarea {
+  flex: 1;
+  border: 1px solid rgba(var(--blacks), 0.2);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: var(--normal);
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  color: rgba(var(--blacks), 1);
+  background: rgba(var(--whites), 1);
+}
+
+.report-editor-textarea:focus {
+  border-color: rgba(var(--primary), 0.6);
+}
+
+.report-editor-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.report-editor-send {
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 44px;
+  background-color: rgba(var(--primary), 1);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.report-editor-send:hover:not(:disabled) {
+  background-color: rgba(var(--primary), 0.85);
+}
+
+.report-editor-send svg {
+  stroke: #ffffff;
+  color: #ffffff;
+}
+
+.report-editor-send:disabled {
+  background-color: rgba(var(--greys), 0.25);
+  cursor: not-allowed;
+}
+
+.report-editor-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(var(--whites), 0.4);
+  border-top-color: rgba(var(--whites), 1);
+  border-radius: 50%;
+  animation: report-editor-spin 0.7s linear infinite;
+}
+
+@keyframes report-editor-spin {
+  to { transform: rotate(360deg); }
+}

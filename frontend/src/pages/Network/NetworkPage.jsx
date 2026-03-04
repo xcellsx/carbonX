@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown, Network } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import './NetworkPage.css';
-import { API_BASE, productAPI, networkAPI } from '../../services/api';
+import { API_BASE, productAPI, networkAPI, getLocalLcaMap } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getScopeTotalsFromProduct as getScopeTotalsFromProductUtil, formatEmission as formatEmissionUtil } from '../../utils/emission';
 
@@ -43,6 +43,55 @@ const NETWORK_CAROUSEL_SLIDES = [
   { title: 'Consolidated vs component view', description: 'Toggle between Consolidated View (single graph) and Component View (per-component breakdown) to explore the supply chain at different levels of detail.', icon: <Network size={40} /> },
 ];
 
+// --- Same template helpers as Analytics/Inventory ---
+const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
+function getStoredTemplates() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+}
+const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
+const TIME_TO_S = { s: 1, min: 60, h: 3600, d: 86400 };
+function toCanonicalWeight(n, unit) { const v = Number(n); return Number.isNaN(v) ? 0 : v * (WEIGHT_TO_KG[unit] ?? 1); }
+function toCanonicalTime(n, unit)   { const v = Number(n); return Number.isNaN(v) ? 0 : v * (TIME_TO_S[unit]   ?? 1); }
+function templateToDppData(template) {
+  const dpp = [];
+  (Array.isArray(template.ingredients) ? template.ingredients : []).forEach((item) => {
+    const name = typeof item === 'object' && item && 'ingredient' in item ? (item.ingredient || '').trim() : String(item || '');
+    const weightStr = typeof item === 'object' && item && 'weight' in item ? String(item.weight || '') : '';
+    const weightUnit = (typeof item === 'object' && item && 'weightUnit' in item) ? (item.weightUnit || 'kg') : 'kg';
+    dpp.push({ ingredient: name || 'Ingredient', weightKg: toCanonicalWeight(weightStr, weightUnit), unit: weightUnit, lcaValue: null, materialId: null, emissionFactor: null, isPackaging: false, isTransport: false });
+  });
+  (Array.isArray(template.processes) ? template.processes : []).forEach((item) => {
+    const processName = typeof item === 'object' && item && 'process' in item ? String(item.process || '').trim() : String(item || '');
+    const desc = typeof item === 'object' && item && 'description' in item ? String(item.description || '').trim() : '';
+    const timeUnit = (typeof item === 'object' && item && 'timeUnit' in item) ? (item.timeUnit || 's') : 's';
+    dpp.push({ ingredient: processName ? `Process: ${processName}` : 'Process', weightKg: toCanonicalTime(desc, timeUnit), unit: timeUnit, lcaValue: null, materialId: null, emissionFactor: null, isPackaging: false, isTransport: false });
+  });
+  return dpp;
+}
+function templateToProduct(template, localLcaMap = {}) {
+  const templateProductId = `template-${template.id}`;
+  const rawLca = localLcaMap[templateProductId];
+  // Also check by-name cache for scope breakdown
+  const nameKey = (template.name || '').toLowerCase().trim();
+  const localLcaByName = (() => { try { return JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}'); } catch { return {}; } })();
+  const cachedByName = nameKey ? localLcaByName[nameKey] : null;
+  const lcaResult = cachedByName?.total ?? ((rawLca != null && !Number.isNaN(Number(rawLca))) ? Number(rawLca) : 0);
+  return {
+    productId: templateProductId,
+    productName: template.name || 'Unnamed template',
+    dppData: JSON.stringify(templateToDppData(template)),
+    lcaResult,
+    scope1: cachedByName?.scope1 ?? 0,
+    scope2: cachedByName?.scope2 ?? 0,
+    scope3: cachedByName?.scope3 ?? lcaResult,
+    DPP: null,
+    emissionInformation: null,
+  };
+}
+
 // --- Vessel route demo for Transportation industry (no backend data required) ---
 const VESSEL_DEMO_PRODUCT_ID = 'vessel-route-demo';
 const VESSEL_DEMO_GRAPH = {
@@ -69,7 +118,7 @@ const getScopeTotalsFromProduct = getScopeTotalsFromProductUtil;
 const formatEmission = formatEmissionUtil;
 
 // --- D3 Network Graph Component ---
-const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProduct, products }) => {
+const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProduct, products, allBackendProducts = [] }) => {
   const svgRef = useRef(null);
   const legendRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 800, height: 820 });
@@ -150,13 +199,18 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
       .attr("class", "node")
       .call(drag(simulation));
 
+    const getNodeColor = (d) => {
+      if (d.isMainProduct) return "#334761"; // Dark blue for final product
+      const type = componentMap.get(d.id);
+      if (type === 'product') return "#59a5b2";
+      if (type === 'process') return "#000000"; // Black for process nodes
+      return color(type);
+    };
+
     // Node Circle (final product a bit smaller, not 18)
     node.append("circle")
       .attr("r", d => (d.isMainProduct ? 14 : (d.isRoot ? 12 : 8)))
-      .attr("fill", d => {
-         if (d.isMainProduct) return "#334761"; // Dark blue for Final product
-         return color(componentMap.get(d.id));
-      })
+      .attr("fill", d => getNodeColor(d))
       .attr("stroke", "#fff")
       .attr("stroke-width", 2);
 
@@ -215,10 +269,19 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
     const legendList = legend.append("ul");
     componentNames.forEach(name => {
       const item = legendList.append("li").attr("class", "legend-item");
+      const lower = String(name || '').toLowerCase();
+      const swatchColor =
+        lower === 'product' ? "#59a5b2" :
+        lower === 'process' ? "#000000" :
+        color(name);
+      const label =
+        lower === 'product' ? 'Product' :
+        lower === 'process' ? 'Process' :
+        (String(name || '').charAt(0).toUpperCase() + String(name || '').slice(1));
       item.append("span")
         .attr("class", "legend-color-swatch")
-        .style("background-color", color(name));
-      item.append("span").text(name);
+        .style("background-color", swatchColor);
+      item.append("span").text(label);
     });
     const finalItem = legendList.append("li").attr("class", "legend-item");
     finalItem.append("span")
@@ -230,14 +293,50 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
 
   const nameNorm = (s) => String(s ?? '').toLowerCase().trim();
   const productList = products || [];
+
+  // Helper: find a product by name — checks user products first, then all backend raw products
+  const findByName = (nodeName) => {
+    const n = nameNorm(nodeName);
+    // Check user products list (has pre-computed scope1/2/3)
+    const fromUserList = productList.find((p) => nameNorm(p.productName) === n);
+    if (fromUserList) return { product: fromUserList, fromBackend: false };
+    // Fall back to all raw backend products (have DPP / emissionInformation)
+    const fromBackend = allBackendProducts.find((p) => nameNorm(p.name ?? '') === n);
+    if (fromBackend) return { product: fromBackend, fromBackend: true };
+    return null;
+  };
+
   const hasEmission = (p) => p?.DPP?.carbonFootprint || p?.emissionInformation;
-  const emissionProduct = hoveredNode
-    ? (hoveredNode.isMainProduct
-        ? (hasEmission(selectedProduct) ? selectedProduct : productList.find((p) => nameNorm(p.productName) === nameNorm(productName) && hasEmission(p)) || productList.find((p) => nameNorm(p.productName) === nameNorm(productName)))
-        : productList.find((p) => nameNorm(p.productName) === nameNorm(hoveredNode.name) && hasEmission(p)) ||
-          productList.find((p) => nameNorm(p.productName) === nameNorm(hoveredNode.name)))
+
+  let emissionProduct = null;
+  let emissionFromBackend = false;
+  if (hoveredNode) {
+    if (hoveredNode.isMainProduct) {
+      if (hasEmission(selectedProduct) || selectedProduct?.lcaResult > 0) {
+        emissionProduct = selectedProduct;
+      } else {
+        const found = findByName(productName);
+        emissionProduct = found?.product ?? null;
+        emissionFromBackend = found?.fromBackend ?? false;
+      }
+    } else {
+      const found = findByName(hoveredNode.name);
+      emissionProduct = found?.product ?? null;
+      emissionFromBackend = found?.fromBackend ?? false;
+    }
+  }
+
+  // Prefer pre-computed scope fields; for raw backend products use getScopeTotalsFromProduct
+  const hasCachedScopes = (p) => p && (p.scope1 > 0 || p.scope2 > 0 || p.scope3 > 0 || p.lcaResult > 0);
+  const scopeTotals = emissionProduct
+    ? ((!emissionFromBackend && hasCachedScopes(emissionProduct))
+        ? { scope1: emissionProduct.scope1 ?? 0, scope2: emissionProduct.scope2 ?? 0, scope3: emissionProduct.scope3 ?? 0, total: emissionProduct.lcaResult ?? 0 }
+        : getScopeTotalsFromProduct(emissionProduct))
     : null;
-  const scopeTotals = emissionProduct ? getScopeTotalsFromProduct(emissionProduct) : null;
+
+  // Tooltip formatting: round to 3 decimal places for display without affecting underlying values.
+  const formatTooltipEmission = (value) =>
+    value == null || Number.isNaN(value) ? '—' : Number(value).toFixed(3);
 
   return (
     <div className="network-graph-container">
@@ -259,15 +358,15 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
               <hr style={{ margin: '0.5rem 0', border: 'none', borderTop: '1px solid #eee' }} />
               {selectedScope.id === 'all' && scopeTotals ? (
                 <>
-                  <p><strong>Scope 1:</strong> {formatEmission(scopeTotals.scope1)} kg CO2e</p>
-                  <p><strong>Scope 2:</strong> {formatEmission(scopeTotals.scope2)} kg CO2e</p>
-                  <p><strong>Scope 3:</strong> {formatEmission(scopeTotals.scope3)} kg CO2e</p>
-                  <p><strong>Total CO2e:</strong> {formatEmission(scopeTotals.total)} kg CO2e</p>
+                  <p><strong>Scope 1:</strong> {formatTooltipEmission(scopeTotals.scope1)} kg CO2e</p>
+                  <p><strong>Scope 2:</strong> {formatTooltipEmission(scopeTotals.scope2)} kg CO2e</p>
+                  <p><strong>Scope 3:</strong> {formatTooltipEmission(scopeTotals.scope3)} kg CO2e</p>
+                  <p><strong>Total CO2e:</strong> {formatTooltipEmission(scopeTotals.total)} kg CO2e</p>
                 </>
               ) : scopeTotals ? (
-                <p><strong>{selectedScope.name}:</strong> {formatEmission(selectedScope.id === 'scope1' ? scopeTotals.scope1 : selectedScope.id === 'scope2' ? scopeTotals.scope2 : scopeTotals.scope3)} {selectedScope.unit}</p>
+                <p><strong>{selectedScope.name}:</strong> {formatTooltipEmission(selectedScope.id === 'scope1' ? scopeTotals.scope1 : selectedScope.id === 'scope2' ? scopeTotals.scope2 : scopeTotals.scope3)} {selectedScope.unit}</p>
               ) : (
-                <p><strong>{selectedScope.name}:</strong> {formatEmission(hoveredNode.totalResult)} {selectedScope.unit}</p>
+                <p><strong>{selectedScope.name}:</strong> {formatTooltipEmission(hoveredNode.totalResult)} {selectedScope.unit}</p>
               )}
             </div>
           ) : (
@@ -287,6 +386,10 @@ const NetworkPage = () => {
   const location = useLocation();
 
   const [products, setProducts] = useState([]);
+  /** User-owned + template products only — drives the dropdown. */
+  const [userProducts, setUserProducts] = useState([]);
+  /** All raw backend products (unfiltered) — used for component name → emissionInformation lookups. */
+  const [rawProductsData, setRawProductsData] = useState([]);
   /** Backend product name (lowercase) → document key. Used for graph API so we never send template id. */
   const [backendNameToKey, setBackendNameToKey] = useState(() => new Map());
 
@@ -310,15 +413,15 @@ const NetworkPage = () => {
     productName: 'Vessel route: Port A → Port B (demo)',
     _isVesselDemo: true,
   };
-  const displayProducts = isTransportationIndustry ? [vesselDemoProduct, ...products] : products;
+  const displayProducts = isTransportationIndustry ? [vesselDemoProduct, ...userProducts] : userProducts;
   
   // --- PERSISTENCE ---
   const [selectedProductId, setSelectedProductId] = useState(
     sessionStorage.getItem('network_selectedProductId') || ''
   );
-  const [currentView, setCurrentView] = useState('consolidated'); 
+  const [currentView, setCurrentView] = useState('consolidated');
+  const [components, setComponents] = useState([]);
   const [selectedComponentIndex, setSelectedComponentIndex] = useState(0);
-  const [components, setComponents] = useState([]); 
   
   // --- Scope Selection State ---
   const [selectedScope, setSelectedScope] = useState(() => {
@@ -326,9 +429,8 @@ const NetworkPage = () => {
     return EMISSION_SCOPES.find(s => s.id === savedId) || EMISSION_SCOPES[0];
   });
 
-  const [consolidatedData, setConsolidatedData] = useState(null); 
+  const [consolidatedData, setConsolidatedData] = useState(null);
   const [componentGraphData, setComponentGraphData] = useState([]);
-  /** For each component tab: { name, hasInputs }. Used to grey out tabs with no inputs. */
   const [componentMeta, setComponentMeta] = useState([]);
   
   const [loadingNetwork, setLoadingNetwork] = useState(false);
@@ -390,234 +492,83 @@ const NetworkPage = () => {
     };
   };
 
-  // --- Fetch Product List (from inventory - user's products only for dropdown) ---
+  // --- Fetch Product List (exact same logic as Analytics/Inventory) ---
   const fetchProducts = useCallback(async () => {
-    if (!userId) return;
     try {
-      const res = await productAPI.getAllProducts();
-      const raw = Array.isArray(res?.data) ? res.data : [];
-      // Normalize items that have nested dpp (e.g. DPP/emission view): use dpp.name/key when top-level missing
-      const normalized = raw.map((p) => {
-        const fromDpp = p.dpp;
-        const name = p.name ?? fromDpp?.name ?? '';
-        const key = p.key ?? fromDpp?.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
-        const emission = p.emissionInformation ?? p.emission_information ?? fromDpp?.emissionInformation ?? fromDpp?.emission_information;
-        return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation ?? p.emission_information ?? null };
-      });
-      // Name → backend key (from all API products) so graph API never uses template id
-      const getBackendKey = (p) => {
-        const k = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim());
-        if (k) return k;
-        const id = p.id ?? p._id;
-        if (id && String(id).includes('/')) return String(id).split('/').pop();
-        return id ? String(id) : '';
-      };
+      let mapped = [];
+      const backendNames = new Set();
       const nameToKey = new Map();
-      normalized.forEach((p) => {
-        const name = (p.name ?? '').toString().trim();
-        const key = getBackendKey(p);
-        if (name && key) nameToKey.set(name.toLowerCase(), key);
-      });
+      try {
+        const res = await productAPI.getAllProducts();
+        const raw = Array.isArray(res?.data) ? res.data : [];
+        const normalized = raw.map((p) => {
+          const fromDpp = p.dpp;
+          const name = p.name ?? fromDpp?.name ?? '';
+          const key = p.key ?? fromDpp?.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+          const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
+          return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
+        });
+        // Store ALL products for component emissionInformation lookups and graph API key resolution
+        setRawProductsData(normalized);
+        normalized.forEach((p) => {
+          const n = (p.name ?? '').toString().trim();
+          const k = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim()) || (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : String(p.id ?? ''));
+          if (n && k) nameToKey.set(n.toLowerCase(), k);
+        });
+        // Filter to current user's products only (same as Analytics)
+        const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
+        const localLcaMap = getLocalLcaMap(userId);
+        mapped = filtered.map((p) => {
+          const productId = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id) ?? p._id ?? p.id;
+          backendNames.add(p.name || '');
+          const localLca = productId != null ? localLcaMap[String(productId)] : null;
+          // Compute scope totals from DPP for tooltip
+          const rawTotals = getScopeTotalsFromProductUtil({ DPP: p.DPP ?? p.dpp, emissionInformation: p.emissionInformation });
+          let lcaResult = (localLca != null && !Number.isNaN(Number(localLca))) ? Number(localLca) : (rawTotals.total || p.lcaResult || 0);
+          // Check localStorage by-name cache for persisted scope breakdown
+          const nameKey = (p.name ?? '').toLowerCase().trim();
+          const localLcaByName = (() => { try { return JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}'); } catch { return {}; } })();
+          const cachedByName = nameKey ? localLcaByName[nameKey] : null;
+          const scope1 = cachedByName?.scope1 ?? rawTotals.scope1 ?? 0;
+          const scope2 = cachedByName?.scope2 ?? rawTotals.scope2 ?? 0;
+          const scope3 = cachedByName?.scope3 ?? rawTotals.scope3 ?? 0;
+          if (cachedByName?.total) lcaResult = cachedByName.total;
+          return {
+            productId,
+            productName: p.name ?? '',
+            dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
+            lcaResult,
+            scope1,
+            scope2,
+            scope3,
+            DPP: p.DPP ?? p.dpp ?? null,
+            emissionInformation: p.emissionInformation ?? null,
+            backendProductId: p.id && String(p.id).includes('/') ? p.id : (productId ? `products/${productId}` : null),
+          };
+        });
+      } catch (err) {
+        console.warn('[Network] could not fetch API products', err);
+        setRawProductsData([]);
+      }
       setBackendNameToKey(nameToKey);
-      // Filter by userId for dropdown (inventory products only)
-      const filtered = userId ? normalized.filter((p) => p.userId === userId) : normalized;
-      const mapOne = (p) => {
-        const totals = getScopeTotalsFromProductUtil({ DPP: p.DPP ?? p.dpp, emissionInformation: p.emissionInformation });
-        const apiKey = getBackendKey(p);
-        const fullId = p.id && String(p.id).includes('/') ? p.id : (apiKey ? `products/${apiKey}` : null);
-        return {
-          productId: apiKey,
-          backendProductId: fullId || apiKey,
-          productName: p.name ?? '',
-          productQuantity: p.quantityValue ?? p.quantity ?? null,
-          productQuantifiableUnit: p.quantifiableUnit ?? null,
-          dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
-          lcaResult: totals.total,
-          userId: p.userId,
-          uploadedFile: p.uploadedFile,
-          type: p.type,
-          productOrigin: p.productOrigin ?? p.productorigin,
-          functionalProperties: p.functionalProperties,
-          DPP: p.DPP ?? p.dpp ?? null,
-          emissionInformation: p.emissionInformation ?? null,
-        };
-      };
-      const mapped = filtered.map(mapOne);
-      // Include backend products that have DPP but weren't in userId filter (e.g. no userId) so tooltip can show LCA
-      const mappedIds = new Set(mapped.map((m) => m.productId));
-      const hasDpp = (p) => (p.DPP ?? p.dpp)?.carbonFootprint || p.emissionInformation;
-      const withDppNotInList = normalized
-        .filter((p) => hasDpp(p) && !mappedIds.has(getBackendKey(p)))
-        .map(mapOne);
-      const mappedWithDpp = [...mapped, ...withDppNotInList];
-      // Include template-derived products (same as InventoryPage)
-      const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
-      function getStoredTemplates() {
-        try {
-          const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
-          return saved ? JSON.parse(saved) : [];
-        } catch {
-          return [];
-        }
-      }
-      const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
-      const TIME_TO_S = { s: 1, min: 60, h: 3600, d: 86400 };
-      function toCanonicalWeight(displayNum, unit) {
-        const n = Number(displayNum);
-        const factor = WEIGHT_TO_KG[unit] ?? 1;
-        return Number.isNaN(n) ? 0 : n * factor;
-      }
-      function toCanonicalTime(displayNum, unit) {
-        const n = Number(displayNum);
-        const factor = TIME_TO_S[unit] ?? 1;
-        return Number.isNaN(n) ? 0 : n * factor;
-      }
-      function templateToDppData(template) {
-        const dpp = [];
-        const ingList = Array.isArray(template.ingredients) ? template.ingredients : [];
-        const procList = Array.isArray(template.processes) ? template.processes : [];
-        ingList.forEach((item) => {
-          const name = typeof item === 'object' && item && 'ingredient' in item ? (item.ingredient || '').trim() : String(item || '');
-          const weightStr = typeof item === 'object' && item && 'weight' in item ? String(item.weight || '') : '';
-          const weightUnit = (typeof item === 'object' && item && 'weightUnit' in item) ? (item.weightUnit || 'kg') : 'kg';
-          const weightKg = toCanonicalWeight(weightStr, weightUnit);
-          dpp.push({
-            ingredient: name || 'Ingredient',
-            weightKg,
-            unit: weightUnit,
-            lcaValue: null,
-            materialId: null,
-            emissionFactor: null,
-            isPackaging: false,
-            isTransport: false,
-          });
-        });
-        procList.forEach((item) => {
-          const processName = typeof item === 'object' && item && 'process' in item ? String(item.process || '').trim() : String(item || '');
-          const desc = typeof item === 'object' && item && 'description' in item ? String(item.description || '').trim() : '';
-          const timeUnit = (typeof item === 'object' && item && 'timeUnit' in item) ? (item.timeUnit || 's') : 's';
-          const durationSec = toCanonicalTime(desc, timeUnit);
-          const label = processName ? `Process: ${processName}` : 'Process';
-          dpp.push({
-            ingredient: label,
-            weightKg: durationSec,
-            unit: timeUnit,
-            lcaValue: null,
-            materialId: null,
-            emissionFactor: null,
-            isPackaging: false,
-            isTransport: false,
-          });
-        });
-        return dpp;
-      }
-      function templateToProduct(template) {
-        const dpp = templateToDppData(template);
-        const q = template.quantity;
-        const quantityNum = q != null && q !== '' ? Number(q) : null;
-        return {
-          productId: `template-${template.id}`,
-          productName: template.name || 'Unnamed template',
-          productQuantity: Number.isNaN(quantityNum) ? null : quantityNum,
-          productQuantifiableUnit: null,
-          dppData: JSON.stringify(dpp),
-          lcaResult: 0,
-          userId: '',
-          type: 'product',
-          _fromTemplate: true,
-          _templateId: template.id,
-        };
-      }
+      const localLcaMap = getLocalLcaMap(userId);
       const customTemplates = getStoredTemplates();
-      const backendNames = new Set(mappedWithDpp.map((prod) => prod.productName));
       const templateProducts = customTemplates
         .filter((t) => !backendNames.has(t.name || ''))
-        .map((t) => templateToProduct(t));
-      setProducts([...mappedWithDpp, ...templateProducts]);
+        .map((t) => templateToProduct(t, localLcaMap));
+      const merged = [...mapped, ...templateProducts].sort((a, b) =>
+        (a.productName || '').localeCompare(b.productName || '', undefined, { sensitivity: 'base' })
+      );
+      setProducts(merged);
+      setUserProducts(merged);
       setError('');
     } catch (err) {
-      console.error("Failed to fetch products:", err);
-      // On error, still try to show template products
-      const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
-      function getStoredTemplates() {
-        try {
-          const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
-          return saved ? JSON.parse(saved) : [];
-        } catch {
-          return [];
-        }
-      }
-      const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
-      const TIME_TO_S = { s: 1, min: 60, h: 3600, d: 86400 };
-      function toCanonicalWeight(displayNum, unit) {
-        const n = Number(displayNum);
-        const factor = WEIGHT_TO_KG[unit] ?? 1;
-        return Number.isNaN(n) ? 0 : n * factor;
-      }
-      function toCanonicalTime(displayNum, unit) {
-        const n = Number(displayNum);
-        const factor = TIME_TO_S[unit] ?? 1;
-        return Number.isNaN(n) ? 0 : n * factor;
-      }
-      function templateToDppData(template) {
-        const dpp = [];
-        const ingList = Array.isArray(template.ingredients) ? template.ingredients : [];
-        const procList = Array.isArray(template.processes) ? template.processes : [];
-        ingList.forEach((item) => {
-          const name = typeof item === 'object' && item && 'ingredient' in item ? (item.ingredient || '').trim() : String(item || '');
-          const weightStr = typeof item === 'object' && item && 'weight' in item ? String(item.weight || '') : '';
-          const weightUnit = (typeof item === 'object' && item && 'weightUnit' in item) ? (item.weightUnit || 'kg') : 'kg';
-          const weightKg = toCanonicalWeight(weightStr, weightUnit);
-          dpp.push({
-            ingredient: name || 'Ingredient',
-            weightKg,
-            unit: weightUnit,
-            lcaValue: null,
-            materialId: null,
-            emissionFactor: null,
-            isPackaging: false,
-            isTransport: false,
-          });
-        });
-        procList.forEach((item) => {
-          const processName = typeof item === 'object' && item && 'process' in item ? String(item.process || '').trim() : String(item || '');
-          const desc = typeof item === 'object' && item && 'description' in item ? String(item.description || '').trim() : '';
-          const timeUnit = (typeof item === 'object' && item && 'timeUnit' in item) ? (item.timeUnit || 's') : 's';
-          const durationSec = toCanonicalTime(desc, timeUnit);
-          const label = processName ? `Process: ${processName}` : 'Process';
-          dpp.push({
-            ingredient: label,
-            weightKg: durationSec,
-            unit: timeUnit,
-            lcaValue: null,
-            materialId: null,
-            emissionFactor: null,
-            isPackaging: false,
-            isTransport: false,
-          });
-        });
-        return dpp;
-      }
-      function templateToProduct(template) {
-        const dpp = templateToDppData(template);
-        const q = template.quantity;
-        const quantityNum = q != null && q !== '' ? Number(q) : null;
-        return {
-          productId: `template-${template.id}`,
-          productName: template.name || 'Unnamed template',
-          productQuantity: Number.isNaN(quantityNum) ? null : quantityNum,
-          productQuantifiableUnit: null,
-          dppData: JSON.stringify(dpp),
-          lcaResult: 0,
-          userId: '',
-          type: 'product',
-          _fromTemplate: true,
-          _templateId: template.id,
-        };
-      }
-      const customTemplates = getStoredTemplates();
-      const templateProducts = customTemplates.map((t) => templateToProduct(t));
+      console.error('[Network] Failed to load product list:', err);
+      setError('Could not load product list.');
+      const localLcaMap = getLocalLcaMap(userId);
+      const templateProducts = getStoredTemplates().map((t) => templateToProduct(t, localLcaMap));
       setProducts(templateProducts);
+      setUserProducts(templateProducts);
     }
   }, [userId]);
 
@@ -819,6 +770,7 @@ const NetworkPage = () => {
     }
   }, [backendNameToKey]);
 
+  // --- Fetch component product data for Elements/Processes breakdown (mirrors Analytics) ---
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -871,7 +823,7 @@ const NetworkPage = () => {
     
     setCurrentView('consolidated');
     setSelectedComponentIndex(0);
-    
+
     if (newProductId) {
       if (newProductId === VESSEL_DEMO_PRODUCT_ID) {
         setComponents([{ ingredient: 'Vessel / Voyage' }]);
@@ -903,10 +855,6 @@ const NetworkPage = () => {
   const handleViewToggle = () => {
     setCurrentView(prev => (prev === 'consolidated' ? 'component' : 'consolidated'));
   };
-
-  const activeGraphData = currentView === 'consolidated' 
-    ? consolidatedData 
-    : (componentGraphData[selectedComponentIndex] || null);
 
   const selectedProduct = displayProducts.find(p => p.productId == selectedProductId);
   const productName = selectedProduct ? selectedProduct.productName : "Unknown Product";
@@ -984,52 +932,83 @@ const NetworkPage = () => {
 
           {error && <div className="submit-error" style={{ marginBottom: '0.5rem' }}>{error}</div>}
 
-          {currentView === 'component' && (
-            selectedProductId && components.length > 0 ? (
-              <nav className="component-tabs">
-                {components.map((component, index) => {
-                  const metaItem = componentMeta[index];
-                  const hasInputs = metaItem == null ? false : metaItem.hasInputs;
-                  return (
-                    <button
-                      key={index}
-                      className={`component-tab-btn ${index === selectedComponentIndex ? 'active' : ''} ${!hasInputs ? 'no-inputs' : ''}`}
-                      onClick={() => setSelectedComponentIndex(index)}
-                      title={!hasInputs ? 'No upstream inputs in supply chain' : undefined}
-                    >
-                      {component.component || component.ingredient || metaItem?.name || `Component ${index + 1}`}
-                    </button>
-                  );
-                })}
-              </nav>
-            ) : (
-              <p className="normal-regular" style={{color: 'rgba(var(--greys), 1)', padding: '1rem 0'}}>
-                {selectedProductId ? 'This product has no components to display.' : ''}
-              </p>
-            )
+          {/* Consolidated View: D3 supply-chain graph */}
+          {currentView === 'consolidated' && (
+            <div className="analytics-card network-page" style={{ marginTop: 0 }}>
+              <div className="analytics-table-container">
+                {loadingNetwork ? (
+                  <div className="loading-message">Loading network data...</div>
+                ) : consolidatedData?.nodes?.length > 0 ? (
+                  <NetworkGraph
+                    data={consolidatedData}
+                    viewMode="consolidated"
+                    productName={productName}
+                    selectedScope={selectedScope}
+                    selectedProduct={selectedProduct}
+                    products={products}
+                    allBackendProducts={rawProductsData}
+                  />
+                ) : (
+                  <div className="no-data-message">
+                    {selectedProductId ? "No network data available for this selection." : "Select a product to view its network."}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
-
-          <div className="analytics-card network-page" style={{ marginTop: 0 }}>
-            <div className="analytics-table-container">
-              {loadingNetwork ? (
-                <div className="loading-message">Loading network data...</div>
-              ) : activeGraphData?.nodes?.length > 0 ? (
-                <NetworkGraph
-                  data={activeGraphData}
-                  viewMode={currentView}
-                  productName={productName}
-                  selectedScope={selectedScope}
-                  selectedProduct={selectedProduct}
-                  products={products}
-                />
-              ) : (
-                <div className="no-data-message">
-                  {selectedProductId ? "No network data available for this selection." : "Select a product to view its network."}
+          {/* Component View: per-component D3 graph (only components with upstream links) */}
+          {currentView === 'component' && (() => {
+            const visibleComponents = components
+              .map((comp, index) => ({ comp, index, meta: componentMeta[index] }))
+              .filter(({ comp, meta }) => {
+                const ingredient = (comp.ingredient || '').toString().trim();
+                return !ingredient.startsWith('Process:') && meta?.hasInputs;
+              });
+            const activeGraphData = componentGraphData[selectedComponentIndex] || null;
+            return (
+              <>
+                {selectedProductId && visibleComponents.length > 0 ? (
+                  <nav className="component-tabs">
+                    {visibleComponents.map(({ comp, index, meta }) => (
+                      <button
+                        key={index}
+                        className={`component-tab-btn ${index === selectedComponentIndex ? 'active' : ''}`}
+                        onClick={() => setSelectedComponentIndex(index)}
+                      >
+                        {comp.component || comp.ingredient || meta?.name || `Component ${index + 1}`}
+                      </button>
+                    ))}
+                  </nav>
+                ) : selectedProductId ? (
+                  <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)', padding: '1rem 0' }}>
+                    No components with upstream connections found.
+                  </p>
+                ) : null}
+                <div className="analytics-card network-page" style={{ marginTop: 0 }}>
+                  <div className="analytics-table-container">
+                    {loadingNetwork ? (
+                      <div className="loading-message">Loading network data...</div>
+                    ) : activeGraphData?.nodes?.length > 0 ? (
+                      <NetworkGraph
+                        data={activeGraphData}
+                        viewMode="component"
+                        productName={productName}
+                        selectedScope={selectedScope}
+                        selectedProduct={selectedProduct}
+                        products={products}
+                        allBackendProducts={rawProductsData}
+                      />
+                    ) : (
+                      <div className="no-data-message">
+                        {selectedProductId ? 'No network data available for this component.' : 'Select a product to view its network.'}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

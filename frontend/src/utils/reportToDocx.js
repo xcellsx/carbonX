@@ -11,7 +11,10 @@ import {
   TableRow,
   TableCell,
   HeadingLevel,
+  WidthType,
+  BorderStyle,
 } from 'docx';
+import { getEffectiveTargets } from './reportTargets';
 
 function para(text, opts = {}) {
   return new Paragraph({
@@ -70,32 +73,64 @@ export function buildReportDoc(data) {
   section('4. Social Responsibility', data.socialAnalysis);
   section('5. Governance & Ethics', data.governanceAnalysis);
 
-  if (data.futureTargets && data.futureTargets.length > 0) {
-    children.push(heading('6. Sustainability Roadmap'));
-    const headerRow = new TableRow({
+  const targets = getEffectiveTargets(data);
+  children.push(heading('6. Sustainability Roadmap'));
+
+  // A4 with 1-inch margins = ~9072 twips usable width
+  // Column widths: Area 25%, Goal 50%, Status 25%
+  const COL_WIDTHS = [2268, 4536, 2268]; // twips
+  const cellBorders = {
+    top: { style: BorderStyle.SINGLE, size: 4, color: '334761' },
+    bottom: { style: BorderStyle.SINGLE, size: 4, color: '334761' },
+    left: { style: BorderStyle.SINGLE, size: 4, color: '334761' },
+    right: { style: BorderStyle.SINGLE, size: 4, color: '334761' },
+  };
+
+  const makeCell = (text, colIdx, isHeader = false) =>
+    new TableCell({
+      width: { size: COL_WIDTHS[colIdx], type: WidthType.DXA },
+      borders: cellBorders,
+      shading: isHeader ? { fill: '334761' } : undefined,
       children: [
-        new TableCell({ children: [para('Area', { bold: true })] }),
-        new TableCell({ children: [para('Goal', { bold: true })] }),
-        new TableCell({ children: [para('Status', { bold: true })] }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: text || '',
+              bold: isHeader,
+              color: isHeader ? 'FFFFFF' : '000000',
+            }),
+          ],
+          spacing: { before: 80, after: 80 },
+        }),
       ],
     });
-    const bodyRows = data.futureTargets.map(
-      (t) =>
-        new TableRow({
-          children: [
-            new TableCell({ children: [para(t.area)] }),
-            new TableCell({ children: [para(t.goal)] }),
-            new TableCell({ children: [para(t.status)] }),
-          ],
-        })
-    );
-    children.push(
-      new Table({
-        rows: [headerRow, ...bodyRows],
-        width: { size: 100, type: 'PERCENTAGE' },
+
+  const headerRow = new TableRow({
+    tableHeader: true,
+    children: [
+      makeCell('Area', 0, true),
+      makeCell('Goal', 1, true),
+      makeCell('Status', 2, true),
+    ],
+  });
+
+  const bodyRows = targets.map(
+    (t) =>
+      new TableRow({
+        children: [
+          makeCell(t.area, 0),
+          makeCell(t.goal, 1),
+          makeCell(t.status, 2),
+        ],
       })
-    );
-  }
+  );
+
+  children.push(
+    new Table({
+      rows: [headerRow, ...bodyRows],
+      width: { size: 9072, type: WidthType.DXA },
+    })
+  );
 
   return new Document({
     sections: [

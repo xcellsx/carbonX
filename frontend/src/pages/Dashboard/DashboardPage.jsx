@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './DashboardPage.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
@@ -6,18 +6,20 @@ import ProModal from '../../components/ProModal/ProModal';
 import AIChatPopup from '../../components/AIChatPopup/AIChatPopup';
 import {
   Utensils, Leaf, Droplet, ArrowRight, Zap, X,
-  Sparkles, CircleCheck, ShieldUser, Wheat, Earth, Dna, Plus,
+  Sparkles, CircleCheck, ShieldUser, Wheat, Earth, Plus,
   Database, Car, Recycle, ShieldAlert, HeartPulse, Tags, Users, Globe, Lock,
   Factory, ChevronLeft, ChevronRight, LayoutDashboard, Wind, Scale, AlertTriangle, Plane
 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
-import { API_BASE } from '../../services/api';
-import { chatCompletion } from '../../services/openRouter';
+import { API_BASE, productAPI, getLocalLcaMap, getLocalLcaCacheByName, normalizeUserIdKey } from '../../services/api';
+import { chatCompletion, POPUP_MODEL } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
+import { getScopeTotalsFromProduct } from '../../utils/emission';
 
 const allMetricDefinitions = [
   { id: 'scope-1', name: 'Scope 1 Emissions', icon: Factory }, 
-  { id: 'scope-2', name: 'Scope 2 Emissions', icon: Zap },     
+  { id: 'scope-2', name: 'Scope 2 Emissions', icon: Zap },
+  { id: 'scope-3', name: 'Scope 3 Emissions', icon: Globe },
   { id: 'fleet-fuel-management', name: 'Fleet Fuel Management', icon: Car },
   { id: 'energy-management', name: 'Energy Management', icon: Zap },
   { id: 'food-waste-management', name: 'Food Waste Management', icon: Recycle },
@@ -27,7 +29,7 @@ const allMetricDefinitions = [
   { id: 'product-labelling-marketing', name: 'Product Labelling & Marketing', icon: Tags },
   { id: 'labour-practices', name: 'Labour Practices', icon: Users },
   { id: 'supply-chain-impacts', name: 'Management of Env. & Social Impacts', icon: Globe },
-  { id: 'gmo', name: 'GMO Management', icon: Dna, isPro: true }, 
+  { id: 'air-emissions-refrigeration', name: 'Air Emissions from Refrigeration', icon: Wind },
   // Transport / Marine Transportation metrics
   { id: 'transport-ghg', name: 'Greenhouse Gas Emissions', icon: Factory },
   { id: 'transport-air-quality', name: 'Air Quality', icon: Wind },
@@ -48,45 +50,61 @@ const allMetricDefinitions = [
 
 const ALL_METRIC_DATA_DEFINITIONS = {
   'SCOPE_1': { value: 120.50, unit: 'kgCO2e', decimals: 2 }, 
-  'SCOPE_2': { value: 85.20, unit: 'kgCO2e', decimals: 2 },  
-  
+  'SCOPE_2': { value: 85.20, unit: 'kgCO2e', decimals: 2 },
+  'SCOPE_3': { value: 0, unit: 'kgCO2e', decimals: 2 },
+
   'TOTAL_GHG': { defaultMax: 100000, decimals: 3, unit: 'kgCO2e' },
   'CALC_TRANSPORT_GHG': { defaultMax: 50000, decimals: 3, unit: 'kgCO2e' },
+  'FB-FR-110a.2': { staticValue: 'User Input', unit: 'Gigajoules (GJ)' },
+  'FB-FR-110a.3': { staticValue: 'User Input', unit: '%' },
   
-  'FB-FR-130a.1': { defaultMax: 50000.0, decimals: 2, unit: 'Gigajoules (GJ)' },
-  'FB-FR-110a.1': { defaultMax: 10000.0, decimals: 2, unit: 'Gigajoules (GJ)' },
+  'FB-FR-130a.1': { staticValue: 'User Input', unit: 'Gigajoules (GJ)' },
+  'FB-FR-130a.2': { staticValue: 'User Input', unit: '%' },
+  'FB-FR-130a.3': { staticValue: 'User Input', unit: '%' },
+  'FB-FR-110a.1': { staticValue: 'User Input', unit: '%' },
 
   // Metrics needing User Input
   'FB-FR-250a.1': { staticValue: 'User Input', unit: 'Metric tonnes (t)' },
+  'FB-FR-250a.2': { staticValue: 'User Input', unit: '%' },
   
   // --- SPECIFIC UNITS ---
-  'FB-FR-230a.1': { staticValue: 'User Input', unit: 'Data Breach' }, 
-  'FB-FR-230a.2': { staticValue: 'User Input', unit: '' },
-  'FB-FR-230a.3': { staticValue: 'User Input', unit: '' }, // Qualitative
+  'FB-FR-230a.1': { staticValue: 'User Input', unit: '' },         // Number of data breaches
+  'FB-FR-230a.2': { staticValue: 'User Input', unit: '%' },         // % personal data breaches
+  'FB-FR-230a.4': { staticValue: 'User Input', unit: '' },          // Number of customers affected
+  'FB-FR-230a.3': { staticValue: 'User Input', unit: '' },          // Qualitative: approach to data security
+
+  'FB-FR-250b.1': { staticValue: 'User Input', unit: '%' },         // High-risk food safety violation rate
+  'FB-FR-250b.2': { staticValue: 'User Input', unit: '' },          // Number of recalls
+  'FB-FR-250b.3': { staticValue: 'User Input', unit: '' },          // Number of units recalled
+  'FB-FR-250b.4': { staticValue: 'User Input', unit: '%' },         // % units recalled that are private-label
+
+  'FB-FR-260a.2': { staticValue: 'User Input', unit: 'SGD' },       // Revenue from health & nutrition products
+  'FB-FR-260a.1': { staticValue: 'User Input', unit: '' },          // Qualitative: process to manage nutritional concerns
   
-  'FB-FR-250b.1': { staticValue: 'User Input', unit: '' },
-  'FB-FR-250b.2': { staticValue: 'User Input', unit: 'Recalls' }, 
-  'FB-FR-250b.3': { staticValue: 'User Input', unit: '' },
-  
-  'FB-FR-260a.1': { staticValue: 'User Input', unit: '' }, // Qualitative
-  'FB-FR-260a.2': { staticValue: 'User Input', unit: '' },
-  
-  'FB-FR-270a.1': { staticValue: 'User Input', unit: 'Incidents' }, 
-  'FB-FR-270a.2': { staticValue: 'User Input', unit: '' },
-  
-  'FB-FR-330a.1': { staticValue: 'User Input', unit: '' },
-  'FB-FR-330a.2': { staticValue: 'User Input', unit: '/ hour' }, 
-  'FB-FR-330a.3': { staticValue: 'User Input', unit: '' },
-  'FB-FR-330a.4': { staticValue: 'User Input', unit: '' },
-  'FB-FR-330a.5': { staticValue: 'User Input', unit: '' },
-  'FB-FR-330a.6': { staticValue: 'User Input', unit: '' },
-  
-  'FB-FR-430a.1': { staticValue: 'User Input', unit: '$' }, 
-  'FB-FR-430a.2': { staticValue: 'User Input', unit: '' },
-  'FB-FR-430a.3': { staticValue: 'User Input', unit: '' }, // Qualitative
-  'FB-FR-430a.4': { staticValue: 'User Input', unit: '' }, // Qualitative
-  
-  'FB-FR-430b.1': { defaultMax: 100.0, decimals: 1, unit: 'Percentage (%)' },
+  'FB-FR-270a.1': { staticValue: 'User Input', unit: '' },          // Number of non-compliance incidents
+  'FB-FR-270a.2': { staticValue: 'User Input', unit: 'SGD' },       // Monetary losses from legal proceedings
+  'FB-FR-270a.3': { staticValue: 'User Input', unit: 'SGD' },       // Revenue from GMO-labelled products
+  'FB-FR-270a.4': { staticValue: 'User Input', unit: 'SGD' },       // Revenue from non-GMO-labelled products
+
+  'FB-FR-330a.1': { staticValue: 'User Input', unit: 'SGD' },       // Hourly wage (average)
+  'FB-FR-330a.2': { staticValue: 'User Input', unit: '%' },         // % earning minimum wage
+  'FB-FR-330a.3': { staticValue: 'User Input', unit: '%' },         // % under collective agreements
+  'FB-FR-330a.4': { staticValue: 'User Input', unit: '' },          // Number of work stoppages
+  'FB-FR-330a.5': { staticValue: 'User Input', unit: 'Days' },      // Total days idle
+  'FB-FR-330a.6': { staticValue: 'User Input', unit: 'SGD' },       // Monetary losses — labour law violations
+  'FB-FR-330a.7': { staticValue: 'User Input', unit: 'SGD' },       // Monetary losses — employment discrimination
+
+  'FB-FR-430a.1': { staticValue: 'User Input', unit: 'SGD' },       // Revenue from certified sustainable sourcing
+  'FB-FR-430a.2': { staticValue: 'User Input', unit: '%' },         // % eggs cage-free
+  'FB-FR-430a.5': { staticValue: 'User Input', unit: '%' },         // % pork without gestation crates
+  'FB-FR-430a.3': { staticValue: 'User Input', unit: '' },          // Qualitative: env & social risk strategy
+  'FB-FR-430a.4': { staticValue: 'User Input', unit: '' },          // Qualitative: packaging impact strategy
+
+  'FB-FR-110b.1': { staticValue: 'User Input', unit: 'tCO₂e' },    // Scope 1 emissions from refrigerants
+  'FB-FR-110b.2': { staticValue: 'User Input', unit: '%' },         // % refrigerants with zero ozone-depleting potential
+  'FB-FR-110b.3': { staticValue: 'User Input', unit: '%' },         // Average refrigerant emissions rate
+
+  'FB-FR-430b.1': { staticValue: 'User Input', unit: 'SGD' },
 
   // --- Transport / Marine Transportation metrics ---
   'TR-MR-GHG-1': { staticValue: 'User Input', unit: 'kgCO2e' },
@@ -132,12 +150,10 @@ const METRIC_BREAKDOWN_DATA = {
     subMetrics: [
       { 
         name: 'Direct Emissions from Owned Sources', 
-        type: 'Quantitative', 
+        type: 'ReadOnly', 
         dataKey: 'SCOPE_1', 
         sasbCategory: 'GHG Emissions',
-        proContent: 'Analysis: Your stationary combustion emissions are stable. Switching your boiler fuel from diesel to natural gas or biomass could reduce this by up to 30%. We recommend conducting a feasibility study on electrification for heating processes.'
       },
-      { name: 'Source', type: 'Info', value: 'Calculated from fuel consumption data entered in Inventory.' }
     ]
   },
   'scope-2': {
@@ -145,30 +161,42 @@ const METRIC_BREAKDOWN_DATA = {
     subMetrics: [
       { 
         name: 'Indirect Emissions from Purchased Energy', 
-        type: 'Quantitative', 
+        type: 'ReadOnly', 
         dataKey: 'SCOPE_2', 
         sasbCategory: 'GHG Emissions',
-        proContent: 'Analysis: Electricity consumption spikes during midday processing. Installing on-site solar panels or purchasing RECs (Renewable Energy Certificates) is recommended to offset this carbon load and stabilize long-term energy costs.'
       },
-      { name: 'Source', type: 'Info', value: 'Calculated from purchased electricity entries in Inventory.' }
+    ]
+  },
+  'scope-3': {
+    title: 'Scope 3 Emissions', icon: Globe,
+    subMetrics: [
+      {
+        name: 'All Other Indirect Emissions (Value Chain)',
+        type: 'ReadOnly',
+        dataKey: 'SCOPE_3',
+        sasbCategory: 'GHG Emissions',
+      },
+      { name: 'Scope 3 Category Mappings', type: 'Info', value: '' },
+      { name: 'Fleet Fuel Management', type: 'Info', value: 'Category 4 — Upstream Transportation & Distribution' },
+      { name: 'Energy Management', type: 'Info', value: 'Category 3 — Fuel & Energy-Related Activities' },
+      { name: 'Food Waste Management', type: 'Info', value: 'Category 5 — Waste Generated in Operations' },
+      { name: 'Purchased Goods & Services (Eggs, Pork)', type: 'Info', value: 'Category 1 — Purchased Goods & Services' },
     ]
   },
   'fleet-fuel-management': {
     title: 'Fleet Fuel Management', icon: Car,
     subMetrics: [
       { 
-        name: 'Calculated Transport Emissions', 
+        name: 'Fleet fuel consumed', 
         type: 'Quantitative', 
-        dataKey: 'CALC_TRANSPORT_GHG', 
-        sasbCategory: 'Inventory Calculation',
-        proContent: 'Analysis: Transport emissions contribute significantly to your Scope 1 footprint. Optimizing delivery routes and consolidating shipments can yield a 10-15% reduction in fuel usage immediately.'
+        dataKey: 'FB-FR-110a.2', 
+        sasbCategory: 'Transport & Energy Management',
       },
       { 
-        name: 'Fleet fuel consumed, percentage renewable', 
+        name: 'Percentage renewable', 
         type: 'Quantitative', 
-        dataKey: 'FB-FR-110a.1', 
+        dataKey: 'FB-FR-110a.3', 
         sasbCategory: 'Transport & Energy Management',
-        proContent: 'Analysis: Current renewable fuel blend is 0%. We strongly advise transitioning to B20 biodiesel for the fleet, which requires no engine modifications but immediately lowers carbon intensity.'
       },
     ]
   },
@@ -176,11 +204,22 @@ const METRIC_BREAKDOWN_DATA = {
     title: 'Energy Management', icon: Zap,
     subMetrics: [
       { 
-        name: '(1) Operational energy consumed, (2) percentage grid electricity', 
+        name: 'Operational energy consumed', 
         type: 'Quantitative', 
         dataKey: 'FB-FR-130a.1',
         sasbCategory: 'Energy Management',
-        proContent: 'Analysis: Energy intensity per product unit has increased slightly. Conduct a Level 2 energy audit of the drying equipment; retrofitting with waste heat recovery pumps could improve thermal efficiency by 20%.'
+      },
+      { 
+        name: 'Percentage grid electricity', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-130a.2',
+        sasbCategory: 'Energy Management',
+      },
+      { 
+        name: 'Percentage renewable', 
+        type: 'Quantitative', 
+        dataKey: 'FB-FR-130a.3',
+        sasbCategory: 'Energy Management',
       },
     ]
   },
@@ -188,116 +227,226 @@ const METRIC_BREAKDOWN_DATA = {
     title: 'Food Waste Management', icon: Recycle,
     subMetrics: [
       { 
-        name: '(1) Amount of food waste generated', 
+        name: 'Amount of food waste generated', 
         type: 'Quantitative', 
         dataKey: 'FB-FR-250a.1',
         sasbCategory: 'Waste Management',
-        proContent: 'Analysis: Organic waste is currently sent to landfill, generating unnecessary methane. Partnering with a local anaerobic digestion or composting facility could divert 90% of this stream and contribute to circular economy goals.'
+      },
+      {
+        name: 'Percentage diverted from waste stream',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-250a.2',
+        sasbCategory: 'Waste Management',
       },
     ]
   },
   'data-security': {
     title: 'Data Security', icon: ShieldAlert,
     subMetrics: [
-      { 
-        name: 'Number of data breaches', 
-        type: 'Quantitative', 
+      {
+        name: 'Number of data breaches',
+        type: 'Quantitative',
         dataKey: 'FB-FR-230a.1',
-        sasbCategory: 'Customer Privacy',
-        proContent: 'Analysis: No breaches recorded in the current period. Continue quarterly vulnerability scans and employee phishing simulations to maintain this status.'
+        sasbCategory: 'Data Security & Privacy',
       },
-      { 
-        name: 'Description of approach for addressing data security risks', 
-        type: 'Discussion and Analysis', 
+      {
+        name: 'Percentage that are personal data breaches',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-230a.2',
+        sasbCategory: 'Data Security & Privacy',
+      },
+      {
+        name: 'Number of customers affected',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-230a.4',
+        sasbCategory: 'Data Security & Privacy',
+      },
+      {
+        name: 'Description of approach to identifying & addressing data security risks',
+        type: 'Discussion and Analysis',
         dataKey: 'FB-FR-230a.3',
-        sasbCategory: 'Customer Privacy',
-        proContent: 'Analysis: We recommend adopting a defense-in-depth strategy. This includes encrypting all sensitive data at rest and in transit, enforcing Multi-Factor Authentication (MFA) for all access points, and conducting regular third-party penetration testing to validate the resilience of your internal systems against evolving cyber threats.'
+        sasbCategory: 'Data Security & Privacy',
       },
     ]
   },
   'food-safety': {
     title: 'Food Safety', icon: Utensils,
     subMetrics: [
-      { 
-        name: 'Number of recalls', 
-        type: 'Quantitative', 
-        dataKey: 'FB-FR-250b.2',
-        sasbCategory: 'Product Safety',
-        proContent: 'Analysis: Zero recalls achieved. To sustain this, focus on preventative maintenance of detection equipment (metal detectors/X-ray) and regular mock recall drills.'
-      },
-      { 
-        name: 'Fines and warning rate', 
-        type: 'Quantitative', 
+      {
+        name: 'High-risk food safety violation rate',
+        type: 'Quantitative',
         dataKey: 'FB-FR-250b.1',
-        sasbCategory: 'Product Safety',
-        proContent: 'Analysis: Maintain current HACCP protocols. We recommend reviewing supplier safety certifications annually to ensure upstream compliance does not compromise your safety rating.'
+        sasbCategory: 'Food Safety & Compliance',
+      },
+      {
+        name: 'Number of recalls',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-250b.2',
+        sasbCategory: 'Product Quantity & Traceability',
+      },
+      {
+        name: 'Number of units recalled',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-250b.3',
+        sasbCategory: 'Product Quantity & Traceability',
+      },
+      {
+        name: 'Percentage of units recalled that are private-label products',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-250b.4',
+        sasbCategory: 'Product Quantity & Traceability',
       },
     ]
   },
   'product-health-nutrition': {
     title: 'Product Health & Nutrition', icon: HeartPulse,
     subMetrics: [
-      { 
-        name: 'Discussion of process to manage nutritional concerns', 
-        type: 'Discussion and Analysis', 
+      {
+        name: 'Revenue from products labelled or marketed to promote health and nutrition attributes',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-260a.2',
+        sasbCategory: 'Product Health & Nutrition',
+      },
+      {
+        name: 'Discussion of process to identify and manage products and ingredients related to nutritional and health concerns',
+        type: 'Discussion and Analysis',
         dataKey: 'FB-FR-260a.1',
         sasbCategory: 'Product Health & Nutrition',
-        proContent: 'Analysis: To mitigate health-related risks and align with consumer trends, we advise implementing a rigorous stage-gate process for new products. This involves mandatory nutritional profiling against WHO guidelines and establishing a clear roadmap for sodium and sugar reduction across your legacy portfolio.'
       },
     ]
   },
   'product-labelling-marketing': {
     title: 'Product Labelling & Marketing', icon: Tags,
     subMetrics: [
-      { 
-        name: 'Incidents of non-compliance with labelling regulations', 
-        type: 'Quantitative', 
+      {
+        name: 'Number of incidents of non-compliance with industry or regulatory labelling or marketing codes',
+        type: 'Quantitative',
         dataKey: 'FB-FR-270a.1',
-        sasbCategory: 'Labelling & Marketing',
-        proContent: 'Analysis: Regulatory scrutiny on "greenwashing" is intensifying. We advise a comprehensive audit of all sustainability claims on packaging against the latest EU directives and FTC Green Guides. Establishing a legal review step for all marketing materials is essential.'
+        sasbCategory: 'Responsible Marketing & Labelling',
+      },
+      {
+        name: 'Total monetary losses from legal proceedings associated with marketing or labelling practices',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-270a.2',
+        sasbCategory: 'Responsible Marketing & Labelling',
+      },
+      {
+        name: 'Revenue from products labelled as containing GMOs',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-270a.3',
+        sasbCategory: 'Responsible Marketing & Labelling',
+      },
+      {
+        name: 'Revenue from products labelled as non-GMO',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-270a.4',
+        sasbCategory: 'Responsible Marketing & Labelling',
       },
     ]
   },
   'labour-practices': {
     title: 'Labour Practices', icon: Users,
     subMetrics: [
-      { 
-        name: 'Average hourly wage', 
-        type: 'Quantitative', 
+      {
+        name: 'Average hourly wage',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.1',
+        sasbCategory: 'Wages & Benefits',
+      },
+      {
+        name: 'Percentage of in-store and distribution centre employees earning minimum wage, by region',
+        type: 'Quantitative',
         dataKey: 'FB-FR-330a.2',
         sasbCategory: 'Wages & Benefits',
-        proContent: 'Analysis: Wage levels are competitive within the sector. To improve retention, focus on non-monetary benefits such as flexible scheduling and structured upskilling programs.'
+      },
+      {
+        name: 'Percentage of active workforce employed under collective agreements',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.3',
+        sasbCategory: 'Labour Relations',
+      },
+      {
+        name: 'Number of work stoppages',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.4',
+        sasbCategory: 'Labour Relations',
+      },
+      {
+        name: 'Total days idle',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.5',
+        sasbCategory: 'Labour Relations',
+      },
+      {
+        name: 'Monetary losses from legal proceedings — labour law violations',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.6',
+        sasbCategory: 'Labour Practices & Legal Compliance',
+      },
+      {
+        name: 'Monetary losses from legal proceedings — employment discrimination',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-330a.7',
+        sasbCategory: 'Labour Practices & Legal Compliance',
       },
     ]
   },
   'supply-chain-impacts': {
     title: 'Management of Env. & Social Impacts', icon: Globe,
     subMetrics: [
-      { 
-        name: 'Revenue from sustainable sourcing', 
-        type: 'Quantitative', 
+      {
+        name: 'Revenue from products third-party certified to environmental or social sustainability sourcing standards',
+        type: 'Quantitative',
         dataKey: 'FB-FR-430a.1',
-        sasbCategory: 'Supply-Chain Management',
-        proContent: 'Analysis: Increasing certified sustainable ingredients (e.g., Fair Trade, Rainforest Alliance) can significantly improve brand equity. We recommend setting a target of 50% certified sourcing by 2027 to enhance supply chain resilience.'
+        sasbCategory: 'Supply-Chain Management / Sourcing',
       },
-      { 
-        name: 'Strategy to manage env. & social risks', 
-        type: 'Discussion and Analysis', 
+      {
+        name: 'Percentage of revenue from eggs that originated from a cage-free environment',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-430a.2',
+        sasbCategory: 'Animal Welfare / Supply Chain',
+      },
+      {
+        name: 'Percentage of revenue from pork produced without the use of gestation crates',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-430a.5',
+        sasbCategory: 'Animal Welfare / Supply Chain',
+      },
+      {
+        name: 'Discussion of strategy to manage environmental and social risks within the supply chain, including animal welfare',
+        type: 'Discussion and Analysis',
         dataKey: 'FB-FR-430a.3',
-        sasbCategory: 'Supply-Chain Management',
-        proContent: 'Analysis: Sustainable supply chain management requires end-to-end visibility. We suggest prioritizing the mapping of Tier 1 and Tier 2 suppliers to identify environmental hotspots. Concurrently, enforce a Supplier Code of Conduct that mandates compliance with labor laws and zero-deforestation policies, verified through annual third-party audits.'
+        sasbCategory: 'Supply-Chain Management / Sourcing',
+      },
+      {
+        name: 'Discussion of strategies to reduce the environmental impact of packaging',
+        type: 'Discussion and Analysis',
+        dataKey: 'FB-FR-430a.4',
+        sasbCategory: 'Supply-Chain Management / Sourcing',
       },
     ]
   },
-  'gmo': {
-    title: 'GMO Management', icon: Dna,
+
+  'air-emissions-refrigeration': {
+    title: 'Air Emissions from Refrigeration', icon: Wind,
     subMetrics: [
-      { 
-        name: 'Revenue from GMO products', 
-        type: 'Quantitative', 
-        dataKey: 'FB-FR-430b.1',
-        sasbCategory: 'Product Sourcing',
-        proContent: 'Analysis: Non-GMO demand is rising in key export markets (EU/Japan). Consider obtaining Non-GMO Project verification for your flagship products to access these premium segments.'
+      {
+        name: 'Gross global Scope 1 emissions from refrigerants',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-110b.1',
+        sasbCategory: 'Refrigerant Management / Fugitive Emissions',
+      },
+      {
+        name: 'Percentage of refrigerants consumed with zero ozone-depleting potential',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-110b.2',
+        sasbCategory: 'Refrigerant Management / Fugitive Emissions',
+      },
+      {
+        name: 'Average refrigerant emissions rate',
+        type: 'Quantitative',
+        dataKey: 'FB-FR-110b.3',
+        sasbCategory: 'Refrigerant Management / Fugitive Emissions',
       },
     ]
   },
@@ -479,18 +628,22 @@ const DashboardPage = () => {
     
     const fetchDashboardData = async () => {
       try {
-        // Product count: optional backend; metrics are no longer stored in the backend
-        let productCount = 0;
+        const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+        const storageKey = currentUserId.includes('/') ? currentUserId.split('/').pop() : currentUserId;
+        const userCompany = allCompanyData[currentUserId] ?? allCompanyData[storageKey] ?? null;
+        const sector = (userCompany?.sector || '').trim();
+        const industry = (userCompany?.industry || '').trim();
+
+        // Product list: used for "has products" and for computed scope totals from LCA results.
+        let productsList = [];
         try {
-          const productsRes = await fetch(`${API_BASE}/products`);
-          if (productsRes.ok) {
-            const body = await productsRes.json();
-            const list = Array.isArray(body) ? body : body?.content ?? body?.data ?? [];
-            productCount = Array.isArray(list) ? list.length : 0;
-          }
+          const res = await productAPI.getAllProducts();
+          productsList = Array.isArray(res?.data) ? res.data : [];
         } catch (_) {
-          // Backend/products unavailable – dashboard still works with local metrics
+          productsList = [];
         }
+
+        const productCount = productsList.length;
         const hasAnyProducts = productCount > 0;
         setHasProducts(hasAnyProducts);
 
@@ -510,6 +663,106 @@ const DashboardPage = () => {
         } else {
           // Defaults when no saved metrics (no backend-derived values)
           if (baseData['FB-FR-130a.1']) baseData['FB-FR-130a.1'].value = "1.00";
+        }
+
+        // --- Computed values from Inventory LCA (backend products + localStorage calculated values) ---
+        // Prefer: 1) name cache (has full scope breakdown from calculation),
+        // 2) localStorage by productKey, 3) raw DPP/emissionInformation as final fallback.
+        const localLcaMap = getLocalLcaMap(currentUserId);
+        const localLcaByName = getLocalLcaCacheByName();
+        // Include user's backend products and any template products that have a cached LCA
+        const userFilteredProducts = productsList.filter(
+          (p) => normalizeUserIdKey(p.userId) === normalizeUserIdKey(currentUserId)
+        );
+        const totals = userFilteredProducts.reduce(
+          (acc, p) => {
+            const effectiveKey = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim())
+              || (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : String(p.id ?? ''));
+            const nameKey = (p.name || '').toLowerCase().trim();
+            const cachedByName = nameKey ? localLcaByName[nameKey] : null;
+            const localLcaTotal = localLcaMap[effectiveKey] != null ? Number(localLcaMap[effectiveKey]) : null;
+            if (cachedByName && typeof cachedByName.total === 'number') {
+              acc.scope1 += cachedByName.scope1 || 0;
+              acc.scope2 += cachedByName.scope2 || 0;
+              acc.scope3 += cachedByName.scope3 || 0;
+            } else if (localLcaTotal != null && !Number.isNaN(localLcaTotal)) {
+              acc.scope3 += localLcaTotal;
+            } else {
+              const t = getScopeTotalsFromProduct({
+                DPP: p?.DPP ?? p?.dpp,
+                emissionInformation: p?.emissionInformation ?? p?.emission_information,
+              });
+              acc.scope1 += t.scope1 || 0;
+              acc.scope2 += t.scope2 || 0;
+              acc.scope3 += t.scope3 || 0;
+            }
+            return acc;
+          },
+          { scope1: 0, scope2: 0, scope3: 0 }
+        );
+        // Also aggregate template products that have cached LCA values (they have no userId so are excluded above)
+        Object.entries(localLcaMap).forEach(([key, val]) => {
+          if (!key.startsWith('template-')) return;
+          const lcaTotal = Number(val);
+          if (Number.isNaN(lcaTotal)) return;
+          // Find scope breakdown from name cache by matching template key → already stored there after calculation
+          // Template lcaResult is the full total; we use scope3 as conservative fallback if no name match
+          const foundByKey = Object.values(localLcaByName).find((c) => Math.abs((c.total ?? 0) - lcaTotal) < 0.001);
+          if (foundByKey && typeof foundByKey.total === 'number') {
+            totals.scope1 += foundByKey.scope1 || 0;
+            totals.scope2 += foundByKey.scope2 || 0;
+            totals.scope3 += foundByKey.scope3 || 0;
+          } else {
+            totals.scope3 += lcaTotal;
+          }
+        });
+        totals.total = totals.scope1 + totals.scope2 + totals.scope3;
+
+        // Always prefer computed totals when products exist (reflects latest calculations).
+        // Round to 2dp at the source so all display paths (cards, inputs, breakdowns) show clean values.
+        const round2 = (n) => Math.round(n * 100) / 100;
+        if (hasAnyProducts) {
+          if (baseData['SCOPE_1']) baseData['SCOPE_1'].value = round2(totals.scope1);
+          if (baseData['SCOPE_2']) baseData['SCOPE_2'].value = round2(totals.scope2);
+          if (baseData['SCOPE_3']) baseData['SCOPE_3'].value = round2(totals.scope3);
+          if (baseData['TOTAL_GHG']) baseData['TOTAL_GHG'].value = round2(totals.total);
+          if (baseData['CALC_TRANSPORT_GHG']) baseData['CALC_TRANSPORT_GHG'].value = round2(totals.total);
+
+          // Approximate fleet fuel consumed (GJ) from total LCA kgCO₂e using diesel emission factor.
+          // Diesel: ~2.68 kgCO₂e/litre, energy content ~0.0386 GJ/litre → GJ = (kgCO₂e / 2.68) * 0.0386
+          // Only set if the user hasn't manually entered a value already.
+          const fuelEntry = baseData['FB-FR-110a.2'];
+          const fuelAlreadySet = fuelEntry && fuelEntry.value !== null && fuelEntry.value !== 'User Input' && parseFloat(fuelEntry.value) > 0;
+          if (!fuelAlreadySet && totals.total > 0) {
+            const approxLitres = totals.total / 2.68;
+            const approxGj = round2(approxLitres * 0.0386);
+            if (baseData['FB-FR-110a.2']) baseData['FB-FR-110a.2'].value = approxGj;
+          }
+
+          // Approximate operational energy consumed (GJ) from LCA scope totals.
+          // Scope 1 (combustion): use diesel factor 2.68 kgCO₂e/L, 0.0386 GJ/L.
+          // Scope 2 (grid electricity): use avg grid factor 0.233 kgCO₂e/kWh → GJ = scope2 / 0.233 * 0.0036
+          const energyEntry = baseData['FB-FR-130a.1'];
+          const energyAlreadySet = energyEntry && energyEntry.value !== null && energyEntry.value !== 'User Input' && parseFloat(energyEntry.value) > 0;
+          if (!energyAlreadySet && (totals.scope1 > 0 || totals.scope2 > 0)) {
+            const gjFromScope1 = (totals.scope1 / 2.68) * 0.0386;
+            const gjFromScope2 = (totals.scope2 / 0.233) * 0.0036;
+            const totalEnergyGj = round2(gjFromScope1 + gjFromScope2);
+            if (baseData['FB-FR-130a.1']) baseData['FB-FR-130a.1'].value = totalEnergyGj;
+
+            // Percentage grid electricity = scope2-derived GJ / total energy GJ
+            const gridPctEntry = baseData['FB-FR-130a.2'];
+            const gridPctAlreadySet = gridPctEntry && gridPctEntry.value !== null && gridPctEntry.value !== 'User Input' && parseFloat(gridPctEntry.value) > 0;
+            if (!gridPctAlreadySet && totalEnergyGj > 0) {
+              const gridPct = round2((gjFromScope2 / totalEnergyGj) * 100);
+              if (baseData['FB-FR-130a.2']) baseData['FB-FR-130a.2'].value = gridPct;
+            }
+          }
+
+          const isMarineTransport = sector === 'Transportation' && industry === 'Marine Transportation';
+          const isAirlines = sector === 'Transportation' && industry === 'Airlines';
+          if (isMarineTransport && baseData['TR-MR-GHG-1']) baseData['TR-MR-GHG-1'].value = round2(totals.total);
+          if (isAirlines && baseData['TR-AR-GHG-1']) baseData['TR-AR-GHG-1'].value = round2(totals.total);
         }
 
         // If there are no products, show zeros instead of demo defaults.
@@ -534,6 +787,7 @@ const DashboardPage = () => {
         const standardList = [
           "scope-1",
           "scope-2",
+          "scope-3",
           "fleet-fuel-management",
           "energy-management",
           "food-waste-management",
@@ -543,7 +797,7 @@ const DashboardPage = () => {
           "product-labelling-marketing",
           "labour-practices",
           "supply-chain-impacts",
-          "gmo"
+          "air-emissions-refrigeration",
         ];
 
         const marineTransportList = [
@@ -565,12 +819,6 @@ const DashboardPage = () => {
           "airlines-workforce-safety",
           "airlines-accident-safety",
         ];
-
-        const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
-        const storageKey = currentUserId.includes('/') ? currentUserId.split('/').pop() : currentUserId;
-        const userCompany = allCompanyData[currentUserId] ?? allCompanyData[storageKey] ?? null;
-        const sector = (userCompany?.sector || '').trim();
-        const industry = (userCompany?.industry || '').trim();
 
         const isFnb = sector === 'Food & Beverages' || sector === 'FNB' || sector === 'F&B';
         const isMarineTransport = sector === 'Transportation' && industry === 'Marine Transportation';
@@ -616,6 +864,75 @@ const DashboardPage = () => {
 
   const activeBreakdownTemplate = activeMetricId ? METRIC_BREAKDOWN_DATA[activeMetricId] : null;
 
+  // --- Build context summary for AI chat (covers all metrics with real values + benchmarks) ---
+  const dashboardContextSummary = useMemo(() => {
+    const lines = [];
+
+    // GHG Benchmarks (always included so AI can answer target questions even with no data)
+    lines.push('--- GHG BENCHMARKS & TARGETS ---');
+    lines.push('Science-Based Targets (SBTi) Net Zero: 90%+ absolute reduction in Scope 1+2+3 by 2050 vs baseline; 4.2% reduction per year from 2020.');
+    lines.push('Paris Agreement 1.5°C pathway: ~50% absolute GHG reduction by 2030 vs 2019 baseline.');
+    lines.push('Singapore Green Plan 2030 (climate): Peak emissions before 2030, net-zero by 2050. National target: 60 MtCO2e by 2030.');
+    lines.push('Singapore Carbon Tax: SGD 5/tCO2e (2019–2023) → SGD 25/tCO2e (2024–2025) → SGD 45/tCO2e (2026–2027) → SGD 50–80/tCO2e by 2030.');
+    lines.push('CDP A-List threshold: Scope 1+2 intensity reduction >10% YoY; Scope 3 disclosure required.');
+    lines.push('Food & Beverage sector average (MSCI): Scope 1+2 intensity ~50–120 tCO2e per SGD 1M revenue; leading companies <30.');
+    lines.push('');
+
+    if (!metrics?.data) {
+      lines.push('--- COMPANY DATA ---');
+      lines.push('No metric values have been entered yet.');
+      return lines.join('\n');
+    }
+
+    const data = metrics.data;
+
+    // GHG actuals
+    lines.push('--- COMPANY GHG DATA ---');
+    const s1 = data['SCOPE_1']?.value;
+    const s2 = data['SCOPE_2']?.value;
+    const s3 = data['SCOPE_3']?.value;
+    const total = data['TOTAL_GHG']?.value;
+    if (s1 != null) lines.push(`Scope 1 Emissions: ${s1} kgCO2e`);
+    if (s2 != null) lines.push(`Scope 2 Emissions: ${s2} kgCO2e`);
+    if (s3 != null) lines.push(`Scope 3 Emissions: ${s3} kgCO2e`);
+    if (total != null) lines.push(`Total GHG Emissions: ${total} kgCO2e`);
+    if (s1 != null && s2 != null && s3 != null) {
+      const totalVal = Number(s1) + Number(s2) + Number(s3);
+      const scope3Pct = totalVal > 0 ? ((Number(s3) / totalVal) * 100).toFixed(1) : null;
+      if (scope3Pct) lines.push(`Scope 3 as % of total: ${scope3Pct}% (industry avg ~70–80% for F&B)`);
+    }
+    lines.push('');
+
+    // All other entered metric values
+    lines.push('--- OTHER ENTERED METRICS ---');
+    const metricIds = metrics.metricList || [];
+    let hasOtherMetrics = false;
+    metricIds.forEach((metricId) => {
+      const breakdown = METRIC_BREAKDOWN_DATA[metricId];
+      if (!breakdown) return;
+      const subMetrics = (breakdown.subMetrics || []).filter(
+        (sm) => sm.dataKey && sm.type !== 'Info' && sm.type !== 'ReadOnly' && sm.type !== 'Discussion and Analysis'
+      );
+      if (subMetrics.length === 0) return;
+      const metricLines = [];
+      subMetrics.forEach((sm) => {
+        const entry = data[sm.dataKey];
+        const val = entry?.value;
+        if (val == null || val === '' || val === 0) return;
+        const unit = entry?.unit || ALL_METRIC_DATA_DEFINITIONS[sm.dataKey]?.unit || '';
+        metricLines.push(`  - ${sm.name}: ${val}${unit ? ' ' + unit : ''}`);
+      });
+      if (metricLines.length > 0) {
+        lines.push(`${breakdown.title}:`);
+        metricLines.forEach((l) => lines.push(l));
+        hasOtherMetrics = true;
+      }
+    });
+    if (!hasOtherMetrics) lines.push('No additional metrics entered yet.');
+
+    return lines.join('\n');
+  }, [metrics]);
+
   // --- Real-time Pro Insight (AI generated) ---
   // Must be declared before any early return to avoid hook order errors.
   useEffect(() => {
@@ -645,13 +962,22 @@ const DashboardPage = () => {
       snapshot,
     });
 
+    // Clear stale insight text when switching to a different metric so the UI doesn't show old content
+    const prevKey = proInsightReqKeyRef.current;
+    const prevMetricId = prevKey ? JSON.parse(prevKey).metricId : null;
+    if (activeMetricId !== prevMetricId) {
+      setProInsightText('');
+      setProInsightLoading(false);
+      setProInsightError('');
+    }
+
     if (reqKey === proInsightReqKeyRef.current) return;
     proInsightReqKeyRef.current = reqKey;
 
     if (proInsightDebounceRef.current) clearTimeout(proInsightDebounceRef.current);
 
     proInsightDebounceRef.current = setTimeout(async () => {
-      const CACHE_KEY = 'carbonx_pro_insights_cache_v1';
+      const CACHE_KEY = 'carbonx_pro_insights_cache_v6';
       let cache = {};
       try {
         cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {};
@@ -667,13 +993,30 @@ const DashboardPage = () => {
       setProInsightLoading(true);
       setProInsightError('');
 
-      const SYSTEM = `You are Sprout AI for CarbonX. Generate a concise, real-time \"Pro Insight\" based ONLY on the metric values provided. 
-Return 2–4 short bullet points. Each bullet should be actionable and specific (e.g. what to investigate, what lever reduces emissions, what target to set). 
-Do not mention that you are an AI. Do not ask questions. Do not include citations or links.`;
+      const hasAnyValues = snapshot.some(
+        (x) => x.value !== null && x.value !== 'User Input' && x.value !== '' && x.type !== 'Discussion and Analysis'
+      );
 
-      const USER = `Metric: ${activeBreakdownTemplate.title}\n\nValues:\n${snapshot
-        .map((x) => `- ${x.name}: ${x.value ?? 'N/A'}${x.unit ? ` ${x.unit}` : ''}`)
-        .join('\n')}\n\nGenerate the Pro Insight bullets now.`;
+      const SYSTEM = `You are Sprout AI for CarbonX, a sustainability analyst for food & beverage companies.
+You will be given metric values for a specific ESG/sustainability metric.
+${hasAnyValues
+  ? `Your job is to:
+1. State the industry benchmark or acceptable range for this metric with specific numbers (e.g. "Industry average is X; leading practice is Y").
+2. Quantify how the current value compares to that benchmark using plain language (e.g. "Your value is 2.3 times above the sector median of Z", or "Your value is 10 percentage points below the target of 20%").
+3. If values are within the acceptable range: respond with one short encouraging sentence starting with "You're on track —" followed by the benchmark comparison.
+4. If values need improvement: give 2–4 short actionable bullet points. Each bullet must name the specific gap with a number and suggest one concrete action.`
+  : `No values have been entered yet. Give 2–4 short generalised bullet points explaining what this metric measures, what good performance looks like (with industry benchmarks where possible), and what actions a food & beverage company should take to perform well on it.`}
+Do not use abbreviations like "pp" — write "percentage points" in full.
+Do not use vague language like "consider" or "may". Be direct and specific.
+Do not mention that you are an AI. Do not ask questions. Do not include citations or source links.`;
+
+      const USER = `Metric: ${activeBreakdownTemplate.title}\nSASB Category: ${snapshot[0]?.sasbCategory ?? 'N/A'}\n\nCurrent values:\n${snapshot
+        .filter((x) => x.type !== 'Discussion and Analysis')
+        .map((x) => {
+          const v = (x.value === null || x.value === 'User Input' || x.value === '') ? 'not yet provided' : `${x.value}${x.unit ? ` ${x.unit}` : ''}`;
+          return `- ${x.name}: ${v}`;
+        })
+        .join('\n')}\n\nProvide the insight now.`;
 
       try {
         const reply = await chatCompletion(
@@ -681,9 +1024,11 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
             { role: 'system', content: SYSTEM },
             { role: 'user', content: USER },
           ],
-          { max_tokens: 220, temperature: 0.4 }
+          { model: POPUP_MODEL, max_tokens: 800, temperature: 0.3 }
         );
-        const cleaned = (reply || '').trim();
+        // Strip citation markers like [1], [2][3], etc. added by web-backed models
+        const cleaned = (reply || '').trim().replace(/\[\d+\]/g, '');
+        console.debug('[ProInsight] raw reply:', cleaned);
         setProInsightText(cleaned);
         try {
           cache[reqKey] = cleaned;
@@ -702,6 +1047,7 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
     };
   }, [isProUser, activeMetricId, activeBreakdownTemplate, metrics]);
 
+
   if (!metrics) {
     return (
       <div className="container">
@@ -719,14 +1065,22 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
     metrics.metricList.includes(m.id)
   );
 
+  /** Format a metric value to 2 decimal places if it is a finite number, otherwise return as-is. */
+  const fmtMetric = (val) => {
+    if (val === null || val === undefined || val === '' || val === 'User Input') return val;
+    const n = Number(val);
+    if (!Number.isFinite(n)) return val;
+    return n.toFixed(2);
+  };
+
   const getTopLevelData = (metricId) => {
     const breakdown = METRIC_BREAKDOWN_DATA[metricId];
     if (!breakdown || !metrics) return { displayValue: 'N/A', hasData: false };
 
-    if (metricId === 'scope-1' || metricId === 'scope-2') {
-        const key = metricId === 'scope-1' ? 'SCOPE_1' : 'SCOPE_2';
+    if (metricId === 'scope-1' || metricId === 'scope-2' || metricId === 'scope-3') {
+        const key = metricId === 'scope-1' ? 'SCOPE_1' : metricId === 'scope-2' ? 'SCOPE_2' : 'SCOPE_3';
         const d = metrics.data[key];
-        if(d) return { displayValue: `${d.value} ${d.unit}`, hasData: true };
+        if(d) return { displayValue: `${fmtMetric(d.value)} ${d.unit}`, hasData: true };
     }
 
     // UPDATED: For Food Safety, use the Recalls metric (which has the unit)
@@ -737,23 +1091,24 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
           if (val === 'User Input' || val === '' || val === null) {
               return { displayValue: 'User Input', hasData: true };
           }
-          return { displayValue: `${val} ${metricData.unit}`, hasData: true };
+          return { displayValue: `${fmtMetric(val)} ${metricData.unit}`, hasData: true };
       }
     }
 
     if (metricId === 'fleet-fuel-management') {
-      const metricData = metrics.data['CALC_TRANSPORT_GHG']; 
-      if (metricData && metricData.value !== null && parseFloat(metricData.value) > 0) {
-         return { displayValue: `${metricData.value} ${metricData.unit}`, hasData: true };
+      const fuelData = metrics.data['FB-FR-110a.2'];
+      if (fuelData && fuelData.value !== null && fuelData.value !== 'User Input' && parseFloat(fuelData.value) > 0) {
+        return { displayValue: `${fmtMetric(fuelData.value)} ${fuelData.unit}`, hasData: true };
       }
-      return { displayValue: 'N/A', hasData: false };
+      return { displayValue: 'User Input', hasData: true };
     }
 
     if (metricId === 'energy-management') {
-        const metricData = metrics.data['FB-FR-130a.1'];
-        if (metricData && metricData.value) {
-            return { displayValue: `${metricData.value} ${metricData.unit}`, hasData: true };
-        }
+      const metricData = metrics.data['FB-FR-130a.1'];
+      if (metricData && metricData.value !== null && metricData.value !== 'User Input' && parseFloat(metricData.value) > 0) {
+        return { displayValue: `${fmtMetric(metricData.value)} ${metricData.unit}`, hasData: true };
+      }
+      return { displayValue: 'User Input', hasData: true };
     }
 
     const firstQuantMetric = breakdown.subMetrics.find(sub => sub.type === 'Quantitative');
@@ -764,11 +1119,10 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
           if (val === 'User Input' || val === '' || val === null) {
               return { displayValue: 'User Input', hasData: true };
           }
-          // Check if currency unit ($)
-          if (metricData.unit === '$') {
-            return { displayValue: `${metricData.unit}${val}`, hasData: true };
+          if (metricData.unit === '$' || metricData.unit === 'SGD') {
+            return { displayValue: `${metricData.unit} ${fmtMetric(val)}`, hasData: true };
           }
-          return { displayValue: `${val} ${metricData.unit}`, hasData: true };
+          return { displayValue: `${fmtMetric(val)} ${metricData.unit}`.trim(), hasData: true };
       }
     }
     
@@ -924,8 +1278,9 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
                     <p>{activeBreakdownTemplate.title}</p>
                   </div>
 
-                  {/* Pro Insight (real-time, AI-generated) */}
-                  {isProUser && (
+                  {/* Pro Insight box — only shown when there's no Discussion & Analysis sub-metric
+                      (those metrics render the insight inline within their own row) */}
+                  {isProUser && !activeBreakdownTemplate.subMetrics.some(s => s.type === 'Discussion and Analysis') && (
                     <div className="analysis-content" style={{marginTop: '1rem', backgroundColor: 'rgba(var(--secondary), 0.1)', padding: '1rem', borderRadius: '8px'}}>
                       <div className="pro-analysis-content">
                         <div style={{display:'flex', gap:'0.5rem', alignItems:'center', marginBottom:'0.5rem'}}>
@@ -936,8 +1291,21 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
                           <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)' }}>Updating insight…</p>
                         ) : proInsightError ? (
                           <p className="normal-regular" style={{ color: 'rgba(var(--danger), 1)' }}>{proInsightError}</p>
+                        ) : proInsightText ? (
+                          <div className="normal-regular" style={{ whiteSpace: 'pre-line' }}>
+                            {proInsightText.split('\n').map((line, i) => {
+                              const parts = line.split(/\*\*(.+?)\*\*/g);
+                              return (
+                                <p key={i} style={{ margin: i === 0 ? 0 : '0.3rem 0 0' }}>
+                                  {parts.map((part, j) =>
+                                    j % 2 === 1 ? <strong key={j}>{part}</strong> : part
+                                  )}
+                                </p>
+                              );
+                            })}
+                          </div>
                         ) : (
-                          <p className="normal-regular" style={{ whiteSpace: 'pre-line' }}>{proInsightText || 'Adjust values above to generate an insight.'}</p>
+                          <p className="normal-regular" style={{ color: 'rgba(var(--greys), 0.7)' }}>Adjust values above to generate an insight.</p>
                         )}
                       </div>
                     </div>
@@ -948,56 +1316,117 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
                     {activeBreakdownTemplate.subMetrics.map((sub, idx) => {
                       const isAnalysis = sub.type === 'Discussion and Analysis';
                       const isInfo = sub.type === 'Info';
+                      const isReadOnly = sub.type === 'ReadOnly';
                       const metricData = metrics.data[sub.dataKey];
                       
-                      const isEditable = !isInfo && !isAnalysis;
+                      const isEditable = !isInfo && !isAnalysis && !isReadOnly;
+                      const inputValue = isEditable
+                        ? ((!metricData || metricData.value === 'User Input' || metricData.value === null) ? '' : metricData.value)
+                        : null;
+
+                      // Discussion & Analysis rows render as their own section, not a standard row
+                      if (isAnalysis) {
+                        return (
+                          <div key={idx} style={{ padding: '1rem', borderBottom: '1px solid rgba(var(--greys), 0.2)' }}>
+                            <p className="medium-bold" style={{ marginBottom: '0.5rem' }}>{sub.name}</p>
+                            {isProUser ? (
+                              <div style={{ backgroundColor: 'rgba(var(--secondary), 0.07)', borderRadius: '8px', padding: '0.75rem' }}>
+                                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', marginBottom: '0.4rem' }}>
+                                  <Sparkles size={13} color="rgba(var(--secondary), 1)" />
+                                  <span className="small-bold" style={{ color: 'rgba(var(--secondary), 1)' }}>AI Generated</span>
+                                </div>
+                                {proInsightLoading ? (
+                                  <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)' }}>Generating…</p>
+                                ) : proInsightText ? (
+                                  <div className="normal-regular" style={{ whiteSpace: 'pre-line' }}>
+                                    {proInsightText.split('\n').map((line, li) => {
+                                      const parts = line.split(/\*\*(.+?)\*\*/g);
+                                      return (
+                                        <p key={li} style={{ margin: li === 0 ? 0 : '0.3rem 0 0' }}>
+                                          {parts.map((part, j) => j % 2 === 1 ? <strong key={j}>{part}</strong> : part)}
+                                        </p>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="normal-regular" style={{ color: 'rgba(var(--greys), 0.7)' }}>Generating insight…</p>
+                                )}
+                              </div>
+                            ) : (
+                              <div
+                                style={{ backgroundColor: 'rgba(var(--greys), 0.08)', borderRadius: '8px', padding: '0.75rem', cursor: 'pointer', opacity: 0.6 }}
+                                onClick={() => setShowProModal(true)}
+                              >
+                                <p className="normal-regular" style={{ fontStyle: 'italic', color: 'rgba(var(--greys), 1)' }}>Upgrade to Pro to unlock AI-generated analysis.</p>
+                              </div>
+                            )}
+                            {sub.sasbCategory && sub.sasbCategory !== 'NA' && (
+                              <div style={{ marginTop: '0.75rem' }}>
+                                <p className="descriptor-medium" style={{ color: 'rgba(var(--greys), 1)' }}>SASB</p>
+                                <p className="normal-regular" style={{ color: 'rgba(var(--blacks), 1)' }}>{sub.sasbCategory}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
 
                       let displayContent = null;
 
                       if (isInfo) {
+                        if (!sub.value) {
+                          // Section heading row
+                          displayContent = null;
+                        } else {
                           displayContent = (
-                              <p className="normal-regular" style={{fontStyle: 'italic', color: 'rgba(var(--greys), 1)'}}>
-                                  {sub.value}
-                              </p>
+                            <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)' }}>
+                              {sub.value}
+                            </p>
                           );
-                      } else if (isAnalysis) {
-                        // READ-ONLY FOR ANALYSIS
-                        const value = (metricData && metricData.value) || '';
+                        }
+                      } else if (isReadOnly) {
+                        const val = metricData?.value;
+                        const display = (val === null || val === undefined || val === 'User Input') ? '—' : `${fmtMetric(val)} ${metricData?.unit ?? ''}`.trim();
                         displayContent = (
-                           <p className="medium-bold" style={{color: "rgba(var(--primary), 1)", textAlign: 'right'}}>
-                              {(!value || value === 'User Input') ? 'Analysis' : value}
-                           </p>
+                          <p className="medium-bold" style={{ color: 'rgba(var(--primary), 1)', textAlign: 'right' }}>
+                            {display}
+                          </p>
                         );
                       } else if (isEditable) {
                         // EDITABLE FIELDS
-                        const inputValue = (!metricData || metricData.value === 'User Input' || metricData.value === null) 
-                                           ? '' 
-                                           : metricData.value;
-                        const isCurrency = metricData?.unit === '$';
-
+                        const isCurrency = metricData?.unit === '$' || metricData?.unit === 'SGD';
+                        const isEmpty = inputValue === '' || inputValue === null;
                         displayContent = (
-                           <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'flex-end'}}>
-                             {/* Show unit BEFORE input if currency */}
+                           <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                              {isCurrency && <span className="normal-regular">{metricData.unit}</span>}
-                             
-                             <input 
-                                type="number" 
-                                className="input-base" 
-                                placeholder="0.00"
-                                value={inputValue}
-                                onChange={(e) => handleMetricValueChange(sub.dataKey, e.target.value)}
-                                onClick={(e) => e.stopPropagation()} 
-                                style={{width: '120px', textAlign: 'right'}}
-                             />
-                             
-                             {/* Show unit AFTER input if NOT currency */}
+                             <div style={{display: 'flex', flexDirection: 'column', gap: '0.2rem'}}>
+                               {isEmpty && (
+                                 <span style={{
+                                   fontSize: '0.72rem',
+                                   color: 'rgba(var(--secondary), 1)',
+                                   fontStyle: 'italic',
+                                 }}>✎ Enter a value</span>
+                               )}
+                               <input
+                                  type="number"
+                                  className="input-base"
+                                  placeholder="0.00"
+                                  value={inputValue}
+                                  onChange={(e) => handleMetricValueChange(sub.dataKey, e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    width: '120px',
+                                    textAlign: 'right',
+                                    borderColor: isEmpty ? 'rgba(var(--secondary), 0.5)' : undefined,
+                                  }}
+                               />
+                             </div>
                              {!isCurrency && <span className="normal-regular">{metricData?.unit || ''}</span>}
                            </div>
                         );
                       } else {
                         // READ-ONLY FIELDS
                         if (metricData) {
-                            const val = metricData.value === 'User Input' ? 'N/A' : metricData.value;
+                            const val = metricData.value === 'User Input' ? 'N/A' : fmtMetric(metricData.value);
                             displayContent = (
                                 <p className="medium-bold" style={{color: "rgba(var(--primary), 1)", textAlign: 'right'}}>
                                     {val !== null ? `${val} ${metricData.unit}` : 'N/A'}
@@ -1006,6 +1435,15 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
                         }
                       }
                       
+                      // Info heading rows (empty value) render as a section divider
+                      if (isInfo && !sub.value) {
+                        return (
+                          <div key={idx} style={{ padding: '0.75rem 1rem 0.25rem', borderBottom: '1px solid rgba(var(--greys), 0.2)' }}>
+                            <p className="descriptor-medium" style={{ color: 'rgba(var(--greys), 1)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{sub.name}</p>
+                          </div>
+                        );
+                      }
+
                       const rowStyle = {
                         borderBottom: '1px solid rgba(var(--greys), 0.2)',
                         padding: '1rem',
@@ -1023,19 +1461,17 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
                           <div className="sub-metric-info" style={{width: '100%'}}>
                             <div className="input-group-row" style={{ alignItems: 'center' }}>
                               <p className="medium-bold" style={{flex: 1}}>{sub.name}</p>
-                              <div style={{flex: 1, textAlign: 'right'}}>
+                              <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                                 {displayContent}
                               </div>
                             </div>
                             
-                            <div className="metric-categories-col" style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              {sub.sasbCategory && sub.sasbCategory !== 'NA' && (
-                                <div>
-                                  <p className="descriptor-medium" style={{color: "rgba(var(--greys), 1)"}}>SASB</p>
-                                  <p className="nofmal-regular" style={{color: "rgba(var(--blacks), 1)"}}>{sub.sasbCategory}</p>
-                                </div>
-                              )}
-                            </div>
+                            {sub.sasbCategory && sub.sasbCategory !== 'NA' && (
+                              <div className="metric-categories-col" style={{ marginTop: '0.75rem' }}>
+                                <p className="descriptor-medium" style={{ color: 'rgba(var(--greys), 1)' }}>SASB</p>
+                                <p className="normal-regular" style={{ color: 'rgba(var(--blacks), 1)' }}>{sub.sasbCategory}</p>
+                              </div>
+                            )}
 
                           </div>
                         </div>
@@ -1064,6 +1500,7 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
         isOpen={showChatPopup}
         onClose={() => setShowChatPopup(false)}
         pageContext="Dashboard"
+        contextSummary={dashboardContextSummary}
       />
     </div>
   );

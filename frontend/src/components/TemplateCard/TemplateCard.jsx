@@ -24,15 +24,35 @@ function processName(item) {
  * Reusable template card for Browse Templates page.
  * ingredients: string[] or { ingredient, weight }[]
  * processes: string[] or { process, description }[]
- * quantity: optional main product quantity (you can add editing in Edit Template later)
+ * quantity: optional main product quantity.
+ * onQuantityChange: optional (templateId, newValue) => void — when provided, quantity is editable inline and saves immediately.
  * weightOnly: when true, show only Weight (quantity + weightUnit), hide Elements/Processes (for raw materials).
  * weightUnit: unit for weight display when weightOnly (e.g. 'kg').
  */
-const TemplateCard = ({ name, ingredients = [], processes = [], quantity, weightOnly, weightUnit = 'kg', onEdit, onAdd, onDelete }) => {
+const TemplateCard = ({ templateId, name, ingredients = [], processes = [], quantity, onQuantityChange, weightOnly, weightUnit = 'kg', onEdit, onAdd, onDelete }) => {
   const ingList = Array.isArray(ingredients) ? ingredients : [];
   const procList = Array.isArray(processes) ? processes : [];
   const elements = ingList.map(elementName).filter(Boolean);
   const processNamesList = procList.map(processName).filter(Boolean);
+  const displayQ = quantity != null && quantity !== '' ? quantity : '';
+  const canEditQuantity = Boolean(onQuantityChange && templateId != null && !weightOnly);
+
+  const handleQuantityChange = (e) => {
+    const raw = e.target.value;
+    if (onQuantityChange && templateId != null) {
+      const num = raw === '' ? undefined : Number(raw);
+      const value = raw === '' ? undefined : (Number.isNaN(num) ? raw : num);
+      onQuantityChange(templateId, value);
+    }
+  };
+  const handleQuantityBlur = (e) => {
+    const raw = (e.target.value || '').toString().trim();
+    if (onQuantityChange && templateId != null) {
+      const num = raw === '' ? undefined : Number(raw);
+      const value = raw === '' ? undefined : (Number.isNaN(num) ? raw : num);
+      onQuantityChange(templateId, value);
+    }
+  };
 
   return (
     <div className="template-card">
@@ -63,9 +83,24 @@ const TemplateCard = ({ name, ingredients = [], processes = [], quantity, weight
         </p>
       ) : (
         <>
-          {quantity != null && quantity !== '' && (
+          {/* Always show Quantity row when editable (custom cards); otherwise only when there's a value */}
+          {(canEditQuantity || displayQ !== '') && (
             <p className="template-card-meta">
-              <strong>Quantity:</strong> {quantity}
+              <strong>Quantity:</strong>{' '}
+              {canEditQuantity ? (
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  className="template-card-quantity-input"
+                  value={displayQ}
+                  onChange={handleQuantityChange}
+                  onBlur={handleQuantityBlur}
+                  aria-label="Quantity"
+                />
+              ) : (
+                displayQ
+              )}
             </p>
           )}
           <p className="template-card-meta">
