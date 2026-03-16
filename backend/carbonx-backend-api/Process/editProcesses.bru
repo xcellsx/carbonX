@@ -1,50 +1,24 @@
 meta {
   name: editProcesses
   type: http
-  seq: 4
+  seq: 6
 }
 
 put {
-  url: {{host}}/api/processes
+  url: {{host}}/api/processes/:companyName
   body: json
   auth: inherit
+}
+
+params:path {
+  companyName: testCompany
 }
 
 body:json {
   [
     {
-      "id": "102999",
-      "arangoId": "processes/102999",
-      "name": "combining",
-      "processType": "drink mixing",
-      "functionalProperties": null,
-      "nonFunctionalProperties": null,
-      "inputs": [
-        {
-          "arangoId": "products/102983",
-          "id": "102983",
-          "name": "lemon juice",
-          "productNature": "ingredient",
-          "productOrigin": null,
-          "functionalProperties": null,
-          "procedure": [],
-          "userId": null,
-          "uploadedFile": null,
-          "dpp": null
-        },
-        {
-          "arangoId": "products/102771",
-          "id": "102771",
-          "name": "clean water",
-          "productNature": "ingredient",
-          "productOrigin": null,
-          "functionalProperties": null,
-          "procedure": [],
-          "userId": "testCompany",
-          "uploadedFile": null,
-          "dpp": null
-        }
-      ]
+      "_key":"1365534",
+      "name":"auausalakau"
     }
   ]
 }

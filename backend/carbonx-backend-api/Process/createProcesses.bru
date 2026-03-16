@@ -5,18 +5,20 @@ meta {
 }
 
 post {
-  url: {{host}}/api/processes
+  url: {{host}}/api/processes/:companyName
   body: json
   auth: inherit
+}
+
+params:path {
+  companyName: testCompany
 }
 
 body:json {
   [
     {
     "name": "combining",
-    "processType": "mixing",
-    "functionalProperties": null,
-    "nonFunctionalProperties": null
+    "type": "mixing"
     }
   ]
 }

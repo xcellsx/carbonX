@@ -1,0 +1,21 @@
+meta {
+  name: listTemplates
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/templates
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~database: default
+  ~nodeType: low
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

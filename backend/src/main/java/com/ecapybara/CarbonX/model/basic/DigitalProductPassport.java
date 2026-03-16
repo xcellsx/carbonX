@@ -7,6 +7,7 @@ import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.PersistentIndex;
 import com.ecapybara.carbonx.model.ghg.CarbonFootprint;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;
 
@@ -22,11 +23,11 @@ import lombok.NoArgsConstructor;
 public class DigitalProductPassport {
 
   @ArangoId // db document field: _id
-  @JsonAlias({"_id"})
+  @JsonProperty("_id")
   private String id;
 
   @Id // db document field: _key
-  @JsonAlias({"_key"})
+  @JsonProperty("_key")
   private String key;
 
   @NonNull

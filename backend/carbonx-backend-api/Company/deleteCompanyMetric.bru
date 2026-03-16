@@ -1,0 +1,21 @@
+meta {
+  name: deleteCompanyMetric
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{host}}/api/info/:companyName/metrics/:key
+  body: none
+  auth: inherit
+}
+
+params:path {
+  companyName: auausalakau
+  key: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

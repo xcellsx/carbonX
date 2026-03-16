@@ -1,0 +1,21 @@
+meta {
+  name: getShip
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/maritime/ships?companyName=SingaporeMarine&mmsi=563014970
+  body: none
+  auth: inherit
+}
+
+params:query {
+  companyName: SingaporeMarine
+  mmsi: 563014970
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

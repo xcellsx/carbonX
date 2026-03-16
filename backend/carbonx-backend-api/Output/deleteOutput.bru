@@ -1,17 +1,18 @@
 meta {
   name: deleteOutput
   type: http
-  seq: 6
+  seq: 7
 }
 
 delete {
-  url: {{host}}/api/outputs/:id
+  url: {{host}}/api/outputs/:companyName/:id
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 1
+  companyName: default
+  id: 2
 }
 
 settings {

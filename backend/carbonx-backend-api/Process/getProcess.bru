@@ -1,17 +1,18 @@
 meta {
   name: getProcess
   type: http
-  seq: 2
+  seq: 4
 }
 
 get {
-  url: {{host}}/api/processes/:id
+  url: {{host}}/api/processes/:companyName/:key
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 1
+  companyName: testCompany
+  key: 1365534
 }
 
 settings {

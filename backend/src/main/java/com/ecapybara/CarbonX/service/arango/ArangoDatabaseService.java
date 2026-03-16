@@ -19,7 +19,6 @@ public class ArangoDatabaseService extends BaseArangoService {
 
     // Note: Database operations require _system database access
     // These endpoints don't use the default database from WebClient
-
     /**
      * List all databases
      * GET /_db/_system/_api/database
@@ -27,15 +26,10 @@ public class ArangoDatabaseService extends BaseArangoService {
     public Mono<Map> listDatabases() {
         log.info("Listing all databases");
         return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("localhost")
-                        .port(8529)
-                        .path("/_db/_system/_api/database")
-                        .build())
-                .retrieve()
-                .bodyToMono(Map.class)
-                .doOnSuccess(result -> log.info("Successfully listed databases"));
+                        .uri("/_db/_system/_api/database")
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .doOnSuccess(result -> log.info("Successfully listed databases"));
     }
 
     /**
@@ -59,53 +53,49 @@ public class ArangoDatabaseService extends BaseArangoService {
         if (!options.isEmpty()) body.put("options", options);
 
         return webClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("localhost")
-                        .port(8529)
-                        .path("/_db/_system/_api/database")
-                        .build())
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .doOnSuccess(result -> log.info("Successfully created database: {}", name));
+                        .uri("/_db/_system/_api/database")
+                        .bodyValue(body)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .doOnSuccess(result -> log.info("Successfully created database: {}", name));
     }
 
     /**
      * Drop a database
      * DELETE /_db/_system/_api/database/{database-name}
      */
-    public Mono<Map> dropDatabase(String databaseName) {
-        log.info("Dropping database: {}", databaseName);
+    public Mono<Map> dropDatabase(String database) {
+        log.info("Dropping database: {}", database);
         return webClient.delete()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("localhost")
-                        .port(8529)
-                        .path("/_db/_system/_api/database/" + databaseName)
-                        .build())
-                .retrieve()
-                .bodyToMono(Map.class)
-                .doOnSuccess(result -> log.info("Successfully dropped database: {}", databaseName));
+                        .uri("/_db/_system/_api/database/" + database)
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .doOnSuccess(result -> log.info("Successfully dropped database: {}", database));
     }
 
     /**
      * Get information about the current database
-     * GET /_api/database/current
+     * GET /_db/{database-name}/_api/database/current
      */
-    public Mono<Map> getCurrentDatabase() {
+    public Mono<Map> getCurrentDatabase(String database) {
         log.info("Getting current database info");
-        return get("/database/current", Map.class)
-                .doOnSuccess(result -> log.info("Successfully retrieved current database info"));
+        return webClient.get()
+                        .uri("/_db/" + database + "/_api/database/current")
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .doOnSuccess(result -> log.info("Successfully retrieved current database info"));
     }
 
     /**
      * List accessible databases for current user
      * GET /_api/database/user
      */
-    public Mono<Map> getUserDatabases() {
+    public Mono<Map> getUserDatabases(String database) {
         log.info("Getting user accessible databases");
-        return get("/database/user", Map.class)
-                .doOnSuccess(result -> log.info("Successfully listed user databases"));
+        return webClient.get()
+                        .uri("/_db/" + database + "/_api/database/user")
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .doOnSuccess(result -> log.info("Successfully listed user databases"));
     }
 }

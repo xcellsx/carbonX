@@ -2,28 +2,27 @@ package com.ecapybara.carbonx.model.basic;
 
 import java.util.List;
 
-import org.springframework.data.annotation.Id;
-
-import com.arangodb.springframework.annotation.ArangoId;
 import com.arangodb.springframework.annotation.Document;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 
-@Document("companyInfo")
-@Data @Builder(toBuilder = true)
+@Data @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
+@Document("companies")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Company {
-  @Id // db document field: _key
-  private String id;
 
-  @ArangoId // db document field: _id
-  private String arangoId;
-
-  @NonNull
+  @JsonProperty("_class")
+  private final String clazz = this.getClass().getTypeName();
+  
   private String name;
 
-  @NonNull
   private String sector;
   
   private String industry;
@@ -31,4 +30,14 @@ public class Company {
   private String reportingYear;
 
   private List<String> applicableMetrics;
+
+  @Override
+  public String toString() {
+    try {
+      ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      return mapper.writeValueAsString(this);
+    } catch (Exception e) {
+      return super.toString(); // fallback
+    }
+  }
 }

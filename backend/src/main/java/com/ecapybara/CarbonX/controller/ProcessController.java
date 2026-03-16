@@ -1,120 +1,169 @@
 package com.ecapybara.carbonx.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 
-import com.ecapybara.carbonx.config.AppLogger;
 import com.ecapybara.carbonx.model.issb.Process;
-import com.ecapybara.carbonx.repository.ProcessRepository;
-import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.ecapybara.carbonx.service.DocumentService;
+import com.ecapybara.carbonx.service.arango.ArangoDatabaseService;
+import com.ecapybara.carbonx.service.arango.ArangoGraphService;
+import com.ecapybara.carbonx.service.arango.ArangoQueryService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ecapybara.carbonx.service.GraphService;
-
-import reactor.core.publisher.Mono;
-
 
 @RestController
 @RequestMapping("/api/processes")
 public class ProcessController {
 
-  @Autowired
-  private ArangoDocumentService documentService;
-  @Autowired
-  private GraphService graphService;
-  @Autowired
-  private ProcessRepository processRepository;
+    @Autowired
+    private ArangoDatabaseService databaseService;
+    @Autowired
+    private DocumentService documentService;
+    @Autowired
+    private ArangoGraphService graphService;
+    @Autowired
+    private ArangoQueryService queryService;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+    final Sort sort = Sort.by(Direction.DESC, "id");
 
-  private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
-  final Sort sort = Sort.by(Direction.DESC, "id");
+    @GetMapping
+    public ResponseEntity<Object> searchProcesses(@RequestParam(required = false, defaultValue = "default") String database,
+                                                  @RequestParam(required = false) String key,
+                                                  @RequestParam(required = false) String name,
+                                                  @RequestParam(required = false) String type,
+                                                  @RequestParam(required = false) String serviceProvider,
+                                                  @RequestParam(required = false) String userId) {
+        
+        // Build AQL query string and associated 'bindVars'
+        StringBuilder query = new StringBuilder("FOR doc in processes ");
+        Map<String,String> bindVars = new HashMap<>();
+        if (key != null) {
+            query.append("FILTER doc._key == @key ");
+            bindVars.put("key", key);
+        }
+        if (name != null) {
+            query.append("FILTER doc.name == @name ");
+            bindVars.put("name", name);
+        }
+        if (type != null) {
+            query.append("FILTER doc.type == @type ");
+            bindVars.put("type", type);
+        }
+        if (serviceProvider != null) {
+            query.append("FILTER doc.serviceProvider == @serviceProvider ");
+            bindVars.put("serviceProvider", serviceProvider);
+        }
+        if (userId != null) {
+            query.append("FILTER doc.userId == @userId ");
+            bindVars.put("userId", userId);
+        }
+        query.append("RETURN doc");
 
-  @GetMapping
-  public Iterable<Process> getProcesses(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "type", required = false) String type) {
-    if (name!=null && !name.isEmpty() && type!=null && !type.isEmpty()) {
-      return processRepository.findByNameAndType(sort, name, type);
-    }
-    else if (name!=null && !name.isEmpty()) {
-      return processRepository.findByName(sort, name);
-    }
-    else if (type!=null && !type.isEmpty()) {
-      return processRepository.findByType(sort, type);
-    }
-    else {
-      return processRepository.findAll();
-    }
-  }
-
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-  @ResponseStatus(value = HttpStatus.CREATED)
-  public List<Process> createProcesses(@RequestBody List<Process> processesList) {
-    
-    for (Process process : processesList) {
-      System.out.println("----- New process created:");
-      System.out.println(process.toString());
-
-      processRepository.save(process);
-      process = processRepository.findByNameAndType(sort, process.getName(), process.getType()).get(0);
-      System.out.println("Created process saved into process database:");
-      System.out.println(process.toString());
-    }
-    
-    return processesList;
-  }
-
-  @PutMapping
-  public List<Process> editProcesses(@RequestBody List<Process> revisedProcesses) {
-    for (Process processRevision : revisedProcesses) {
-      Process process = editProcess(processRevision.getId(), processRevision);
-      processRevision = process;
-    }
-    return revisedProcesses;
-  }
-
-  @GetMapping("/{key}")
-  public Mono<Process> getProcess(@PathVariable String key) {
-    Map<String,Object> rawDocument = documentService.getDocument("processes", key, null, null)
-                                                    .block();
-    Process process = objectMapper.convertValue(rawDocument, Process.class);                                             
-    return Mono.just(process);
-  }
-
-  @PutMapping("/{key}")
-  public Process editProcess(@PathVariable String key, @RequestBody Process revisedProcess) {
-    Process process = processRepository.findByKey(key).orElse(null);
-
-    if (process != null) {
-      process.setName(revisedProcess.getName());
-      process.setType(revisedProcess.getType());
-      process.setDPP(revisedProcess.getDPP());
-      processRepository.save(process);
+        // Execute query string in appropriate database
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String,Object> response = queryService.executeQuery(database, query.toString(), bindVars, 100, null, null, null).block();            
+            List<Process> processList = mapper.convertValue(response.get("result"), new TypeReference<List<Process>>() {});
+            return new ResponseEntity<>(processList, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
     }
     
-    return processRepository.findByKey(key).orElse(null);
-  }
 
-  // Proper document deletion require the use of ArangoDB's Graph API since AQL does not cleanly delete hanging edges. Trust me, I've tried
-  @DeleteMapping("/{id}")
-  public Mono<Boolean> deleteProcess(@PathVariable String id) {
-    return graphService.deleteDocuments("processes", id);
-  }
+    @GetMapping("/all")
+    public ResponseEntity<Object> listAllProcesses() {
+        ObjectMapper mapper = new ObjectMapper();
+        List<Process> result = new ArrayList<>();
+        try {
+            Map<String,Object> response = databaseService.listDatabases().block();
+            List<String> databases = mapper.convertValue(response.get("result"), new TypeReference<List<String>>() {});
+            databases.remove("_system");
+
+            for (String database : databases) {
+                response = documentService.getAllDocuments(database, "processes").block();
+                result = ListUtils.union(result, mapper.convertValue(response.get("result"), new TypeReference<List<Process>>() {}));
+            }
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(value = "/{companyName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> createProcesses(@PathVariable String companyName, @RequestBody List<Object> rawProcesses) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Process> processList = mapper.convertValue(rawProcesses, new TypeReference<List<Process>>() {});
+            List<Object> response = documentService.createDocuments(companyName, "processes", processList, true, null, null, null, null).block();
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping(value = "/{companyName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> editProcesses(@PathVariable String companyName, @RequestBody List<Object> revisedProcesses) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Process> processList = mapper.convertValue(revisedProcesses, new TypeReference<List<Process>>() {});
+            List<Object> response = documentService.updateDocuments(companyName, "processes", processList, true, true, null, null, true, null).block();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/{companyName}/{key}")
+    public ResponseEntity<Object> getProcess(@PathVariable String companyName, @PathVariable String key) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String,Object> rawDocument = documentService.getDocument(companyName, "processes", key, null, null).block();
+            Process process = mapper.convertValue(rawDocument, new TypeReference<Process>() {});
+            return new ResponseEntity<>(process, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping(value = "/{companyName}/{key}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> editProcess(@PathVariable String companyName, @PathVariable String key, @RequestBody Map<String,Object> revisedProcess) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Process process = mapper.convertValue(revisedProcess, new TypeReference<Process>() {});
+            Map<String,Object> response = documentService.updateDocument(companyName, "processes", key, process, true, true, null, null, null, true, null, null).block();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // Proper document deletion require the use of ArangoDB's Graph API since AQL does not cleanly delete hanging edges. Trust me, I've tried
+    @DeleteMapping("/{companyName}/{key}")
+    public ResponseEntity<Object> deleteProcess(@PathVariable String companyName, @PathVariable String key) {
+        Map<String,Object> response = graphService.deleteVertex(companyName, "default", "processes", key, true, true).block();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

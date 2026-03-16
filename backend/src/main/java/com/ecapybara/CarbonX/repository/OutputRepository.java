@@ -30,9 +30,5 @@ public interface OutputRepository extends ArangoRepository<Output, String> {
   @Query("FOR output IN outputs FILTER output._from == @documentId RETURN output._key") // returns a list of keys of the connected edges
   Iterable<String> findConnectedOutputs(@Param("documentId") String documentId);
 
-  /** Find output edge by vertex document ids (one-way: process → product). */
-  @Query("FOR o IN outputs FILTER o._from == @fromId AND o._to == @toId LIMIT 1 RETURN o")
-  List<Output> findByFromAndTo(@Param("fromId") String processId, @Param("toId") String productId);
-
   void removeById(String id);
 }

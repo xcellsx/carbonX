@@ -1,0 +1,13 @@
+{
+  "name": "spaghetti",
+  "type": "dish",
+  "productOrigin": null,
+  "quantifiableUnit": "kg",
+  "quantityValue": 3.0,
+  "emissionInformation": null,
+  "functionalProperties": null,
+  "DPP": null,
+  "procedure": null,
+  "userId": null,
+  "uploadedFile": null
+}

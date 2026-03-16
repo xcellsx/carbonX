@@ -1,0 +1,27 @@
+meta {
+  name: createDatabase
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/_db/_system/_api/database
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+body:json {
+  {
+    "name": "testCompany"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

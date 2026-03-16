@@ -1,0 +1,33 @@
+meta {
+  name: getDocuments
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{host}}/_db/{{databaseName}}/_api/document/:collection?onlyget=true
+  body: json
+  auth: basic
+}
+
+params:query {
+  onlyget: true
+}
+
+params:path {
+  collection: processes
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+body:json {
+  ["processes/1", "processes/2"]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

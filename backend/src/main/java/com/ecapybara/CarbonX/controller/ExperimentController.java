@@ -1,6 +1,8 @@
 package com.ecapybara.carbonx.controller;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import com.ecapybara.carbonx.model.issb.Product;
 import com.ecapybara.carbonx.model.issb.Process;
 import com.ecapybara.carbonx.service.*;
 import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.ecapybara.carbonx.service.industry.maritime.MaritimeLCAService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
@@ -39,7 +42,7 @@ public class ExperimentController {
   @Autowired
   ExperimentalService experimentalService;
   @Autowired
-  ImportExportService importService;
+  ImportExportService importExportService;
   @Autowired
   LCAService lcaService;
   @Autowired
@@ -52,15 +55,15 @@ public class ExperimentController {
   ProcessController processController;
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private MaritimeLCAService maritimeLCAService;
 
-
+/* 
   @PostMapping("/httpExport")
   public Mono<?> exportComplexCSV(HttpServletResponse response) throws Exception {
     response.setContentType("text/csv");
     response.setHeader("Content-Disposition", "attachment; filename=products.csv");
 
-    Iterable<Product> products = productController.getProducts(null, null);
+    Iterable<Product> products = productController.getProducts(new Product());
     List<Product> list = new ArrayList<>();
     for (Product item : products) {
         list.add(item);
@@ -72,10 +75,11 @@ public class ExperimentController {
 
     return Mono.just("Export successful!");
   }
+*/
 
   @PostMapping("/export")
   public Mono<?> exportComplexCSV() throws Exception {
-    return importService.exportCSV("inputs", "exportInputs.csv");
+    return importExportService.exportCSV("inputs", "exportInputs.csv");
   }
 
   @PostMapping("/import")
@@ -83,31 +87,8 @@ public class ExperimentController {
     return Mono.just("Something");
   }
 
-  @GetMapping("/{targetCollection}/{documentKey}/lca")
-  public Mono<?> getLCA(@PathVariable String targetCollection, @PathVariable String documentKey) {
-    // Get the node
-    switch (targetCollection) {
-      case "products":
-        Map<String, Object> rawDocument = documentService.getDocument(targetCollection, documentKey, null, null).block();
-        log.info("Raw document -> {}", rawDocument);
-        Product product = objectMapper.convertValue(rawDocument, Product.class);
-        log.info("Converted product -> {}", rawDocument);
-        product = lcaService.calculateRoughCarbonFootprint(product, "default");
-        productController.editProduct(product.getId(), product);
-        return Mono.just(product.getDPP().getCarbonFootprint());
-      case "processes":
-        Process process = documentService.getDocument(targetCollection, documentKey, null, null)
-                                          .map(rawMap -> objectMapper.convertValue(rawMap, Process.class))
-                                          .block();
-        log.info("Raw product DPP -> {}", process.getDPP());
-        process = lcaService.calculateRoughCarbonFootprint(process, "default");
-        processController.editProcess(process.getId(), process);
-        return Mono.just(process.getDPP().getCarbonFootprint());
-      default:
-        return Mono.error(new RuntimeException("Invalid target collection name!"));
-    }
-  }
 
+  // ---- UNFINISHED ----
   @PostMapping("/report")
   public Mono<?> generateReport() throws IOException {
       Map<String,String> values = Map.of( "companyName", "carbonx",
@@ -119,5 +100,11 @@ public class ExperimentController {
       reportService.getReport(values);
       
       return Mono.just("i dont know");
-  }  
+  }
+
+  @GetMapping("/ships/lca")
+  public Mono<Map> calculateShipsLCA() throws IOException {
+      Map<String,Object> result = maritimeLCAService.calculateRoughCarbonFootprint("testCompany", "563014970");
+      return Mono.just(result);
+  }
 }

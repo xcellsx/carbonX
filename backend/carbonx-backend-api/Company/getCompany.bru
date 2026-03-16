@@ -1,15 +1,20 @@
 meta {
   name: getCompany
   type: http
-  seq: 1
+  seq: 3
 }
 
 get {
-  url: {{host}}/api/company
+  url: {{host}}/api/info/:companyName
   body: none
   auth: inherit
 }
 
+params:path {
+  companyName: auausalakau
+}
+
 settings {
   encodeUrl: true
+  timeout: 0
 }

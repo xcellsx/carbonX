@@ -16,6 +16,9 @@ public class SimpleMapConverter extends AbstractBeanField<Map<String, Double>, S
         String trimmed = value.trim();
         if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
             trimmed = trimmed.substring(1, trimmed.length() - 1); // Remove {}
+        } else if (trimmed.startsWith("'{") && trimmed.endsWith("}'")) {
+            trimmed = trimmed.substring(2, trimmed.length() - 2);
+            // System.out.println(String.format("trimmed braces and quotations -> '%s'", trimmed));
         }
 
         Map<String, Double> result = new HashMap<>();

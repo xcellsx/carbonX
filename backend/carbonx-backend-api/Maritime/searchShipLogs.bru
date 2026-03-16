@@ -1,0 +1,23 @@
+meta {
+  name: searchShipLogs
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/api/maritime/shiplogs?companyName=SingaporeMarine&dateOnly=2020-12-15
+  body: none
+  auth: inherit
+}
+
+params:query {
+  companyName: SingaporeMarine
+  dateOnly: 2020-12-15
+  ~flag: SG
+  ~mmsi: 563014970
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

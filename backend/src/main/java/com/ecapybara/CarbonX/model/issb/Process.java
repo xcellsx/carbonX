@@ -1,11 +1,12 @@
 package com.ecapybara.carbonx.model.issb;
 
-import java.util.Collection;
-
 import com.arangodb.springframework.annotation.Document;
 import com.arangodb.springframework.annotation.PersistentIndex;
-import com.arangodb.springframework.annotation.Relations;
 import com.ecapybara.carbonx.model.basic.Node;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.processor.ConvertEmptyOrBlankStringsToNull;
 import com.opencsv.bean.processor.PreAssignmentProcessor;
@@ -13,21 +14,46 @@ import com.opencsv.bean.processor.PreAssignmentProcessor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 
 @Data @NoArgsConstructor @EqualsAndHashCode(callSuper = true) @SuperBuilder(toBuilder = true) 
 @Document("processes")
 @PersistentIndex(fields = {"id","key","name", "type", "serviceProvider", "userId"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Process extends Node {
+
+  @JsonProperty("_class")
+  private final String clazz = this.getClass().getTypeName();
+
+  @NonNull
+  @CsvBindByName
+  private String name;
+  
+  @NonNull
+  @CsvBindByName
+  private String type;
+
+  @CsvBindByName @PreAssignmentProcessor(processor = ConvertEmptyOrBlankStringsToNull.class)
+  private String quantifiableUnit;
+
+  @CsvBindByName @PreAssignmentProcessor(processor = ConvertEmptyOrBlankStringsToNull.class)
+  private Double quantityValue;
+
+  @CsvBindByName @PreAssignmentProcessor(processor = ConvertEmptyOrBlankStringsToNull.class)
+  @CsvBindByName(column = "owner")
+  private String userId; // User who created/owns this document
 
   @CsvBindByName @PreAssignmentProcessor(processor = ConvertEmptyOrBlankStringsToNull.class)
   private String serviceProvider;
 
-  @Relations(edges = Input.class, lazy = true)
-  private Collection<Product> inputs;
-
   @Override
   public String toString() {
-    return this.getId();
+    try {
+        ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return mapper.writeValueAsString(this);
+    } catch (Exception e) {
+        return super.toString(); // fallback
+    }
   }
 }

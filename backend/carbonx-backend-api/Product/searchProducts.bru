@@ -1,0 +1,25 @@
+meta {
+  name: searchProducts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/products?database=default&name=spaghetti
+  body: none
+  auth: inherit
+}
+
+params:query {
+  database: default
+  name: spaghetti
+  ~key: 1
+  ~type: 
+  ~productOrigin: supplier
+  ~userId: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.ecapybara.carbonx.service.exception.ExternalServiceException;
+import com.ecapybara.carbonx.utils.exception.ExternalServiceException;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

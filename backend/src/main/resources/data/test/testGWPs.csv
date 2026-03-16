@@ -1,0 +1,9 @@
+key,gasName,chemicalGroup,values
+1,Carbon Dioxide,,"{AR4=1.0,AR5=1.0,AR6=1.0}"
+2,Methane,,"{AR4=25.0,AR5=28.0,AR6=27.0}"
+3,Nitrous Oxide,,"{AR4=298.0,AR5=265.0,AR6=273.0}"
+4,CFC-11,,"{AR4=3800.0,AR5=4750.0,AR6=4660.0}"
+5,CFC-12,,"{AR4=8100.0,AR5=10900.0,AR6=10200.0}"
+6,HFC-21,Hydrofluorocarbons,{AR4=11700.0}
+6,HFC-22,Hydrofluorocarbons,"{AR4=11700.0,AR5=14800.0,AR6=12400.0}"
+6,HFC-23,Hydrofluorocarbons,"{AR4=11700.0,AR5=14800.0,AR6=12400.0}"

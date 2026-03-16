@@ -1,148 +1,168 @@
 package com.ecapybara.carbonx.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.IterableUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.ecapybara.carbonx.config.AppLogger;
 import com.ecapybara.carbonx.model.issb.Product;
-import com.ecapybara.carbonx.repository.ProductRepository;
-import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
-import com.ecapybara.carbonx.service.GraphService;
-import com.ecapybara.carbonx.service.ImportExportService;
+import com.ecapybara.carbonx.service.DocumentService;
+import com.ecapybara.carbonx.service.arango.ArangoDatabaseService;
+import com.ecapybara.carbonx.service.arango.ArangoGraphService;
+import com.ecapybara.carbonx.service.arango.ArangoQueryService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
   
-  @Autowired
-  private ImportExportService importService;
-  @Autowired
-  private ArangoDocumentService documentService;
-  @Autowired
-  private GraphService graphService;
-  @Autowired
-  private ProductRepository productRepository;
-  @Autowired
-  private ObjectMapper objectMapper;
-  
+    @Autowired
+    private ArangoDatabaseService databaseService;
+    @Autowired
+    private DocumentService documentService;
+    @Autowired
+    private ArangoGraphService graphService;
+    @Autowired
+    private ArangoQueryService queryService;
 
-  private static final Logger log = LoggerFactory.getLogger(AppLogger.class);
-  final Sort sort = Sort.by(Direction.DESC, "id");
+    final Sort sort = Sort.by(Direction.DESC, "id");
 
-  @GetMapping
-  public List<Product> getProducts(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "type", required = false) String type) {
-    if (name != null && !name.isEmpty() && type!=null && !type.isEmpty()) {
-      return productRepository.findByNameAndType(sort, name, type);
+    @GetMapping
+    public ResponseEntity<Object> searchProducts(@RequestParam(required = false, defaultValue = "default") String database,
+                                                 @RequestParam(required = false) String key,
+                                                 @RequestParam(required = false) String name,
+                                                 @RequestParam(required = false) String type,
+                                                 @RequestParam(required = false) String productOrigin,
+                                                 @RequestParam(required = false) String userId) {
+        
+        // Build AQL query string and associated 'bindVars'
+        StringBuilder query = new StringBuilder("FOR doc in products ");
+        Map<String,String> bindVars = new HashMap<>();
+        if (key != null) {
+            query.append("FILTER doc._key == @key ");
+            bindVars.put("key", key);
+        }
+        if (name != null) {
+            query.append("FILTER doc.name == @name ");
+            bindVars.put("name", name);
+        }
+        if (type != null) {
+            query.append("FILTER doc.type == @type ");
+            bindVars.put("type", type);
+        }
+        if (productOrigin != null) {
+            query.append("FILTER doc.productOrigin == @productOrigin ");
+            bindVars.put("productOrigin", productOrigin);
+        }
+        if (userId != null) {
+            query.append("FILTER doc.userId == @userId ");
+            bindVars.put("userId", userId);
+        }
+        query.append("RETURN doc");
+
+        // Execute query string in appropriate database
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String,Object> response = queryService.executeQuery(database, query.toString(), bindVars, 100, null, null, null).block();       
+            List<Product> productList = mapper.convertValue(response.get("result"), new TypeReference<List<Product>>() {});
+            return new ResponseEntity<>(productList.toString(), HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
     }
-    else if (name != null && !name.isEmpty()) {
-      return productRepository.findByName(sort, name);
-    }
-    else if (type != null && !type.isEmpty()) {
-      return productRepository.findByType(sort, type);
-    }
-    else {
-      return IterableUtils.toList(productRepository.findAll());
-    }
-  }
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-  @ResponseStatus(value = HttpStatus.CREATED)
-  public List<Product> createProducts(@RequestBody List<Product> productsList) {
-    
-    for (Product product : productsList) {
-      System.out.println("----- New product created:");
-      System.out.println(product.toString());
+    @GetMapping("/all")
+    public ResponseEntity<Object> listAllProducts() {
+        ObjectMapper mapper = new ObjectMapper();
+        List<Product> result = new ArrayList<>();
+        try {
+            Map<String,Object> response = databaseService.listDatabases().block();
+            List<String> databases = mapper.convertValue(response.get("result"), new TypeReference<List<String>>() {});
+            databases.remove("_system");
 
-      productRepository.save(product);
-      product = productRepository.findByNameAndType(sort, product.getName(), product.getType()).get(0);
-      System.out.println("Created product saved into product database:");
-      System.out.println(product.toString());
+            for (String database : databases) {
+                response = documentService.getAllDocuments(database, "products").block();
+                result = ListUtils.union(result, mapper.convertValue(response.get("result"), new TypeReference<List<Product>>() {}));
+            }
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    return productsList;
-  }
-
-  @PutMapping
-  public List<Product> editProducts(@RequestBody List<Product> revisedProducts) {
-    for (Product productRevision : revisedProducts) {
-      Product product = editProduct(productRevision.getId(), productRevision);
-      productRevision = product; //replace the list element with the new entity from database
+    @PostMapping(value = "/{companyName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> createProducts(@PathVariable String companyName, @RequestBody List<Object> rawProducts) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Product> productList = mapper.convertValue(rawProducts, new TypeReference<List<Product>>() {});
+            List<Object> response = documentService.createDocuments(companyName, "products", productList, true, null, null, null, null).block();
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
     }
-    return revisedProducts;
-  }
 
-  @GetMapping("/{key}")
-  public Mono<Product> getProduct(@PathVariable String key) {
-    Map<String,Object> rawDocument = documentService.getDocument("products", key, null, null)
-                                                    .block();
-    Product product = objectMapper.convertValue(rawDocument, Product.class);
-    return Mono.just(product);
-  }
-
-  @PutMapping("/{id}")
-  public Product editProduct(@PathVariable String id, @RequestBody Product revisedProduct) {
-    Product product = productRepository.findById(id).orElse(null);
-    
-    if (product != null) {
-      product.setName(revisedProduct.getName());
-      product.setType(revisedProduct.getType());
-      product.setProductOrigin(revisedProduct.getProductOrigin());
-      product.setDPP(revisedProduct.getDPP());
-      product.setUserId(revisedProduct.getUserId());
-      product.setUploadedFile(revisedProduct.getUploadedFile());
-      productRepository.save(product);
+    @PutMapping(value = "/{companyName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> editProducts(@PathVariable String companyName, @RequestBody List<Object> revisedProducts) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Product> productList = mapper.convertValue(revisedProducts, new TypeReference<List<Product>>() {});
+            List<Object> response = documentService.updateDocuments(companyName, "products", productList, true, true, null, null, true, null).block();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
     }
-    
-    return productRepository.findById(id).orElse(null);
-  }
 
-  // Proper document deletion require the use of ArangoDB's Graph API since AQL does not cleanly delete hanging edges. Trust me, I've tried
-  @DeleteMapping("/{id}")
-  public Mono<Boolean> removeProduct(@PathVariable String id) {
-    return graphService.deleteDocuments("products", id);
-  }
+    @GetMapping("/{companyName}/{key}")
+    public ResponseEntity<Object> getProduct(@PathVariable String companyName, @PathVariable String key) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String,Object> rawDocument = documentService.getDocument(companyName, "products", key, null, null).block();
+            Product product = mapper.convertValue(rawDocument, new TypeReference<Product>() {});
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
 
-  /*
-  @GetMapping("/{id}/calculate")
-  public Mono<?> calculateProduct(@PathVariable String id) {
-    Product product = productRepository.findById(id).orElse(null);
-    return LCAService.calculate(product);
-  }
-  */
+    @PutMapping(value = "/{companyName}/{key}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> editProduct(@PathVariable String companyName, @PathVariable String key, @RequestBody Map<String,Object> revisedProduct) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Product product = mapper.convertValue(revisedProduct, new TypeReference<Product>() {});
+            Map<String,Object> response = documentService.updateDocument(companyName, "products", key, product, true, true, null, null, null, true, null, null).block();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e)  {
+            return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
+        }
+    }
 
-  // Experimental endpoint to call for backend import function for products
-  @PostMapping("/import")
-  public Mono<?> testImport() {
-    List<String> files = List.of("templates.csv");
-    
-    return Flux.fromIterable(files)
-        .flatMap(filename -> importService.importCSV("products", filename))
-        .then(Mono.just("Successfully imported JSON files!"))
-        .onErrorReturn("Import failed - check logs");
-  }
+    // Proper document deletion require the use of ArangoDB's Graph API since AQL does not cleanly delete hanging edges. Trust me, I've tried
+    @DeleteMapping("/{companyName}/{key}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable String companyName, @PathVariable String key) {
+        Map<String,Object> response = graphService.deleteVertex(companyName, "default", "products", key, true, true).block();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

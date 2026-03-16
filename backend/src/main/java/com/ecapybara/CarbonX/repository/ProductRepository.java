@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
+import com.arangodb.springframework.annotation.Query;
 import com.arangodb.springframework.repository.ArangoRepository;
 import com.ecapybara.carbonx.model.issb.Product;
 
@@ -20,4 +22,7 @@ public interface ProductRepository extends ArangoRepository<Product, String>{
   List<Product> findByNameAndType(Sort sort, String name, String type);
 
   void removeById(String id);
+
+  @Query("FOR p IN products FILTER p._key == @id RETURN p[@field]")
+    String findFieldByProductId(@Param("id") String id, @Param("field") String field);
 }
