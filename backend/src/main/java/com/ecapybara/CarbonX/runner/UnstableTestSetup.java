@@ -70,22 +70,22 @@ public class UnstableTestSetup implements CommandLineRunner {
         // Create and save products
         String dir = System.getProperty("user.dir");
         String filename = "testProducts.csv";
-        Path filepath = Paths.get(dir,"src", "main", "resources", "data", "test").resolve(filename);
+        Path filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
         importExportService.importCSV(filepath, "default", "products").block();
 
         // Create and save processes
         filename = "testProcesses.csv";
-        filepath = Paths.get(dir,"src", "main", "resources", "data", "test").resolve(filename);
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
         importExportService.importCSV(filepath, "default", "processes").block();
 
         // Create and save input relationships between entities
         filename = "testInputs.csv";
-        filepath = Paths.get(dir,"src", "main", "resources", "data", "test").resolve(filename);
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
         importExportService.importCSV(filepath, "default", "inputs").block();
 
         // Create and save input relationships between entities
         filename = "testOutputs.csv";
-        filepath = Paths.get(dir,"src", "main", "resources", "data", "test").resolve(filename);
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
         importExportService.importCSV(filepath, "default", "outputs").block();
 
         // Setup testCompany
@@ -98,7 +98,7 @@ public class UnstableTestSetup implements CommandLineRunner {
 
         // Create and save ships
         filename = "testShipLogs.csv";
-        filepath = Paths.get(dir,"src", "main", "resources", "data", "test").resolve(filename);
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
         maritimeImportExportService.importCSV(filepath, "SingaporeMarine", "shipLogs");
 
         // Export files
