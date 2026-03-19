@@ -62,7 +62,7 @@ public class ExperimentController {
     response.setContentType("text/csv");
     response.setHeader("Content-Disposition", "attachment; filename=products.csv");
 
-    Iterable<Product> products = productController.getProducts(null, null);
+    Iterable<Product> products = productController.getProducts(null, null, null);
     List<Product> list = new ArrayList<>();
     for (Product item : products) {
         list.add(item);

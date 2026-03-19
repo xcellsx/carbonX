@@ -54,18 +54,20 @@ public class ProductController {
   final Sort sort = Sort.by(Direction.DESC, "id");
 
   @GetMapping
-  public List<Product> getProducts(@RequestParam(name = "name", required = false) String name, @RequestParam(name = "type", required = false) String type) {
+  public List<Product> getProducts(
+      @RequestParam(name = "name", required = false) String name,
+      @RequestParam(name = "type", required = false) String type,
+      @RequestParam(name = "userId", required = false) String userId) {
     List<Product> list;
-    if (name != null && !name.isEmpty() && type!=null && !type.isEmpty()) {
+    if (name != null && !name.isEmpty() && type != null && !type.isEmpty()) {
       list = productRepository.findByNameAndType(sort, name, type);
-    }
-    else if (name != null && !name.isEmpty()) {
+    } else if (name != null && !name.isEmpty()) {
       list = productRepository.findByName(sort, name);
-    }
-    else if (type != null && !type.isEmpty()) {
+    } else if (type != null && !type.isEmpty()) {
       list = productRepository.findByType(sort, type);
-    }
-    else {
+    } else if (userId != null && !userId.isEmpty()) {
+      list = productRepository.findByUserId(sort, userId);
+    } else {
       list = IterableUtils.toList(productRepository.findAll());
     }
     // Ensure lcaValue is present (repository may not map it; single-doc getDocument does)

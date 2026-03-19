@@ -57,6 +57,56 @@ Only when the user explicitly asks for a sustainability or carbon \"report\" sho
 
 If the user asks about anything outside sustainability, climate, ESG, or their CarbonX data (for example: personal life advice, entertainment, coding unrelated to CarbonX, general trivia, etc.), politely refuse and respond with a short sentence such as: \"I’m focused on sustainability and your CarbonX data, so I can’t help with that topic.\" Do NOT answer off-topic questions.`;
 
+/**
+ * Build a compact inventory + company context block from localStorage for regular chat.
+ * Keeps the prompt lean (max ~1500 chars) so it doesn't inflate every message.
+ */
+function buildChatInventoryContext() {
+  const lines = [];
+
+  try {
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+    const userId = localStorage.getItem('userId') || '';
+    const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+    const company = allCompanyData[userId] ?? allCompanyData[storageKey] ?? null;
+    if (company?.companyName) {
+      lines.push(`Company: ${company.companyName}${company.sector ? ` | Sector: ${company.sector}` : ''}${company.industry ? ` | Industry: ${company.industry}` : ''}${company.reportingYear ? ` | Year: ${company.reportingYear}` : ''}`);
+    }
+  } catch (_) {}
+
+  try {
+    const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
+    const entries = Object.entries(lcaByName)
+      .filter(([, v]) => v && typeof v === 'object')
+      .map(([name, v]) => ({
+        name,
+        total: Number(v.total) || (Number(v.scope1 || 0) + Number(v.scope2 || 0) + Number(v.scope3 || 0)),
+        scope1: Number(v.scope1) || 0,
+        scope2: Number(v.scope2) || 0,
+        scope3: Number(v.scope3) || 0,
+      }))
+      .filter((e) => e.total > 0)
+      .sort((a, b) => b.total - a.total);
+
+    if (entries.length > 0) {
+      lines.push(`\nUser's inventory (${entries.length} product${entries.length !== 1 ? 's' : ''} with LCA data, sorted by total emissions):`);
+      entries.slice(0, 10).forEach((e) => {
+        lines.push(`  - ${e.name}: ${e.total.toFixed(2)} kgCO2e total (S1: ${e.scope1.toFixed(2)}, S2: ${e.scope2.toFixed(2)}, S3: ${e.scope3.toFixed(2)})`);
+      });
+      if (entries.length > 10) lines.push(`  … and ${entries.length - 10} more product(s)`);
+      const totS1 = entries.reduce((s, e) => s + e.scope1, 0);
+      const totS2 = entries.reduce((s, e) => s + e.scope2, 0);
+      const totS3 = entries.reduce((s, e) => s + e.scope3, 0);
+      lines.push(`  Portfolio totals — Scope 1: ${totS1.toFixed(2)}, Scope 2: ${totS2.toFixed(2)}, Scope 3: ${totS3.toFixed(2)}, Grand total: ${(totS1 + totS2 + totS3).toFixed(2)} kgCO2e`);
+      lines.push('When the user asks about highest/lowest emitting products, most carbon-intensive products, or compares products, use ONLY the inventory data above.');
+    }
+  } catch (_) {}
+
+  if (lines.length === 0) return '';
+  const block = lines.join('\n');
+  return block.length > 1500 ? block.slice(0, 1500) + '\n[inventory context truncated]' : block;
+}
+
 function summarizeSessionTitle(messages) {
   const firstUser = messages.find(m => m.sender === 'user');
   const text = (firstUser?.text || firstUser?.content || 'Chat').trim();
@@ -96,6 +146,7 @@ function isFeedbackWorthyMessage(text) {
   // Rough threshold: at least ~3 sentences or a short multi-step plan.
   return trimmed.length >= 200;
 }
+
 
 const SPROUTAI_CAROUSEL_SLIDES = [
   { title: 'Welcome to Sprout AI', description: 'Sprout AI is your sustainability assistant. Ask questions about emissions, LCA, carbon reporting, or your data. You can also request AI-generated reports—they will appear in the Report page.', icon: <Sprout size={40} /> },
@@ -564,8 +615,12 @@ const SproutAiPage = () => {
       role: msg.sender === 'user' ? 'user' : 'assistant',
       content: msg.sender === 'user' ? msg.text : (msg.content || (msg.type === 'report_success' ? 'I generated a report for the user.' : '')),
     })).filter(m => m.content && m.content.trim());
+    const inventoryCtx = buildChatInventoryContext();
+    const systemContent = inventoryCtx
+      ? `${SYSTEM_PROMPT}\n\n---\n${inventoryCtx}`
+      : SYSTEM_PROMPT;
     const openRouterMessages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemContent },
       ...historyForApi,
       { role: 'user', content: textToSend },
     ];

@@ -11,6 +11,30 @@
 const fs = require('fs');
 const path = require('path');
 
+// Auto-load .env from frontend/ or repo root so VITE_OPENROUTER_API_KEY is available without manually setting env vars.
+(function loadDotEnv() {
+  const candidates = [
+    path.join(process.cwd(), '.env'),
+    path.join(process.cwd(), 'frontend', '.env'),
+    path.join(__dirname, '..', '.env'),
+  ];
+  for (const f of candidates) {
+    if (fs.existsSync(f)) {
+      const lines = fs.readFileSync(f, 'utf8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eq = trimmed.indexOf('=');
+        if (eq === -1) continue;
+        const key = trimmed.slice(0, eq).trim();
+        const val = trimmed.slice(eq + 1).trim().replace(/^['"]|['"]$/g, '');
+        if (key && !(key in process.env)) process.env[key] = val;
+      }
+      break;
+    }
+  }
+})();
+
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 const DEFAULT_MODEL = 'google/gemini-2.5-pro';
 const REPORT_MODEL = 'anthropic/claude-3.5-sonnet';

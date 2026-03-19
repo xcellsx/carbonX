@@ -19,5 +19,7 @@ public interface ProductRepository extends ArangoRepository<Product, String>{
 
   List<Product> findByNameAndType(Sort sort, String name, String type);
 
+  List<Product> findByUserId(Sort sort, String userId);
+
   void removeById(String id);
 }

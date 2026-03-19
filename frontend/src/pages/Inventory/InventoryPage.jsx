@@ -293,11 +293,9 @@ const InventoryPage = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await productAPI.getAllProducts({});
+      const normalizedUserId = normalizeUserIdKey(userId);
+      const res = await productAPI.getAllProducts(normalizedUserId ? { userId: normalizedUserId } : {});
       const raw = Array.isArray(res?.data) ? res.data : [];
-      // Debug: inspect backend shape so we can fix mapping if fields are missing
-      console.log('[getProducts] count:', raw.length, '| first item keys:', raw[0] ? Object.keys(raw[0]) : 'none', '| first item sample:', raw[0] ? { name: raw[0].name, key: raw[0].key, _key: raw[0]._key, lcaValue: raw[0].lcaValue, LCAvalue: raw[0].LCAvalue, LCAValue: raw[0].LCAValue } : null);
-      if (raw.length > 0 && Object.keys(raw[0]).length === 0) console.warn('[getProducts] Backend returned array of empty objects – check backend serialization / response body.');
       // Normalize: backend sometimes sends key as "" – treat as missing and use id (e.g. "product67" or "products/xyz" -> "xyz")
       const effectiveKey = (p) => {
         const k = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim());
@@ -313,7 +311,8 @@ const InventoryPage = () => {
         const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
         return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
       });
-      const filtered = userId ? normalized.filter((p) => normalizeUserIdKey(p.userId) === normalizeUserIdKey(userId)) : normalized;
+      // Secondary client-side filter as safety net for any products that slipped through without a userId
+      const filtered = normalizedUserId ? normalized.filter((p) => !p.userId || normalizeUserIdKey(p.userId) === normalizedUserId) : normalized;
       // LCA: localStorage first (no backend required), then optional backend user LCA
       const validUserId = userId && String(userId).trim() !== '' && String(userId) !== 'undefined';
       const localLcaMap = getLocalLcaMap(userId);
