@@ -1,0 +1,32 @@
+meta {
+  name: createDocument
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/_db/{{databaseName}}/_api/document/:collection
+  body: json
+  auth: basic
+}
+
+params:path {
+  collection: ships
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+body:json {
+  {
+    "_from": "products/1",
+    "_to": "products/2"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

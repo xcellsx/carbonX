@@ -1,0 +1,16 @@
+meta {
+  name: listAllCompanies
+  type: http
+  seq: 1
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/info
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

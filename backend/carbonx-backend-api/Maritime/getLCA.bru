@@ -1,0 +1,21 @@
+meta {
+  name: getLCA
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/maritime/lca?companyName=SingaporeMarine&mmsi=563014970
+  body: none
+  auth: inherit
+}
+
+params:query {
+  companyName: SingaporeMarine
+  mmsi: 563014970
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,21 @@
+meta {
+  name: test
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/_db/{{databaseName}}/_api/cursor
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

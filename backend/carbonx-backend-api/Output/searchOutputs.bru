@@ -1,0 +1,25 @@
+meta {
+  name: searchOutputs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/outputs?key=2
+  body: none
+  auth: inherit
+}
+
+params:query {
+  key: 2
+  ~database: 
+  ~fromKey: 
+  ~toKey: 
+  ~processName: 
+  ~productName: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

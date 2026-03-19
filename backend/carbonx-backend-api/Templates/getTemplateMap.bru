@@ -1,0 +1,25 @@
+meta {
+  name: getTemplateMap
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/templates/:collection/:key/map?database=default
+  body: none
+  auth: inherit
+}
+
+params:query {
+  database: default
+}
+
+params:path {
+  key: 1
+  collection: products
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

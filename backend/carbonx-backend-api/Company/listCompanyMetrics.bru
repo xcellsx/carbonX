@@ -1,0 +1,20 @@
+meta {
+  name: listCompanyMetrics
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host}}/api/info/:companyName/metrics/all
+  body: none
+  auth: inherit
+}
+
+params:path {
+  companyName: auausalakau
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,16 @@
+meta {
+  name: listAllInputs
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/api/inputs/all
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

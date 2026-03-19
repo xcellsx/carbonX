@@ -1,0 +1,26 @@
+meta {
+  name: searchCompanyMetrics
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/info/:companyName/metrics
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~companyName: 
+  ~key: 
+  ~name: 
+}
+
+params:path {
+  companyName: testCompany
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

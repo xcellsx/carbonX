@@ -1,0 +1,27 @@
+meta {
+  name: createCompanyMetric
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host}}/api/info/:companyName/metrics
+  body: json
+  auth: inherit
+}
+
+params:path {
+  companyName: auausalakau
+}
+
+body:json {
+  {
+    "name": "test",
+    "value": {"kgCO2e":5.5}
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

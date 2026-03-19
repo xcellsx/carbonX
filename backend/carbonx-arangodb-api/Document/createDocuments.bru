@@ -1,0 +1,29 @@
+meta {
+  name: createDocuments
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/_db/{{databaseName}}/_api/document/:collection
+  body: json
+  auth: basic
+}
+
+params:path {
+  collection: ships
+}
+
+auth:basic {
+  username: root
+  password: test
+}
+
+body:json {
+  [{"emissionInformation":{"description":"GHG","scope1":{},"scope2":{},"scope3":{}},"name":"563021420","latitude":"1.270885","longitude":"103.8541","speed":"0.2","course":"0.0","heading":"511.0","flag":"SG","timestamp":"2020-12-15 04:30:17 UTC","dateOnly":"2020-12-15","dpp":{"carbonFootprint":{}}}]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,93 @@
+meta {
+  name: getShipLocations
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/maritime/shiplogs/:mmsi/locations?companyName=SingaporeMarine
+  body: none
+  auth: inherit
+}
+
+params:query {
+  companyName: SingaporeMarine
+}
+
+params:path {
+  mmsi: 563014970
+}
+
+body:json {
+  [
+    {
+      longitude: 03.80997666666669,
+      latitude: 1.47135
+    },
+    {
+      longitude=103.81066666666666,
+      latitude=1.471215
+    },
+    {
+      longitude=103.81045166666668,
+      latitude=1.4710766666666666
+    },
+    {
+      longitude=103.81060166666668,
+      latitude=1.4709533333333331
+    },
+    {
+      longitude=103.81061666666666,
+      latitude=1.4712116666666666
+    },
+    {
+      longitude=103.81059666666668,
+      latitude=1.4709566666666667
+    },
+    {
+      longitude=103.81063666666668,
+      latitude=1.47095
+    },
+    {
+      longitude=103.80978666666668,
+      latitude=1.47074
+    },
+    {
+      longitude=103.81062666666666,
+      latitude=1.4712066666666668
+    },
+    {
+      longitude=103.81064,
+      latitude=1.4708916666666667
+    },
+    {
+      longitude=103.81061,
+      latitude=1.47092
+    },
+    {
+      longitude=103.81061333333334,
+      latitude=1.47089
+    },
+    {
+      longitude=103.810625,
+      latitude=1.4708783333333333
+    },
+    {
+      longitude=103.81069166666668,
+      latitude=1.4709866666666669
+    },
+    {
+      longitude=103.81066166666666,
+      latitude=1.4709583333333334
+    },
+    {
+      longitude=103.81066333333334,
+      latitude=1.470905
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

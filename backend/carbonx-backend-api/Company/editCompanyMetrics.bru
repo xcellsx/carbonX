@@ -1,0 +1,26 @@
+meta {
+  name: editCompanyMetrics
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{host}}/api/info/:companyName/metrics
+  body: json
+  auth: inherit
+}
+
+params:path {
+  companyName: testCompany
+}
+
+body:json {
+  {
+    "name": "auausalakau"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

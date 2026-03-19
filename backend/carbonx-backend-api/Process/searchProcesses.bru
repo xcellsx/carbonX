@@ -1,0 +1,25 @@
+meta {
+  name: searchProcesses
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/processes
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~key: 1
+  ~database: 
+  ~name: chicken
+  ~type: 
+  ~serviceProvider: supplier
+  ~userId: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

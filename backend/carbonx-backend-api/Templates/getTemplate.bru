@@ -1,0 +1,25 @@
+meta {
+  name: getTemplate
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/api/templates/:collection/:key?database=default
+  body: none
+  auth: inherit
+}
+
+params:query {
+  database: default
+}
+
+params:path {
+  key: 1
+  collection: products
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

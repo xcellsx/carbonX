@@ -1,0 +1,2956 @@
+meta {
+  name: saveTemplate
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/templates?database=testCompany
+  body: json
+  auth: inherit
+}
+
+params:query {
+  database: testCompany
+}
+
+body:json {
+  {
+    "products": [
+      {
+        "_key": "1",
+        "_id": "products/1",
+        "_rev": "_lNbcj-y---",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "m3": 2.6,
+                "kg": 1
+              },
+              "CH4": {
+                "m3": 1.7,
+                "kg": 1
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.4
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.6
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.8
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.1
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.2
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.05
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.08
+              }
+            }
+          }
+        },
+        "name": "spaghetti",
+        "type": "dish",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "carbonara",
+          "manufacturer": "ying xuan",
+          "serialNumber": "10031",
+          "batchNumber": "20011",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 2.2
+            },
+            "scope2": {
+              "kgCO2e": 1.4
+            },
+            "scope3": {
+              "kgCO2e": 1.8
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "16",
+        "_id": "products/16",
+        "_rev": "_lNbcj-y--N",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CH4": {
+                "kg": 0.6
+              }
+            },
+            "mobileCombustion": {
+              "N2O": {
+                "kg": 0.3
+              }
+            },
+            "fugitiveEmissions": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.25
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.05
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.25
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.18
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.04
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.28
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.24
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.26
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.12
+              }
+            }
+          }
+        },
+        "name": "olive oil",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "user",
+        "dpp": {
+          "name": "waste treatment",
+          "manufacturer": "user utility",
+          "serialNumber": "20014",
+          "batchNumber": "30014",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 1.3
+            },
+            "scope2": {
+              "kgCO2e": 0.9
+            },
+            "scope3": {
+              "kgCO2e": 1.2
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "14",
+        "_id": "products/14",
+        "_rev": "_lNbcj-y--L",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CH4": {
+                "kg": 0.6
+              }
+            },
+            "mobileCombustion": {
+              "N2O": {
+                "kg": 0.3
+              }
+            },
+            "fugitiveEmissions": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.25
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.05
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.25
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.18
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.04
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.28
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.24
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.26
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.12
+              }
+            }
+          }
+        },
+        "name": "cheese",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "user",
+        "dpp": {
+          "name": "waste treatment",
+          "manufacturer": "user utility",
+          "serialNumber": "20014",
+          "batchNumber": "30014",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 1.3
+            },
+            "scope2": {
+              "kgCO2e": 0.9
+            },
+            "scope3": {
+              "kgCO2e": 1.2
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "6",
+        "_id": "products/6",
+        "_rev": "_lNbcj-y--D",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 1.2
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.5
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.25
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.7
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.9
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.12
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.25
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.6
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.4
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.2
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.45
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.06
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.18
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.45
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.2
+              }
+            }
+          }
+        },
+        "name": "hot dogs",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.4,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "hot dog batch D",
+          "manufacturer": "supplier co",
+          "serialNumber": "20004",
+          "batchNumber": "30004",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 2.4
+            },
+            "scope2": {
+              "kgCO2e": 1.8
+            },
+            "scope3": {
+              "kgCO2e": 2
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "5",
+        "_id": "products/5",
+        "_rev": "_lNbcj-y--C",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.7
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.4
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.06
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.15
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.03
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.15
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.09
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          }
+        },
+        "name": "pasta",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.5,
+        "productOrigin": "user",
+        "dpp": {
+          "name": "pasta batch B",
+          "manufacturer": "supplier co",
+          "serialNumber": "20002",
+          "batchNumber": "30002",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 1.4
+            },
+            "scope2": {
+              "kgCO2e": 1.1
+            },
+            "scope3": {
+              "kgCO2e": 1.2
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "12",
+        "_id": "products/12",
+        "_rev": "_lNbcj-y--J",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.01
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.005
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.015
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.002
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.008
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.01
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.005
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.015
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.001
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.014
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.008
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.004
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.014
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.009
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.008
+              }
+            }
+          }
+        },
+        "name": "clean water",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "water supply",
+          "manufacturer": "user utility",
+          "serialNumber": "20013",
+          "batchNumber": "30013",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.08
+            },
+            "scope2": {
+              "kgCO2e": 0.06
+            },
+            "scope3": {
+              "kgCO2e": 0.07
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "2",
+        "_id": "products/2",
+        "_rev": "_lNbcj-y--_",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.6
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.3
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.05
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.15
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.08
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.02
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.1
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.06
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.14
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.16
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.06
+              }
+            }
+          }
+        },
+        "name": "raw pasta",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.5,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "raw pasta lot A",
+          "manufacturer": "supplier co",
+          "serialNumber": "20001",
+          "batchNumber": "30001",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 1
+            },
+            "scope2": {
+              "kgCO2e": 0.8
+            },
+            "scope3": {
+              "kgCO2e": 0.9
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "3",
+        "_id": "products/3",
+        "_rev": "_lNbcj-y--A",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.18
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.09
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.25
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.04
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.08
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.12
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.07
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.16
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.015
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.14
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.08
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.05
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.11
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.13
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.05
+              }
+            }
+          }
+        },
+        "name": "tomato sauce",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.3,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "tomato sauce lot C",
+          "manufacturer": "supplier co",
+          "serialNumber": "20003",
+          "batchNumber": "30003",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.9
+            },
+            "scope2": {
+              "kgCO2e": 0.6
+            },
+            "scope3": {
+              "kgCO2e": 0.7
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "11",
+        "_id": "products/11",
+        "_rev": "_lNbcj-y--I",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.06
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.03
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.015
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.05
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.11
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.07
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.04
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.09
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.065
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.01
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.085
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.06
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.035
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.09
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.07
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.05
+              }
+            }
+          }
+        },
+        "name": "onions",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.2,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "onion lot I",
+          "manufacturer": "supplier co",
+          "serialNumber": "20009",
+          "batchNumber": "30009",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.4
+            },
+            "scope2": {
+              "kgCO2e": 0.3
+            },
+            "scope3": {
+              "kgCO2e": 0.35
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "10",
+        "_id": "products/10",
+        "_rev": "_lNbcj-y--H",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.04
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.02
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.06
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.01
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.04
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.03
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.07
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.04
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.02
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.05
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.035
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.006
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.045
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.03
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.02
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.04
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.045
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.04
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.035
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.03
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.025
+              }
+            }
+          }
+        },
+        "name": "garlic",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.05,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "garlic lot H",
+          "manufacturer": "supplier co",
+          "serialNumber": "20008",
+          "batchNumber": "30008",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.28
+            },
+            "scope2": {
+              "kgCO2e": 0.2
+            },
+            "scope3": {
+              "kgCO2e": 0.25
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "8",
+        "_id": "products/8",
+        "_rev": "_lNbcj-y--F",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.025
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.012
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.04
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.05
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.006
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.025
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.02
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.04
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.02
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.01
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.03
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.004
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.028
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.015
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.009
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.025
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.028
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.025
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.018
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.015
+              }
+            }
+          }
+        },
+        "name": "pepper",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.03,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "pepper lot F",
+          "manufacturer": "supplier co",
+          "serialNumber": "20006",
+          "batchNumber": "30006",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.18
+            },
+            "scope2": {
+              "kgCO2e": 0.12
+            },
+            "scope3": {
+              "kgCO2e": 0.15
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "9",
+        "_id": "products/9",
+        "_rev": "_lNbcj-y--G",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.08
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.04
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.12
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.02
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.05
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.06
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.03
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.01
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.075
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.05
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.03
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.07
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.08
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.07
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.06
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.05
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.04
+              }
+            }
+          }
+        },
+        "name": "sugar",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.1,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "sugar lot G",
+          "manufacturer": "supplier co",
+          "serialNumber": "20007",
+          "batchNumber": "30007",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.5
+            },
+            "scope2": {
+              "kgCO2e": 0.35
+            },
+            "scope3": {
+              "kgCO2e": 0.4
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "7",
+        "_id": "products/7",
+        "_rev": "_lNbcj-y--E",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.05
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.02
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.01
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.03
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.04
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.005
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.015
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.03
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.015
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.008
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.003
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.018
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.01
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.006
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.015
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.018
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.015
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.008
+              }
+            }
+          }
+        },
+        "name": "salt",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 0.05,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "salt lot E",
+          "manufacturer": "supplier co",
+          "serialNumber": "20005",
+          "batchNumber": "30005",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.12
+            },
+            "scope2": {
+              "kgCO2e": 0.08
+            },
+            "scope3": {
+              "kgCO2e": 0.1
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "15",
+        "_id": "products/15",
+        "_rev": "_lNbcj-y--M",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CH4": {
+                "kg": 0.6
+              }
+            },
+            "mobileCombustion": {
+              "N2O": {
+                "kg": 0.3
+              }
+            },
+            "fugitiveEmissions": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.25
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.05
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.12
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.1
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.35
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.25
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.18
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.04
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.28
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.24
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.26
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.22
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.18
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.12
+              }
+            }
+          }
+        },
+        "name": "tomato paste",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "user",
+        "dpp": {
+          "name": "waste treatment",
+          "manufacturer": "user utility",
+          "serialNumber": "20014",
+          "batchNumber": "30014",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 1.3
+            },
+            "scope2": {
+              "kgCO2e": 0.9
+            },
+            "scope3": {
+              "kgCO2e": 1.2
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      },
+      {
+        "_key": "12",
+        "_id": "products/12",
+        "_rev": "_lNbcj-y--J",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.01
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.005
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.015
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.002
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.008
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.02
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.01
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.005
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.015
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.001
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.014
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.008
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.004
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.014
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.012
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.01
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.009
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.008
+              }
+            }
+          }
+        },
+        "name": "clean water",
+        "type": "ingredient",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "productOrigin": "supplier",
+        "dpp": {
+          "name": "water supply",
+          "manufacturer": "user utility",
+          "serialNumber": "20013",
+          "batchNumber": "30013",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 0.08
+            },
+            "scope2": {
+              "kgCO2e": 0.06
+            },
+            "scope3": {
+              "kgCO2e": 0.07
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Product"
+      }
+    ],
+    "processes": [
+      {
+        "_key": "3",
+        "_id": "processes/3",
+        "_rev": "_lNbcjIK--A",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "m3": 2.6,
+                "kg": 1
+              },
+              "CH4": {
+                "m3": 1.7,
+                "kg": 1
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.4
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.6
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.8
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.1
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.2
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.05
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.08
+              }
+            }
+          }
+        },
+        "name": "combining",
+        "type": "cooking",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "dpp": {
+          "name": "carbonara",
+          "manufacturer": "ying xuan",
+          "serialNumber": "10031",
+          "batchNumber": "20011",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 2.2
+            },
+            "scope2": {
+              "kgCO2e": 1.4
+            },
+            "scope3": {
+              "kgCO2e": 1.8
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Process"
+      },
+      {
+        "_key": "1",
+        "_id": "processes/1",
+        "_rev": "_lNbcjIK---",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "m3": 2.6,
+                "kg": 1
+              },
+              "CH4": {
+                "m3": 1.7,
+                "kg": 1
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.4
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.6
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.8
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.1
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.2
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.05
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.08
+              }
+            }
+          }
+        },
+        "name": "boiling",
+        "type": "cooking",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "dpp": {
+          "name": "carbonara",
+          "manufacturer": "ying xuan",
+          "serialNumber": "10031",
+          "batchNumber": "20011",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 2.2
+            },
+            "scope2": {
+              "kgCO2e": 1.4
+            },
+            "scope3": {
+              "kgCO2e": 1.8
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Process"
+      },
+      {
+        "_key": "2",
+        "_id": "processes/2",
+        "_rev": "_lNbcjIK--_",
+        "emissionInformation": {
+          "description": "GHG",
+          "scope1": {
+            "stationaryCombustion": {
+              "CO2": {
+                "m3": 2.6,
+                "kg": 1
+              },
+              "CH4": {
+                "m3": 1.7,
+                "kg": 1
+              }
+            },
+            "mobileCombustion": {
+              "CH4": {
+                "kg": 0.4
+              }
+            },
+            "fugitiveEmissions": {
+              "N2O": {
+                "kg": 0.2
+              }
+            },
+            "processEmissions": {
+              "CO2": {
+                "kg": 0.6
+              }
+            }
+          },
+          "scope2": {
+            "purchasedElectricity": {
+              "CO2": {
+                "kg": 0.8
+              }
+            },
+            "purchasedSteam": {
+              "HFC134a": {
+                "kg": 0.1
+              }
+            },
+            "purchasedHeating": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "purchasedCooling": {
+              "CO2": {
+                "kg": 0.2
+              }
+            }
+          },
+          "scope3": {
+            "category1": {
+              "CO2": {
+                "kg": 0.5
+              }
+            },
+            "category2": {
+              "CH4": {
+                "kg": 0.3
+              }
+            },
+            "category3": {
+              "N2O": {
+                "kg": 0.1
+              }
+            },
+            "category4": {
+              "CO2": {
+                "kg": 0.4
+              }
+            },
+            "category5": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category6": {
+              "SF6": {
+                "kg": 0.05
+              }
+            },
+            "category7": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category8": {
+              "CH4": {
+                "kg": 0.2
+              }
+            },
+            "category9": {
+              "N2O": {
+                "kg": 0.15
+              }
+            },
+            "category10": {
+              "CO2": {
+                "kg": 0.25
+              }
+            },
+            "category11": {
+              "CO2": {
+                "kg": 0.3
+              }
+            },
+            "category12": {
+              "CO2": {
+                "kg": 0.2
+              }
+            },
+            "category13": {
+              "CO2": {
+                "kg": 0.15
+              }
+            },
+            "category14": {
+              "CO2": {
+                "kg": 0.1
+              }
+            },
+            "category15": {
+              "CO2": {
+                "kg": 0.08
+              }
+            }
+          }
+        },
+        "name": "simmering",
+        "type": "cooking",
+        "quantifiableUnit": "kg",
+        "quantityValue": 1,
+        "dpp": {
+          "name": "carbonara",
+          "manufacturer": "ying xuan",
+          "serialNumber": "10031",
+          "batchNumber": "20011",
+          "carbonFootprint": {
+            "scope1": {
+              "kgCO2e": 2.2
+            },
+            "scope2": {
+              "kgCO2e": 1.4
+            },
+            "scope3": {
+              "kgCO2e": 1.8
+            }
+          }
+        },
+        "_class": "com.ecapybara.carbonx.model.issb.Process"
+      }
+    ],
+    "inputs": [
+      {
+        "_key": "1374579",
+        "_id": "inputs/1374579",
+        "_from": "products/16",
+        "_to": "processes/3",
+        "_rev": "_lNbcjKS--L",
+        "productName": "olive oil",
+        "processName": "combining",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374578",
+        "_id": "inputs/1374578",
+        "_from": "products/14",
+        "_to": "processes/3",
+        "_rev": "_lNbcjKS--K",
+        "productName": "cheese",
+        "processName": "combining",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374577",
+        "_id": "inputs/1374577",
+        "_from": "products/6",
+        "_to": "processes/3",
+        "_rev": "_lNbcjKS--J",
+        "productName": "hot dogs",
+        "processName": "combining",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374576",
+        "_id": "inputs/1374576",
+        "_from": "products/5",
+        "_to": "processes/3",
+        "_rev": "_lNbcjKS--I",
+        "productName": "pasta",
+        "processName": "combining",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374567",
+        "_id": "inputs/1374567",
+        "_from": "products/12",
+        "_to": "processes/1",
+        "_rev": "_lNbcjKS--_",
+        "productName": "clean water",
+        "processName": "boiling",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374566",
+        "_id": "inputs/1374566",
+        "_from": "products/2",
+        "_to": "processes/1",
+        "_rev": "_lNbcjKS---",
+        "productName": "raw pasta",
+        "processName": "boiling",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374575",
+        "_id": "inputs/1374575",
+        "_from": "products/3",
+        "_to": "processes/3",
+        "_rev": "_lNbcjKS--H",
+        "productName": "tomato sauce",
+        "processName": "combining",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374574",
+        "_id": "inputs/1374574",
+        "_from": "products/11",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--G",
+        "productName": "onions",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374573",
+        "_id": "inputs/1374573",
+        "_from": "products/10",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--F",
+        "productName": "garlic",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374572",
+        "_id": "inputs/1374572",
+        "_from": "products/8",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--E",
+        "productName": "pepper",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374571",
+        "_id": "inputs/1374571",
+        "_from": "products/9",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--D",
+        "productName": "sugar",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374570",
+        "_id": "inputs/1374570",
+        "_from": "products/7",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--C",
+        "productName": "salt",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374569",
+        "_id": "inputs/1374569",
+        "_from": "products/15",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--B",
+        "productName": "tomato paste",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      },
+      {
+        "_key": "1374568",
+        "_id": "inputs/1374568",
+        "_from": "products/12",
+        "_to": "processes/2",
+        "_rev": "_lNbcjKS--A",
+        "productName": "clean water",
+        "processName": "simmering",
+        "_class": "com.ecapybara.carbonx.model.issb.Input"
+      }
+    ],
+    "outputs": [
+      {
+        "_key": "1374584",
+        "_id": "outputs/1374584",
+        "_from": "processes/3",
+        "_to": "products/1",
+        "_rev": "_lNbcjLm--B",
+        "processName": "combining",
+        "productName": "spaghetti",
+        "_class": "com.ecapybara.carbonx.model.issb.Output"
+      },
+      {
+        "_key": "1374581",
+        "_id": "outputs/1374581",
+        "_from": "processes/1",
+        "_to": "products/5",
+        "_rev": "_lNbcjLm---",
+        "processName": "boiling",
+        "productName": "pasta",
+        "_class": "com.ecapybara.carbonx.model.issb.Output"
+      },
+      {
+        "_key": "1374583",
+        "_id": "outputs/1374583",
+        "_from": "processes/2",
+        "_to": "products/3",
+        "_rev": "_lNbcjLm--A",
+        "processName": "simmering",
+        "productName": "tomato sauce",
+        "_class": "com.ecapybara.carbonx.model.issb.Output"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

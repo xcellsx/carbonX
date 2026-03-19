@@ -1,0 +1,25 @@
+meta {
+  name: searchInputs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/inputs?key=1
+  body: none
+  auth: inherit
+}
+
+params:query {
+  key: 1
+  ~processName: boiling
+  ~fromKey: 
+  ~toKey: 
+  ~productName: raw pasta
+  ~database: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
