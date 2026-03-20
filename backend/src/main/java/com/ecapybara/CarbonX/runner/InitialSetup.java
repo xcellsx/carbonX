@@ -41,8 +41,10 @@ public class InitialSetup implements CommandLineRunner {
     public void run(final String... args) throws Exception {
         log.info("------------- # SETUP BEGIN # -------------");
         // Delete 'default' database
-        databaseService.dropDatabase("default").block();
-        databaseService.dropDatabase("SingaporeMarine").block();
+        List<String> databases = (List<String>) databaseService.listDatabases().block().get("result");
+        databases.remove("_system");
+        if (databases.contains("default")) { databaseService.dropDatabase("default").block(); }
+        if (databases.contains("SingaporeMarine")) { databaseService.dropDatabase("SingaporeMarine").block(); }
 
         // Reinitialise 'default' database
         databaseService.createDatabase("default", null, null, null, null).block();
@@ -67,23 +69,23 @@ public class InitialSetup implements CommandLineRunner {
 
         // Create and save products
         String dir = System.getProperty("user.dir");
-        String filename = "testProducts.csv";
-        Path filepath = Paths.get(dir,"backend", "src", "main", "resources", "data", "test").resolve(filename);
+        String filename = "masterProducts.csv";
+        Path filepath = Paths.get(dir,"backend", "src", "main", "resources", "data", "default").resolve(filename);
         importExportService.importCSV(filepath, "default", "products").block();
 
         // Create and save processes
-        filename = "testProcesses.csv";
-        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
+        filename = "masterProcesses.csv";
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "default").resolve(filename);
         importExportService.importCSV(filepath, "default", "processes").block();
 
         // Create and save input relationships between entities
-        filename = "testInputs.csv";
-        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
+        filename = "masterInputs.csv";
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "default").resolve(filename);
         importExportService.importCSV(filepath, "default", "inputs").block();
 
         // Create and save input relationships between entities
-        filename = "testOutputs.csv";
-        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "test").resolve(filename);
+        filename = "masterOutputs.csv";
+        filepath = Paths.get(dir,"backend","src", "main", "resources", "data", "default").resolve(filename);
         importExportService.importCSV(filepath, "default", "outputs").block();
 
         // Setup SingaporeMarine
