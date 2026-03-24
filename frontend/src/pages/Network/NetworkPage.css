@@ -1,9 +1,19 @@
+/* --- Main graph + card: large viewport, no inner scroll clipping --- */
+.network-page.analytics-card {
+  overflow: visible;
+}
+
+.network-page .analytics-table-container {
+  overflow: visible;
+  min-height: 0;
+}
+
 /* --- Main Graph Container (increased area) --- */
 .network-graph-container {
   position: relative;
   width: 100%;
-  min-height: 820px;
-  height: min(82vh, 1000px);
+  min-height: min(960px, 92vh);
+  height: min(92vh, 1400px);
   background: #fdfdfd;
   border-radius: 8px;
   overflow: hidden;
@@ -23,36 +33,193 @@
   padding: 40px;
   font-style: italic;
   font-size: var(--normal);
-  min-height: min(82vh, 1000px);
+  min-height: min(92vh, 1400px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* --- Row: Carbon Scope (left) and View types (right) --- */
-.network-controls-row {
+/* --- Toolbar: product + Select View (one row), then scopes --- */
+.network-toolbar {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0 1rem;
+}
+
+.network-toolbar-row-product-view {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem 1.5rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 0 1rem;
 }
 
-.network-controls-row .header-col {
-  min-width: 0;
+.network-product-col {
+  flex: 1;
+  min-width: min(100%, 240px);
+  max-width: 420px;
 }
 
-.network-controls-row .header-col label {
+.network-product-col label {
   display: block;
   margin-bottom: 0.35rem;
+}
+
+.network-view-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.network-view-heading {
+  display: block;
+  text-align: right;
+  width: 100%;
+}
+
+.network-view-column--disabled .view-label {
+  opacity: 0.55;
+}
+
+.network-view-column .switch-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.network-scope-radios {
+  margin-top: 1rem;
+}
+
+.network-scope-legend {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.scope-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.25rem;
+}
+
+.scope-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--normal);
+  color: rgba(var(--blacks), 0.9);
+  cursor: pointer;
+}
+
+.scope-radio-label input {
+  margin: 0;
+  accent-color: rgba(var(--primary), 1);
 }
 
 .network-view-toggle-wrap {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Toggle (same pattern as Settings billing switch; scoped so Network works without visiting Settings) */
+.network-view-toggle-wrap .switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.network-view-toggle-wrap .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.network-view-toggle-wrap .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(var(--greys), 0.35);
+  transition: 0.2s;
+  border-radius: 24px;
+}
+
+.network-view-toggle-wrap .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.network-view-toggle-wrap input:checked + .slider {
+  background-color: rgba(var(--primary), 1);
+}
+
+.network-view-toggle-wrap input:focus + .slider {
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.25);
+}
+
+.network-view-toggle-wrap input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.network-view-toggle-wrap .switch-disabled .slider {
+  cursor: not-allowed;
+}
+
+/* --- Minimap + pan/zoom hint --- */
+.network-graph-minimap {
+  position: absolute;
+  right: 12px;
+  bottom: 36px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.network-graph-minimap-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(var(--blacks), 0.45);
+}
+
+.network-graph-minimap-svg {
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.network-graph-interaction-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  margin: 0;
+  z-index: 5;
+  font-size: var(--small);
+  color: rgba(var(--blacks), 0.45);
+  max-width: min(100% - 240px, 28rem);
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .network-graph-interaction-hint {
+    max-width: calc(100% - 24px);
+  }
 }
 
 .network-view-toggle-wrap .view-label {

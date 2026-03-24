@@ -118,31 +118,44 @@ const getScopeTotalsFromProduct = getScopeTotalsFromProductUtil;
 const formatEmission = formatEmissionUtil;
 
 // --- D3 Network Graph Component ---
+const MINIMAP = { w: 220, h: 158, pad: 8 };
+
 const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProduct, products, allBackendProducts = [] }) => {
   const svgRef = useRef(null);
+  const minimapSvgRef = useRef(null);
   const legendRef = useRef(null);
+  const fitAppliedRef = useRef(false);
+  const layoutBoundsRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 800, height: 820 });
   const [hoveredNode, setHoveredNode] = useState(null);
 
   useEffect(() => {
+    const el = svgRef.current?.parentElement;
+    if (!el) return undefined;
     const updateSize = () => {
-      if (svgRef.current?.parentElement) {
-        const el = svgRef.current.parentElement;
-        setContainerSize({
-          width: el.offsetWidth,
-          height: Math.max(520, el.offsetHeight)
-        });
-      }
+      setContainerSize({
+        width: el.offsetWidth,
+        height: Math.max(640, el.offsetHeight)
+      });
     };
     updateSize();
+    const ro = new ResizeObserver(() => updateSize());
+    ro.observe(el);
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   useEffect(() => {
+    fitAppliedRef.current = false;
+    layoutBoundsRef.current = null;
+
     if (!data || !data.nodes || data.nodes.length === 0 || !svgRef.current) {
       d3.select(svgRef.current).selectAll("*").remove();
-      return;
+      if (minimapSvgRef.current) d3.select(minimapSvgRef.current).selectAll("*").remove();
+      return undefined;
     }
 
     const { nodes, edges, componentMap, componentNames } = data;
@@ -150,12 +163,37 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
+    const minimapSvg = d3.select(minimapSvgRef.current);
+    minimapSvg.selectAll("*").remove();
     const legend = d3.select(legendRef.current);
 
-    const g = svg.append('g');
+    const g = svg.append('g').attr('class', 'network-graph-root');
+
+    const updateMinimapViewport = (transform) => {
+      const bounds = layoutBoundsRef.current;
+      const vp = minimapSvg.select('.minimap-viewport');
+      if (!bounds || vp.empty() || !width || !height) return;
+      const innerW = MINIMAP.w - 2 * MINIMAP.pad;
+      const innerH = MINIMAP.h - 2 * MINIMAP.pad;
+      const s = Math.min(innerW / bounds.width, innerH / bounds.height);
+      const ox = MINIMAP.pad + (innerW - s * bounds.width) / 2;
+      const oy = MINIMAP.pad + (innerH - s * bounds.height) / 2;
+      const mapPoint = (gx, gy) => [ox + (gx - bounds.x) * s, oy + (gy - bounds.y) * s];
+      const pts = [[0, 0], [width, 0], [width, height], [0, height]]
+        .map(([sx, sy]) => {
+          const [gx, gy] = transform.invert([sx, sy]);
+          return mapPoint(gx, gy).join(',');
+        })
+        .join(' ');
+      vp.attr('points', pts);
+    };
+
     const zoom = d3.zoom()
-      .scaleExtent([0.1, 4])
-      .on('zoom', (event) => g.attr('transform', event.transform));
+      .scaleExtent([0.06, 5])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+        updateMinimapViewport(event.transform);
+      });
     svg.call(zoom);
 
     const color = d3.scaleOrdinal(d3.schemeCategory10).domain(componentNames);
@@ -240,7 +278,100 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
 
       node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
-    
+
+    simulation.on("end", () => {
+      if (fitAppliedRef.current) return;
+      fitAppliedRef.current = true;
+      requestAnimationFrame(() => {
+        const root = g.node();
+        if (!root) return;
+        let bbox;
+        try {
+          bbox = root.getBBox();
+        } catch {
+          return;
+        }
+        if (!bbox.width || !bbox.height) return;
+
+        const pad = 56;
+        const k = Math.min(
+          (width - 2 * pad) / bbox.width,
+          (height - 2 * pad) / bbox.height
+        );
+        const tx = width / 2 - k * (bbox.x + bbox.width / 2);
+        const ty = height / 2 - k * (bbox.y + bbox.height / 2);
+        const t = d3.zoomIdentity.translate(tx, ty).scale(k);
+        svg.call(zoom.transform, t);
+
+        layoutBoundsRef.current = {
+          x: bbox.x,
+          y: bbox.y,
+          width: bbox.width,
+          height: bbox.height,
+        };
+
+        const innerW = MINIMAP.w - 2 * MINIMAP.pad;
+        const innerH = MINIMAP.h - 2 * MINIMAP.pad;
+        const b = layoutBoundsRef.current;
+        const ms = Math.min(innerW / b.width, innerH / b.height);
+        const ox = MINIMAP.pad + (innerW - ms * b.width) / 2;
+        const oy = MINIMAP.pad + (innerH - ms * b.height) / 2;
+        const mapX = (gx) => ox + (gx - b.x) * ms;
+        const mapY = (gy) => oy + (gy - b.y) * ms;
+
+        minimapSvg
+          .append("rect")
+          .attr("class", "minimap-frame")
+          .attr("x", MINIMAP.pad)
+          .attr("y", MINIMAP.pad)
+          .attr("width", innerW)
+          .attr("height", innerH)
+          .attr("rx", 6)
+          .attr("fill", "rgba(253,253,253,0.94)")
+          .attr("stroke", "rgba(0,0,0,0.1)");
+
+        minimapSvg
+          .append("g")
+          .attr("class", "minimap-edges")
+          .selectAll("line")
+          .data(edges)
+          .join("line")
+          .attr("stroke", "rgba(150,150,150,0.55)")
+          .attr("stroke-width", 0.9)
+          .attr("x1", (d) => mapX(d.source.x))
+          .attr("y1", (d) => mapY(d.source.y))
+          .attr("x2", (d) => mapX(d.target.x))
+          .attr("y2", (d) => mapY(d.target.y));
+
+        minimapSvg
+          .append("g")
+          .attr("class", "minimap-nodes")
+          .selectAll("circle")
+          .data(nodes)
+          .join("circle")
+          .attr("cx", (d) => mapX(d.x))
+          .attr("cy", (d) => mapY(d.y))
+          .attr("r", (d) => (d.isMainProduct ? 3.2 : d.isRoot ? 2.6 : 1.8))
+          .attr("fill", (d) => {
+            if (d.isMainProduct) return "#334761";
+            const type = componentMap.get(d.id);
+            if (type === "product") return "#59a5b2";
+            if (type === "process") return "#222";
+            return "#888";
+          });
+
+        minimapSvg
+          .append("polygon")
+          .attr("class", "minimap-viewport")
+          .attr("fill", "rgba(51, 71, 97, 0.14)")
+          .attr("stroke", "rgba(51, 71, 97, 0.55)")
+          .attr("stroke-width", 1)
+          .attr("pointer-events", "none");
+
+        updateMinimapViewport(t);
+      });
+    });
+
     function drag(simulation) {
       function dragstarted(event, d) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -289,6 +420,9 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
       .style("background-color", "#334761");
     finalItem.append("span").text("Final product");
 
+    return () => {
+      simulation.stop();
+    };
   }, [data, containerSize]);
 
   const nameNorm = (s) => String(s ?? '').toLowerCase().trim();
@@ -340,7 +474,14 @@ const NetworkGraph = ({ data, viewMode, productName, selectedScope, selectedProd
 
   return (
     <div className="network-graph-container">
-      <svg ref={svgRef} width={containerSize.width} height={containerSize.height}></svg>
+      <svg ref={svgRef} width={containerSize.width} height={containerSize.height} />
+      <div className="network-graph-minimap" aria-hidden="true">
+        <span className="network-graph-minimap-label">Overview</span>
+        <svg ref={minimapSvgRef} width={MINIMAP.w} height={MINIMAP.h} className="network-graph-minimap-svg" />
+      </div>
+      <p className="network-graph-interaction-hint">
+        Scroll or pinch to zoom · drag the background to pan
+      </p>
       <div className="graph-tooltip">
         <div ref={legendRef} className="graph-tooltip-legend"></div>
         <div className="graph-tooltip-info">
@@ -870,64 +1011,75 @@ const NetworkPage = () => {
             <p className = "medium-regular">View your product supply chain network here.</p>
           </div>
           
-          {/* Product dropdown (reverted to original style) */}
-          <div className="sub-header" style={{ display: 'flex', alignItems: 'stretch', gap: '1.5rem' }}>
-            <div className="header-col">
-              <label htmlFor="product-select" className="normal-bold">Select your product:</label>
-              <div className="select-wrapper">
-                <select
-                  id="product-select"
-                  className="input-base"
-                  value={selectedProductId}
-                  onChange={handleProductChange}
-                  disabled={displayProducts.length === 0}
+          <div className="network-toolbar">
+            <div className="network-toolbar-row-product-view">
+              <div className="header-col network-product-col">
+                <label htmlFor="product-select" className="normal-bold">Select your product:</label>
+                <div className="select-wrapper">
+                  <select
+                    id="product-select"
+                    className="input-base"
+                    value={selectedProductId}
+                    onChange={handleProductChange}
+                    disabled={displayProducts.length === 0}
+                  >
+                    <option value="">{displayProducts.length === 0 ? "No products found" : "-- Select a product --"}</option>
+                    {displayProducts.map(product => (
+                      <option key={product.productId} value={product.productId}>
+                        {product.productName}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="select-arrow" />
+                </div>
+              </div>
+              <div className={`network-view-column${!selectedProductId ? " network-view-column--disabled" : ""}`}>
+                <span className="normal-bold network-view-heading" id="network-view-heading">
+                  Select View
+                </span>
+                <div
+                  className="network-view-toggle-wrap"
+                  role="group"
+                  aria-labelledby="network-view-heading"
                 >
-                  <option value="">{displayProducts.length === 0 ? "No products found" : "-- Select a product --"}</option>
-                  {displayProducts.map(product => (
-                    <option key={product.productId} value={product.productId}>
-                      {product.productName}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="select-arrow" />
+                  <span className={`view-label ${currentView === 'consolidated' ? 'active' : ''}`}>Consolidated View</span>
+                  <label className={`switch ${!selectedProductId ? 'switch-disabled' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={currentView === 'component'}
+                      onChange={handleViewToggle}
+                      disabled={!selectedProductId}
+                      aria-disabled={!selectedProductId}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                  <span className={`view-label ${currentView === 'component' ? 'active' : ''}`}>Component View</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Carbon Scope (left) and View types (right) */}
-          <div className="network-controls-row">
-            <div className="header-col">
-              <label htmlFor="scope-select" className="normal-bold">Carbon Emission Scope:</label>
-              <div className="select-wrapper">
-                <select
-                  id="scope-select"
-                  className="input-base"
-                  value={selectedScope.id}
-                  onChange={handleScopeChange}
-                >
-                  {EMISSION_SCOPES.map(scope => (
-                    <option key={scope.id} value={scope.id}>
-                      {scope.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="select-arrow" />
+            <div className="network-scope-radios">
+              <div id="network-scope-legend" className="normal-bold network-scope-legend">
+                Carbon Emission Scope:
+              </div>
+              <div
+                className="scope-radio-group"
+                role="radiogroup"
+                aria-labelledby="network-scope-legend"
+              >
+                {EMISSION_SCOPES.map(scope => (
+                  <label key={scope.id} className="scope-radio-label">
+                    <input
+                      type="radio"
+                      name="network-emission-scope"
+                      value={scope.id}
+                      checked={selectedScope.id === scope.id}
+                      onChange={handleScopeChange}
+                    />
+                    <span>{scope.name}</span>
+                  </label>
+                ))}
               </div>
             </div>
-            {selectedProductId && (
-              <div className="network-view-toggle-wrap">
-                <span className={`view-label ${currentView === 'consolidated' ? 'active' : ''}`}>Consolidated View</span>
-                <label className="switch">
-                  <input
-                    type="checkbox"
-                    checked={currentView === 'component'}
-                    onChange={handleViewToggle}
-                  />
-                  <span className="slider round"></span>
-                </label>
-                <span className={`view-label ${currentView === 'component' ? 'active' : ''}`}>Component View</span>
-              </div>
-            )}
           </div>
 
           {error && <div className="submit-error" style={{ marginBottom: '0.5rem' }}>{error}</div>}
