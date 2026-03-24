@@ -8,8 +8,6 @@ import {
   FileText,
   Sprout,
   Settings,
-  LayoutTemplate,
-  Pencil,
 } from 'lucide-react';
 import logoPath from '../../assets/carbonx.png';
 import { useProSubscription } from '../../hooks/useProSubscription';
@@ -22,6 +20,24 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isProUser } = useProSubscription();
+  const isMaritimeMode = React.useMemo(() => {
+    try {
+      const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+      const userId = localStorage.getItem('userId') || '';
+      const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+      const company = allCompanyData[userId] ?? allCompanyData[storageKey] ?? null;
+      const sector = String(company?.sector || '').toLowerCase().trim();
+      const industry = String(company?.industry || '').toLowerCase().trim();
+      return (
+        sector.includes('maritime') ||
+        industry.includes('maritime') ||
+        sector.includes('marine transport') ||
+        industry.includes('marine transport')
+      );
+    } catch {
+      return false;
+    }
+  }, []);
 
   return (
     <div className="sidebar">
@@ -49,9 +65,9 @@ const Navbar = () => {
               className={`nav ${(location.pathname === '/inventory' || location.pathname === '/add-products' || location.pathname.startsWith('/add-products/edit')) ? 'active' : ''}`}
               onClick={() => navigate('/inventory')}
             >
-              <Archive /><span>Inventory</span>
+              <Archive /><span>{isMaritimeMode ? 'Voyage Emissions' : 'Inventory'}</span>
             </button>
-            {(location.pathname === '/inventory' || location.pathname === '/add-products' || location.pathname.startsWith('/add-products/edit')) && (
+            {!isMaritimeMode && (location.pathname === '/inventory' || location.pathname === '/add-products' || location.pathname.startsWith('/add-products/edit')) && (
               <div className="navbar-sub">
                 <button
                   type="button"

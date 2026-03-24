@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +52,30 @@ public class ImportExportService {
   private OutputRepository outputRepository;
   @Autowired
   private DocumentService documentService;
+
+  private Map<String, String> loadNameToIdMap(String database, String collection) {
+    Map<String, String> nameToId = new HashMap<>();
+    try {
+      Map<String, Object> response = documentService.getAllDocuments(database, collection).block();
+      Object raw = response != null ? response.get("result") : null;
+      if (raw instanceof List<?> docs) {
+        for (Object doc : docs) {
+          if (!(doc instanceof Map<?, ?> m)) continue;
+          Object nameObj = m.get("name");
+          Object idObj = m.get("_id");
+          if (nameObj == null || idObj == null) continue;
+          String name = String.valueOf(nameObj).trim();
+          String id = String.valueOf(idObj).trim();
+          if (!name.isEmpty() && !id.isEmpty()) {
+            nameToId.putIfAbsent(name, id);
+          }
+        }
+      }
+    } catch (Exception e) {
+      log.warn("Could not build name->id map for {}/{}: {}", database, collection, e.getMessage());
+    }
+    return nameToId;
+  }
 
   // ------ UNCLEAN: Function to import a single JSON file within system folder
   public Mono<?> importJSON(String database, String targetCollection, String filename) {
@@ -108,25 +133,45 @@ public class ImportExportService {
           return Mono.just(String.format("Import successful for '%s' into PROCESS repository!", filename));
 
         case "inputs":
-          List<Object> inputList = new CsvToBeanBuilder<Object>(reader)
-                                          .withType(Input.class)
-                                          .withIgnoreLeadingWhiteSpace(true)
-                                          .withIgnoreEmptyLine(true)
-                                          .build()
-                                          .parse();
+          List<Input> inputList = new CsvToBeanBuilder<Input>(reader)
+                                      .withType(Input.class)
+                                      .withIgnoreLeadingWhiteSpace(true)
+                                      .withIgnoreEmptyLine(true)
+                                      .build()
+                                      .parse();
 
-          documentService.createDocuments(database, "inputs", inputList, null, null, null, null, null).block();
+          // Important: master edge CSVs may contain stale _from/_to IDs after merges/imports.
+          // Relink edges by product/process names to current document IDs in the target database.
+          Map<String, String> productNameToIdForInputs = loadNameToIdMap(database, "products");
+          Map<String, String> processNameToIdForInputs = loadNameToIdMap(database, "processes");
+          for (Input input : inputList) {
+            String fromId = productNameToIdForInputs.get(input.getProductName());
+            String toId = processNameToIdForInputs.get(input.getProcessName());
+            if (fromId != null) input.setFrom(fromId);
+            if (toId != null) input.setTo(toId);
+          }
+
+          documentService.createDocuments(database, "inputs", List.copyOf(inputList), null, null, null, null, null).block();
           return Mono.just(String.format("Import successful for '%s' into INPUT repository!", filename));
 
         case "outputs":
-          List<Object> outputList = new CsvToBeanBuilder<Object>(reader)
-                                          .withType(Output.class)
-                                          .withIgnoreLeadingWhiteSpace(true)
-                                          .withIgnoreEmptyLine(true)
-                                          .build()
-                                          .parse();
+          List<Output> outputList = new CsvToBeanBuilder<Output>(reader)
+                                        .withType(Output.class)
+                                        .withIgnoreLeadingWhiteSpace(true)
+                                        .withIgnoreEmptyLine(true)
+                                        .build()
+                                        .parse();
 
-          documentService.createDocuments(database, "outputs", outputList, null, null, null, null, null).block();
+          Map<String, String> processNameToIdForOutputs = loadNameToIdMap(database, "processes");
+          Map<String, String> productNameToIdForOutputs = loadNameToIdMap(database, "products");
+          for (Output output : outputList) {
+            String fromId = processNameToIdForOutputs.get(output.getProcessName());
+            String toId = productNameToIdForOutputs.get(output.getProductName());
+            if (fromId != null) output.setFrom(fromId);
+            if (toId != null) output.setTo(toId);
+          }
+
+          documentService.createDocuments(database, "outputs", List.copyOf(outputList), null, null, null, null, null).block();
           return Mono.just(String.format("Import successful for '%s' into OUTPUT repository!", filename));
         
         

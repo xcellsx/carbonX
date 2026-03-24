@@ -12,6 +12,10 @@ import { usersAPI } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+const profileStorageKey = (userId) => {
+  const key = (userId || '').includes('/') ? String(userId).split('/').pop() : String(userId || '');
+  return `carbonx_user_profile_${key || 'unknown'}`;
+};
 
 const SettingsPage = () => {
   // Read the saved tab from localStorage, defaulting to 'account'
@@ -87,22 +91,24 @@ const SettingsPage = () => {
         console.error("Failed to fetch user profile:", err.response?.status ?? err.message);
       }
 
-      loadProfileFromStorage();
+      loadProfileFromStorage(currentUserId);
     };
 
-    function loadProfileFromStorage() {
+    function loadProfileFromStorage(currentUserId) {
       try {
-        const saved = localStorage.getItem('carbonx_user_profile');
-        if (saved) {
-          const profile = JSON.parse(saved);
-          const loadedDetails = {
-            fullName: profile.fullName || '',
-            email: profile.email || '',
-            phone: profile.phone || '',
-          };
-          setUserDetails(loadedDetails);
-          setInitialUserDetails(loadedDetails);
-        }
+        const scopedKey = profileStorageKey(currentUserId);
+        const savedScoped = localStorage.getItem(scopedKey);
+        const savedLegacy = localStorage.getItem('carbonx_user_profile');
+        const saved = savedScoped || savedLegacy;
+        if (!saved) return;
+        const profile = JSON.parse(saved);
+        const loadedDetails = {
+          fullName: profile.fullName || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+        };
+        setUserDetails(loadedDetails);
+        setInitialUserDetails(loadedDetails);
       } catch (_) {}
     }
 
@@ -155,7 +161,11 @@ const SettingsPage = () => {
     setInitialUserDetails(userDetails); 
 
     try {
-      localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName: userDetails.fullName || '', email: userDetails.email || '', phone: userDetails.phone || '' }));
+      const scopedKey = profileStorageKey(userId);
+      const payload = JSON.stringify({ fullName: userDetails.fullName || '', email: userDetails.email || '', phone: userDetails.phone || '' });
+      localStorage.setItem(scopedKey, payload);
+      // Backward compatibility for older readers.
+      localStorage.setItem('carbonx_user_profile', payload);
     } catch (_) {}
 
     if (isPasswordDirty) { 

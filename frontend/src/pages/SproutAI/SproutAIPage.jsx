@@ -57,6 +57,84 @@ Only when the user explicitly asks for a sustainability or carbon \"report\" sho
 
 If the user asks about anything outside sustainability, climate, ESG, or their CarbonX data (for example: personal life advice, entertainment, coding unrelated to CarbonX, general trivia, etc.), politely refuse and respond with a short sentence such as: \"I’m focused on sustainability and your CarbonX data, so I can’t help with that topic.\" Do NOT answer off-topic questions.`;
 
+function getLocalCompanyContext() {
+  try {
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+    const userId = localStorage.getItem('userId') || '';
+    const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+    const company = allCompanyData[userId] ?? allCompanyData[storageKey] ?? null;
+    return company && typeof company === 'object' ? company : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildSectorIndustryGuidance(company) {
+  const sector = String(company?.sector || '').trim();
+  const industry = String(company?.industry || '').trim();
+  const s = sector.toLowerCase();
+  const i = industry.toLowerCase();
+
+  if (s === 'food & beverages' || s === 'fnb' || s === 'f&b') {
+    return `Sector-specific coaching (Food & Beverages):
+- Prioritize Scope 3 hotspots from purchased ingredients, packaging, refrigeration/cold chain, logistics, and food waste.
+- For recommendations, emphasize practical levers: supplier emission factors, recipe/BOM changes, waste diversion, packaging redesign, and refrigeration efficiency.
+- When presenting targets, prefer concrete numeric milestones with owner/action/timeline framing.`;
+  }
+
+  if (s === 'transportation' && i === 'marine transportation') {
+    return `Sector-specific coaching (Marine Transportation):
+- Prioritize fuel intensity, voyage efficiency, vessel utilization, and port/route emissions impacts.
+- Include practical maritime levers: speed optimization, fuel mix transition, maintenance efficiency, and ballast/operational controls.
+- Frame recommendations with measurable shipping-relevant KPIs.`;
+  }
+
+  if (s === 'transportation' && i === 'airlines') {
+    return `Sector-specific coaching (Airlines):
+- Prioritize fleet fuel burn, route/network efficiency, load factors, and operational energy use.
+- Include practical aviation levers: fleet modernization, SAF planning, turnaround efficiency, and maintenance/ops optimization.
+- Frame recommendations with measurable aviation-relevant KPIs.`;
+  }
+
+  return `Sector-specific coaching:
+- Tailor recommendations to the user's declared sector and industry context.
+- Prefer concrete, measurable actions over generic advice.`;
+}
+
+function buildDynamicSystemPrompt() {
+  const company = getLocalCompanyContext();
+  const companyLine = company
+    ? `Company context: ${company.companyName || 'Unknown'} | Sector: ${company.sector || 'Unknown'} | Industry: ${company.industry || 'Unknown'} | Reporting year: ${company.reportingYear || 'Unknown'}`
+    : 'Company context: unavailable';
+
+  let inventoryLine = 'Inventory context: unavailable';
+  try {
+    const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
+    const entries = Object.entries(lcaByName)
+      .map(([name, v]) => ({
+        name,
+        total: Number(v?.total) || (Number(v?.scope1 || 0) + Number(v?.scope2 || 0) + Number(v?.scope3 || 0)),
+      }))
+      .filter((e) => e.total > 0)
+      .sort((a, b) => b.total - a.total);
+    if (entries.length > 0) {
+      const top = entries.slice(0, 3).map((e) => `${e.name} (${e.total.toFixed(2)} kgCO2e)`).join(', ');
+      inventoryLine = `Inventory context: ${entries.length} product(s) with LCA data. Top emitters: ${top}`;
+    }
+  } catch {}
+
+  const sectorGuidance = buildSectorIndustryGuidance(company);
+  return `${SYSTEM_PROMPT}
+
+Additional personalization rules (must follow):
+- ${companyLine}
+- ${inventoryLine}
+- Use the user's inventory and company context as first-class signals in analysis and recommendations.
+- When user asks "what should I do first", rank actions by expected emissions impact and implementation effort.
+
+${sectorGuidance}`;
+}
+
 /**
  * Build a compact inventory + company context block from localStorage for regular chat.
  * Keeps the prompt lean (max ~1500 chars) so it doesn't inflate every message.
@@ -616,9 +694,10 @@ const SproutAiPage = () => {
       content: msg.sender === 'user' ? msg.text : (msg.content || (msg.type === 'report_success' ? 'I generated a report for the user.' : '')),
     })).filter(m => m.content && m.content.trim());
     const inventoryCtx = buildChatInventoryContext();
+    const dynamicSystemPrompt = buildDynamicSystemPrompt();
     const systemContent = inventoryCtx
-      ? `${SYSTEM_PROMPT}\n\n---\n${inventoryCtx}`
-      : SYSTEM_PROMPT;
+      ? `${dynamicSystemPrompt}\n\n---\n${inventoryCtx}`
+      : dynamicSystemPrompt;
     const openRouterMessages = [
       { role: 'system', content: systemContent },
       ...historyForApi,

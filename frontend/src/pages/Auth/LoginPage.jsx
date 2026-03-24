@@ -4,7 +4,7 @@ import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import dashboard from '../../assets/dashboard.png';
-import { authAPI } from '../../services/api';
+import { authAPI, stableSessionUserId, verifyLocalLoginCredentials } from '../../services/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -38,9 +38,19 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const { data } = await authAPI.login({ email, password });
+      const credCheck = verifyLocalLoginCredentials(email, password);
+      if (!credCheck.ok) {
+        setError('Incorrect password.');
+        return;
+      }
+      const sessionId = stableSessionUserId(data);
+      if (!sessionId) {
+        setError('Could not resolve your account. Please try signing up again or check your company configuration.');
+        return;
+      }
       localStorage.removeItem('isProUser');
       localStorage.removeItem('settingsTab');
-      localStorage.setItem('userId', data.id || data.key || `user-${Date.now()}`);
+      localStorage.setItem('userId', sessionId);
       const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.email || '';
       try {
         localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName, email: data.email || email, phone: data.phone || '' }));

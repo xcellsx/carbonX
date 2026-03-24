@@ -72,8 +72,6 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
     );
   }
 
-  const isAiGenerated = data.aiGenerated || !data.companyProfile;
-
   // Derive company name and reporting year for header from stored Company Info when available.
   let headerCompanyName = data.companyName || data.productName || 'Sustainability Report';
   let headerReportingYear = null;
@@ -99,6 +97,36 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
     const nowYear = new Date().getFullYear();
     headerReportingYear = `FY${nowYear - 1}`;
   }
+  const reportingYearNumber = Number(String(headerReportingYear).replace(/\D/g, '')) || (new Date().getFullYear() - 1);
+  const nextOutlookYear = reportingYearNumber + 1;
+
+  // KPI snapshot from LCA cache (fallback when report payload doesn't provide KPIs).
+  let kpiSnapshot = { scope1: 0, scope2: 0, scope3: 0, total: 0, productCount: 0 };
+  try {
+    const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
+    const entries = Object.values(lcaByName).filter((e) => e && typeof e === 'object');
+    kpiSnapshot.productCount = entries.length;
+    entries.forEach((e) => {
+      kpiSnapshot.scope1 += Number(e.scope1) || 0;
+      kpiSnapshot.scope2 += Number(e.scope2) || 0;
+      kpiSnapshot.scope3 += Number(e.scope3) || 0;
+    });
+    kpiSnapshot.total = kpiSnapshot.scope1 + kpiSnapshot.scope2 + kpiSnapshot.scope3;
+  } catch (_) {}
+
+  const ensureArray = (arr, fallbackTitle) => {
+    if (Array.isArray(arr) && arr.length > 0) return arr;
+    return [{
+      title: fallbackTitle,
+      keyData: 'Data pending',
+      strategy: 'The organization is establishing a reporting baseline for this topic.',
+      performance: 'Initial data collection and validation are in progress.',
+      outlook: 'Targets and implementation roadmap will be refined after baseline completion.',
+    }];
+  };
+  const environmentalAnalysis = ensureArray(data.environmentalAnalysis, 'Environmental Performance');
+  const socialAnalysis = ensureArray(data.socialAnalysis, 'Social Performance');
+  const governanceAnalysis = ensureArray(data.governanceAnalysis, 'Governance Performance');
 
   return (
     <div className="report-container">
@@ -148,25 +176,11 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
         </div>
       </div>
 
-      {/* AI-generated report: single content block */}
-      {isAiGenerated && (
-        <ReportSection icon={BookOpen} title="Report">
-          <div className="board-statement-box" style={{padding: '2rem', backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '6px solid rgba(var(--primary), 1)'}}>
-            <p className="normal-regular" style={{whiteSpace: 'pre-line', lineHeight: 1.8}}>
-              {data.boardStatement}
-            </p>
-          </div>
-        </ReportSection>
-      )}
-
-      {/* Full report layout (publication-style) */}
-      {!isAiGenerated && (
-        <>
       {/* 1. BOARD STATEMENT */}
       <ReportSection icon={BookOpen} title="1. Board Statement">
         <div className="board-statement-box" style={{padding: '2rem', backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '6px solid rgba(var(--primary), 1)'}}>
             <p className="normal-regular" style={{whiteSpace: 'pre-line', lineHeight: 1.8, textAlign: 'justify'}}>
-                {data.boardStatement}
+                {data.boardStatement || 'This report summarizes the organization\'s sustainability performance, governance oversight, and transition priorities for the current reporting period.'}
             </p>
             <div style={{marginTop: '1.5rem', fontStyle: 'italic', fontWeight: 'bold'}}>
                 - On behalf of the Board of Directors, {data.companyName || data.productName || 'the Company'}
@@ -176,25 +190,64 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
 
       {/* 2. ORGANISATIONAL PROFILE */}
       <ReportSection icon={Users} title={`2. About ${data.companyName || data.productName || 'the Company'}`}>
-         <p className="normal-regular" style={{marginBottom: '1rem', lineHeight: 1.7}}>{data.companyProfile}</p>
+         <p className="normal-regular" style={{marginBottom: '1rem', lineHeight: 1.7}}>{data.companyProfile || 'The organization operates in its stated sector and is developing a structured sustainability program aligned with stakeholder expectations and reporting obligations.'}</p>
          
          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem'}}>
              <div>
                  <h4 style={{marginBottom: '0.5rem'}}>Our Sustainability Approach</h4>
-                 <p className="normal-regular" style={{lineHeight: 1.7}}>{data.sustainabilityApproach}</p>
+                 <p className="normal-regular" style={{lineHeight: 1.7}}>{data.sustainabilityApproach || 'We use a risk-and-opportunity lens to prioritize actions with measurable environmental, social, and governance outcomes.'}</p>
              </div>
              <div>
                  <h4 style={{marginBottom: '0.5rem'}}>Stakeholder Engagement</h4>
-                 <p className="normal-regular" style={{lineHeight: 1.7}}>{data.stakeholderEngagement}</p>
+                 <p className="normal-regular" style={{lineHeight: 1.7}}>{data.stakeholderEngagement || 'Stakeholder inputs from customers, employees, suppliers, and regulators inform our yearly sustainability priorities and target setting.'}</p>
              </div>
          </div>
       </ReportSection>
 
-      {/* 3. PILLAR: ENVIRONMENT */}
-      <ReportSection icon={Leaf} title="3. Environmental Stewardship">
+      {/* 3. REPORTING BOUNDARY & METHODOLOGY */}
+      <ReportSection icon={FileText} title="3. Reporting Boundary & Methodology">
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
+          <div className="factor-card" style={{padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
+            <h4 style={{marginBottom: '0.5rem'}}>Organizational Boundary</h4>
+            <p className="normal-regular" style={{lineHeight: 1.6}}>
+              This report covers operations and value-chain activities within the reporting scope defined for {headerCompanyName}. Scope 1, Scope 2, and Scope 3 values reflect data available in CarbonX at the time of generation.
+            </p>
+          </div>
+          <div className="factor-card" style={{padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
+            <h4 style={{marginBottom: '0.5rem'}}>Methodology</h4>
+            <p className="normal-regular" style={{lineHeight: 1.6}}>
+              Emissions are structured using the GHG Protocol scope model and product-level LCA calculations where available. Report figures should be interpreted alongside source-data completeness and coverage assumptions.
+            </p>
+          </div>
+        </div>
+      </ReportSection>
+
+      {/* 4. KPI SNAPSHOT */}
+      <ReportSection icon={Target} title={`4. KPI Snapshot (${headerReportingYear})`}>
+        <div className="inventory-table-container">
+          <table className="inventory-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th>Indicator</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td className="medium-bold">Scope 1 Emissions</td><td>{kpiSnapshot.scope1.toFixed(2)} kgCO2e</td></tr>
+              <tr><td className="medium-bold">Scope 2 Emissions</td><td>{kpiSnapshot.scope2.toFixed(2)} kgCO2e</td></tr>
+              <tr><td className="medium-bold">Scope 3 Emissions</td><td>{kpiSnapshot.scope3.toFixed(2)} kgCO2e</td></tr>
+              <tr><td className="medium-bold">Total GHG Emissions</td><td>{kpiSnapshot.total.toFixed(2)} kgCO2e</td></tr>
+              <tr><td className="medium-bold">Products with LCA data</td><td>{kpiSnapshot.productCount}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </ReportSection>
+
+      {/* 5. PILLAR: ENVIRONMENT */}
+      <ReportSection icon={Leaf} title="5. Environmental Stewardship">
         <p className="normal-regular" style={{marginBottom: '1.5rem'}}>We are dedicated to minimizing our ecological footprint through efficient resource management and decarbonization.</p>
         <div className="factors-list">
-            {data.environmentalAnalysis?.map((factor, idx) => (
+            {environmentalAnalysis.map((factor, idx) => (
                 <div key={idx} className="factor-card" style={{marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '1rem'}}>
                         <h4 style={{color: 'rgba(var(--primary), 1)'}}>{factor.title}</h4>
@@ -202,17 +255,17 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
                     </div>
                     <p className="normal-regular" style={{marginBottom: '1rem', fontStyle: 'italic'}}>"{factor.strategy}"</p>
                     <p className="normal-regular" style={{lineHeight: 1.6}}><span className="small-bold">Performance:</span> {factor.performance}</p>
-                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">2026 Outlook:</span> {factor.outlook}</p>
+                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">{nextOutlookYear} Outlook:</span> {factor.outlook}</p>
                 </div>
             ))}
         </div>
       </ReportSection>
 
-      {/* 4. PILLAR: SOCIAL */}
-      <ReportSection icon={Users} title="4. Social Responsibility">
+      {/* 6. PILLAR: SOCIAL */}
+      <ReportSection icon={Users} title="6. Social Responsibility">
         <p className="normal-regular" style={{marginBottom: '1.5rem'}}>Our social strategy focuses on product safety, employee well-being, and community trust.</p>
         <div className="factors-list">
-            {data.socialAnalysis?.map((factor, idx) => (
+            {socialAnalysis.map((factor, idx) => (
                 <div key={idx} className="factor-card" style={{marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '1rem'}}>
                         <h4 style={{color: 'rgba(var(--primary), 1)'}}>{factor.title}</h4>
@@ -220,17 +273,17 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
                     </div>
                     <p className="normal-regular" style={{marginBottom: '1rem', fontStyle: 'italic'}}>"{factor.strategy}"</p>
                     <p className="normal-regular" style={{lineHeight: 1.6}}><span className="small-bold">Performance:</span> {factor.performance}</p>
-                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">2026 Outlook:</span> {factor.outlook}</p>
+                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">{nextOutlookYear} Outlook:</span> {factor.outlook}</p>
                 </div>
             ))}
         </div>
       </ReportSection>
 
-      {/* 5. PILLAR: GOVERNANCE */}
-      <ReportSection icon={ShieldCheck} title="5. Governance & Ethics">
+      {/* 7. PILLAR: GOVERNANCE */}
+      <ReportSection icon={ShieldCheck} title="7. Governance & Ethics">
         <p className="normal-regular" style={{marginBottom: '1.5rem'}}>Strong governance underpins our integrity, data security, and compliance measures.</p>
         <div className="factors-list">
-            {data.governanceAnalysis?.map((factor, idx) => (
+            {governanceAnalysis.map((factor, idx) => (
                 <div key={idx} className="factor-card" style={{marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
                     <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '1rem'}}>
                         <h4 style={{color: 'rgba(var(--primary), 1)'}}>{factor.title}</h4>
@@ -238,14 +291,32 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
                     </div>
                     <p className="normal-regular" style={{marginBottom: '1rem', fontStyle: 'italic'}}>"{factor.strategy}"</p>
                     <p className="normal-regular" style={{lineHeight: 1.6}}><span className="small-bold">Performance:</span> {factor.performance}</p>
-                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">2026 Outlook:</span> {factor.outlook}</p>
+                    <p className="normal-regular" style={{lineHeight: 1.6, marginTop: '0.5rem'}}><span className="small-bold">{nextOutlookYear} Outlook:</span> {factor.outlook}</p>
                 </div>
             ))}
         </div>
       </ReportSection>
 
-      {/* 6. TARGETS */}
-      <ReportSection icon={Target} title="6. 2030 Sustainability Roadmap">
+      {/* 8. DATA QUALITY & ASSURANCE */}
+      <ReportSection icon={CircleCheck} title="8. Data Quality & Assurance">
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
+          <div className="factor-card" style={{padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
+            <h4 style={{marginBottom: '0.5rem'}}>Data Quality & Limitations</h4>
+            <p className="normal-regular" style={{lineHeight: 1.6}}>
+              Report outputs depend on available inventory, process links, and factor coverage. Data gaps or partial boundaries may reduce comparability across periods.
+            </p>
+          </div>
+          <div className="factor-card" style={{padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px'}}>
+            <h4 style={{marginBottom: '0.5rem'}}>Assurance Status</h4>
+            <p className="normal-regular" style={{lineHeight: 1.6}}>
+              This report is currently prepared with internal data controls. External assurance status should be documented once third-party verification is completed.
+            </p>
+          </div>
+        </div>
+      </ReportSection>
+
+      {/* 9. TARGETS */}
+      <ReportSection icon={Target} title="9. 2030 Sustainability Roadmap">
           {(!data.futureTargets || data.futureTargets.length === 0) && (
             <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)', fontStyle: 'italic', marginBottom: '1rem', fontSize: '0.875rem' }}>
               No targets were specified — the following are suggested benchmarks aligned to the Singapore Green Plan 2030 and SBTi 1.5°C pathway. Use the AI editor to customise them.
@@ -272,8 +343,6 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
             </table>
           </div>
       </ReportSection>
-        </>
-      )}
     </div>
   );
 };

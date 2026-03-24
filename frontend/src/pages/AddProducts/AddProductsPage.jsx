@@ -4,13 +4,13 @@ import { Search, Plus, ChevronDown, ChevronRight, Layers } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import Navbar from '../../components/Navbar/Navbar';
 import TemplateCard from '../../components/TemplateCard/TemplateCard';
-import { productAPI, networkAPI, processAPI } from '../../services/api';
+import { productAPI, processAPI, templateAPI } from '../../services/api';
 import './AddProductsPage.css';
 
 /*
  * Browse Templates – data sources:
  * 1. getProducts (GET /api/products)  → Raw materials accordion
- * 2. getGraph    (GET /api/graph/productgraph?productid= or empty) → CarbonX Templates (product chains)
+ * 2. getGraph    (GET /api/templates/products/{key}/map) → CarbonX Templates (product chains)
  * 3. getProcess  (GET /api/processes) → Processes accordion
  */
 
@@ -55,6 +55,7 @@ const AddProductsPage = () => {
   // Per-product graphs (raw product name -> { nodes, links }) for template cards
   const [productGraphsMap, setProductGraphsMap] = useState({});
   const [productGraphsLoading, setProductGraphsLoading] = useState(false);
+  const [connectedProductKeys, setConnectedProductKeys] = useState(new Set());
 
   const fetchRawMaterials = useCallback(async () => {
     try {
@@ -64,7 +65,10 @@ const AddProductsPage = () => {
       const normalized = raw.map((p) => {
         const fromDpp = p.dpp;
         const name = (p.name ?? fromDpp?.name ?? '').toString().trim() || '—';
-        const key = p.key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+        const key = p.key
+          ?? p._key
+          ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id)
+          ?? (p._id && String(p._id).includes('/') ? String(p._id).split('/').pop() : p._id);
         return {
           id: `raw-${key ?? name}`,
           productKey: key ?? name,
@@ -103,96 +107,64 @@ const AddProductsPage = () => {
     setGraphLoading(true);
     setGraphError('');
     try {
-      const res = await networkAPI.getProductGraph();
-      const { nodes, links } = normalizeGraphResponse(res);
-      const edges = links;
-      setGraphData({ nodes, edges });
-
-      // Console: what the graph looks like (open DevTools → Console to see)
-      console.log('[Graph] Fetched from GET /api/graph/productgraph (or empty):', {
-        nodeCount: nodes.length,
-        linkCount: edges.length,
-        nodes,
-        links: edges,
-        rawResponse: res?.data,
-      });
-
-      // Log graph for tomato sauce and spaghetti respectively
-      const productNodes = nodes.filter((n) => n.type === 'products' || n.type === 'product');
-      const nameMatch = (n, name) => {
-        const label = (n.label ?? n.name ?? '').toString().trim().toLowerCase();
-        return label === name.toLowerCase() || label.includes(name.toLowerCase());
-      };
-      const tomatoSauceNode = productNodes.find((n) => nameMatch(n, 'tomato sauce'));
-      const spaghettiNode = productNodes.find((n) => nameMatch(n, 'spaghetti'));
-
-      if (tomatoSauceNode) {
-        try {
-          const tomatoRes = await networkAPI.getProductGraph(tomatoSauceNode.id);
-          const tomatoGraph = normalizeGraphResponse(tomatoRes);
-          console.log('[Graph] TOMATO SAUCE – productid=' + tomatoSauceNode.id, tomatoGraph);
-          console.log('[Graph] TOMATO SAUCE nodes:', tomatoGraph.nodes);
-          console.log('[Graph] TOMATO SAUCE links:', tomatoGraph.links);
-        } catch (e) {
-          console.warn('[Graph] Failed to fetch graph for tomato sauce:', e?.message);
-        }
-      } else {
-        console.log('[Graph] No product node found for "tomato sauce" in graph.');
-      }
-
-      if (spaghettiNode) {
-        try {
-          const spaghettiRes = await networkAPI.getProductGraph(spaghettiNode.id);
-          const spaghettiGraph = normalizeGraphResponse(spaghettiRes);
-          console.log('[Graph] SPAGHETTI – productid=' + spaghettiNode.id, spaghettiGraph);
-          console.log('[Graph] SPAGHETTI nodes:', spaghettiGraph.nodes);
-          console.log('[Graph] SPAGHETTI links:', spaghettiGraph.links);
-        } catch (e) {
-          console.warn('[Graph] Failed to fetch graph for spaghetti:', e?.message);
-        }
-      } else {
-        console.log('[Graph] No product node found for "spaghetti" in graph.');
-      }
+      // This backend does not expose /api/graph/productgraph.
+      // Product template graphs are fetched per product via /api/templates/{collection}/{key}/map.
+      setGraphData({ nodes: [], edges: [] });
+      const connectedRes = await templateAPI.getConnectedProductNodes();
+      const ids = Array.isArray(connectedRes?.data?.products) ? connectedRes.data.products : [];
+      const keys = new Set(
+        ids
+          .map((id) => (typeof id === 'string' && id.includes('/') ? id.split('/').pop() : id))
+          .filter(Boolean)
+      );
+      setConnectedProductKeys(keys);
     } catch (err) {
-      console.error('[Graph] Failed to fetch product graph:', err?.message, err);
-      console.log('[Graph] Request was: GET /api/graph/productgraph or initial empty graph (see Network tab for full URL)');
+      console.error('[Graph] Failed to initialize template graph state:', err?.message, err);
       setGraphError(err?.message || 'Could not load graph from backend.');
       setGraphData({ nodes: [], edges: [] });
+      setConnectedProductKeys(new Set());
     } finally {
       setGraphLoading(false);
     }
   }, []);
 
-  // Fetch individual graph for each raw product so every product gets a template
-  // Backend /api/graph/productgraph expects productid = document key (e.g. _key), not name
+  // Fetch individual graph for each raw product so every product gets a template.
+  // Backend expects a document key for /api/templates/products/{key}/map.
   const fetchProductGraphs = useCallback(async (rawList) => {
-    if (!rawList || rawList.length === 0) {
+    if (connectedProductKeys.size === 0) {
       setProductGraphsMap({});
       return;
     }
+    const nameByKey = new Map(
+      (rawList || []).flatMap((rm) => {
+        const rawKey = rm?.productKey;
+        if (!rawKey) return [];
+        const k = String(rawKey).includes('/') ? String(rawKey).split('/').pop() : String(rawKey);
+        return [[k, (rm?.name || '').trim()]];
+      })
+    );
     setProductGraphsLoading(true);
     const next = {};
     await Promise.all(
-      rawList.map(async (rm) => {
-        const name = (rm.name || '').trim();
-        if (!name || name === '—') return;
-        const productId = rm.productKey ?? rm.name;
+      [...connectedProductKeys].map(async (productId) => {
+        const key = String(productId).includes('/') ? String(productId).split('/').pop() : String(productId);
+        const fallbackName = nameByKey.get(key) || '';
         try {
-          const res = await networkAPI.getProductGraphArango(productId);
+          const res = await templateAPI.getTemplateMap('products', key);
           const { nodes, links } = normalizeGraphResponse(res);
           if (nodes.length > 0 || links.length > 0) {
-            next[name] = { nodes, links };
-            console.log('[Graph] Product graph for "' + name + '" (productid=' + productId + '):', { nodes, links });
+            next[key] = { productKey: key, productName: fallbackName, nodes, links };
+            console.log('[Graph] Product template graph loaded (key=' + key + '):', { nodes, links });
           }
         } catch (e) {
-          console.warn('[Graph] Failed for "' + name + '" (productid=' + productId + '):', e?.message);
+          console.warn('[Graph] Failed for product key=' + key + ':', e?.message);
         }
       })
     );
     setProductGraphsMap(next);
-    console.log('[Graph] All product graphs loaded:', Object.keys(next).length, 'products with graph data', next);
+    console.log('[Graph] Connected product keys:', connectedProductKeys.size, 'graphs loaded:', Object.keys(next).length, next);
     setProductGraphsLoading(false);
-  }, []);
+  }, [connectedProductKeys]);
 
   useEffect(() => {
     if (location.pathname === '/add-products') {
@@ -204,7 +176,7 @@ const AddProductsPage = () => {
   }, [location.pathname, fetchRawMaterials, fetchProcesses, fetchGraph]);
 
   useEffect(() => {
-    if (location.pathname === '/add-products' && rawMaterials.length > 0) {
+    if (location.pathname === '/add-products') {
       fetchProductGraphs(rawMaterials);
     }
   }, [location.pathname, rawMaterials, fetchProductGraphs]);
@@ -303,7 +275,7 @@ const AddProductsPage = () => {
 
   // Build one template from one product's graph (nodes + links)
   // Backend sends link.type as "inputs" | "outputs" (collection name); normalize for mapping
-  const templateFromProductGraph = useCallback((productName, nodes, links) => {
+  const templateFromProductGraph = useCallback((productName, nodes, links, productKey = '') => {
     const nodeMap = new Map((nodes || []).map((n) => [n.id, n]));
     const label = (id) => nodeMap.get(id)?.label ?? nodeMap.get(id)?.name ?? id;
     const ls = links || [];
@@ -322,11 +294,13 @@ const AddProductsPage = () => {
       }
     });
     const productNameLower = String(productName || '').trim().toLowerCase();
+    const normalizedKey = String(productKey || '').trim();
     const mainNode = (nodes || []).find(
       (n) =>
         (n.type === 'products' || n.type === 'product') &&
-        (String(n.label ?? n.name ?? '').trim().toLowerCase() === productNameLower ||
-          (n.id && String(n.id).toLowerCase().includes(productNameLower)))
+        ((productNameLower && String(n.label ?? n.name ?? '').trim().toLowerCase() === productNameLower) ||
+          (normalizedKey && String(n.id || '').split('/').pop() === normalizedKey) ||
+          (productNameLower && n.id && String(n.id).toLowerCase().includes(productNameLower)))
     );
     if (!mainNode) return null;
     const productId = mainNode.id;
@@ -350,11 +324,10 @@ const AddProductsPage = () => {
   // Template cards: only products that have inputs (elements) appear under CarbonX Templates
   const graphTemplates = useMemo(() => {
     const fromPerProduct = [];
-    const productNames = Object.keys(productGraphsMap || {});
-    productNames.forEach((productName) => {
-      const g = productGraphsMap[productName];
+    const productEntries = Object.values(productGraphsMap || {});
+    productEntries.forEach((g) => {
       if (!g || (!g.nodes?.length && !g.links?.length)) return;
-      const t = templateFromProductGraph(productName, g.nodes, g.links);
+      const t = templateFromProductGraph(g.productName, g.nodes, g.links, g.productKey);
       if (t && Array.isArray(t.ingredients) && t.ingredients.length > 0) {
         fromPerProduct.push(t);
       }

@@ -41,6 +41,41 @@ public class TemplateController {
 	@Autowired
 	private ArangoDocumentService documentService;
 
+	private void relinkEdgesByNames(String database) {
+		String relinkInputs =  "FOR i IN inputs \n" +
+								"LET p = FIRST(FOR p IN products FILTER p.name == i.productName SORT TO_NUMBER(p._key) DESC RETURN p) \n" +
+								"LET pr = FIRST(FOR pr IN processes FILTER pr.name == i.processName SORT TO_NUMBER(pr._key) DESC RETURN pr) \n" +
+								"FILTER p != null AND pr != null \n" +
+								"UPDATE i WITH { _from: p._id, _to: pr._id } IN inputs OPTIONS { mergeObjects: false }";
+		String relinkOutputs = "FOR o IN outputs \n" +
+								"LET pr = FIRST(FOR pr IN processes FILTER pr.name == o.processName SORT TO_NUMBER(pr._key) DESC RETURN pr) \n" +
+								"LET p = FIRST(FOR p IN products FILTER p.name == o.productName SORT TO_NUMBER(p._key) DESC RETURN p) \n" +
+								"FILTER p != null AND pr != null \n" +
+								"UPDATE o WITH { _from: pr._id, _to: p._id } IN outputs OPTIONS { mergeObjects: false }";
+		queryService.executeQuery(database, relinkInputs, Map.of(), 100, null, null, null).block();
+		queryService.executeQuery(database, relinkOutputs, Map.of(), 100, null, null, null).block();
+	}
+
+	private String findConnectedAlternateStartNode(String database, String startNode) {
+		String query = "LET s = DOCUMENT(@startNode) \n" +
+						"FILTER s != null \n" +
+						"LET sName = s.name \n" +
+						"LET candidate = FIRST( \n" +
+						"    FOR p IN products \n" +
+						"        FILTER p.name == sName \n" +
+						"        LET inEdges = LENGTH(FOR e IN outputs FILTER e._to == p._id RETURN 1) \n" +
+						"        LET keyNum = TO_NUMBER(p._key) \n" +
+						"        SORT inEdges DESC, keyNum DESC \n" +
+						"        FILTER inEdges > 0 \n" +
+						"        RETURN p._id \n" +
+						") \n" +
+						"RETURN candidate";
+		Map<String, String> bindVars = Map.of("startNode", startNode);
+		ArrayList<String> result = (ArrayList<String>) queryService.executeQuery(database, query, bindVars, 100, null, null, null).block().get("result");
+		if (result == null || result.isEmpty()) return null;
+		return result.get(0);
+	}
+
 	// Get the entire network graph and assembles the data into the JSON-D3 format that frontend can use
 	@GetMapping
 	public ResponseEntity<Object> listTemplates(@RequestParam(defaultValue = "default") String database,
@@ -90,6 +125,12 @@ public class TemplateController {
 				result = Map.of("products", allProducts,
 									"processes", allProcesses);
 				log.info("Identified all nodes -> {}", result);
+				return new ResponseEntity<>(result, HttpStatus.OK);
+
+			case "connected":
+				Collection<String> connectedProducts = templateService.listConnectedProductNodes(database);
+				result = Map.of("products", connectedProducts, "processes", List.of());
+				log.info("Identified graph-connected product nodes -> {}", result);
 				return new ResponseEntity<>(result, HttpStatus.OK);
 
 			default:
@@ -155,11 +196,11 @@ public class TemplateController {
 												 @PathVariable String key) {
 
 		String query =  "LET nodes = ( \r\n" +
-						"    FOR v, e, p IN 1..100 INBOUND @startNode GRAPH default \r\n" +
+						"    FOR v, e, p IN 0..100 INBOUND @startNode GRAPH default \r\n" +
 						"        COLLECT id = v._id, label = v.name, type = PARSE_IDENTIFIER(v._id).collection \r\n" +
 						"        RETURN { id, label, type }) \r\n" +
 						"LET edges = ( \r\n" +
-						"    FOR v, e, p IN 1..100 INBOUND @startNode GRAPH default \r\n" +
+						"    FOR v, e, p IN 0..100 INBOUND @startNode GRAPH default \r\n" +
 						"        FILTER e != null \r\n" +
 						"        COLLECT source = e._from, target = e._to, type = PARSE_IDENTIFIER(e._id).collection \r\n" +
 						"        RETURN { source, target, type }) \r\n" +
@@ -168,6 +209,27 @@ public class TemplateController {
 		Map<String, String> bindVars = Map.of("startNode", collection+"/"+key);
 		log.info("bindvars -> {}", bindVars);
 		ArrayList<Map<String,ArrayList<Map<String,String>>>> response = (ArrayList<Map<String,ArrayList<Map<String,String>>>>) queryService.executeQuery(database, query, bindVars, 100, null, null, null).block().get("result");
+		Map<String,ArrayList<Map<String,String>>> first = response.get(0);
+		int nodesCount = first.getOrDefault("nodes", new ArrayList<>()).size();
+		int edgesCount = first.getOrDefault("edges", new ArrayList<>()).size();
+		if (edgesCount == 0) {
+			// Merge/import regressions can leave stale _from/_to values while names are still present.
+			// Auto-heal edges by names, then rerun traversal once.
+			log.warn("Empty template map for {} in {}. Relinking edges by names and retrying.", bindVars.get("startNode"), database);
+			relinkEdgesByNames(database);
+			response = (ArrayList<Map<String,ArrayList<Map<String,String>>>>) queryService.executeQuery(database, query, bindVars, 100, null, null, null).block().get("result");
+			first = response.get(0);
+			nodesCount = first.getOrDefault("nodes", new ArrayList<>()).size();
+			edgesCount = first.getOrDefault("edges", new ArrayList<>()).size();
+			if (edgesCount == 0 && "products".equalsIgnoreCase(collection)) {
+				String alternateStartNode = findConnectedAlternateStartNode(database, bindVars.get("startNode"));
+				if (alternateStartNode != null && !alternateStartNode.equals(bindVars.get("startNode"))) {
+					log.warn("Switching start node from {} to connected node {} for template map.", bindVars.get("startNode"), alternateStartNode);
+					bindVars = Map.of("startNode", alternateStartNode);
+					response = (ArrayList<Map<String,ArrayList<Map<String,String>>>>) queryService.executeQuery(database, query, bindVars, 100, null, null, null).block().get("result");
+				}
+			}
+		}
 		log.info("response -> {}", response);
 
 		return new ResponseEntity<>(response.get(0), HttpStatus.OK);

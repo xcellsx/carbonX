@@ -65,7 +65,8 @@ public class MaritimeController {
     public ResponseEntity<Object> searchShipLogs(@RequestParam(required = true) String companyName,
                                                  @RequestParam(required = false) String mmsi,
                                                  @RequestParam(required = false) String flag,
-                                                 @RequestParam(required = false) String dateOnly) {
+                                                 @RequestParam(required = false) String dateOnly,
+                                                 @RequestParam(required = false, defaultValue = "25000") int limit) {
                                             
         // Build AQL query string and associated 'bindVars'
         StringBuilder query = new StringBuilder("FOR doc in shipLogs ");
@@ -84,12 +85,14 @@ public class MaritimeController {
         }
         query.append("RETURN doc");
 
+        int batchSize = Math.min(Math.max(limit, 1), 100_000);
+
         // Execute query string in appropriate database
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Map<String,Object> response = queryService.executeQuery(companyName, query.toString(), bindVars, 100, null, null, null).block();       
+            Map<String,Object> response = queryService.executeQuery(companyName, query.toString(), bindVars, batchSize, null, null, null).block();       
             List<ShipLog> shipLogs = mapper.convertValue(response.get("result"), new TypeReference<List<ShipLog>>() {});
-            return new ResponseEntity<>(shipLogs.toString(), HttpStatus.OK);
+            return new ResponseEntity<>(shipLogs, HttpStatus.OK);
         } catch (IllegalArgumentException e)  {
             return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
         }
@@ -100,12 +103,14 @@ public class MaritimeController {
                                                     @PathVariable String mmsi) {
                                             
         // Build AQL query string and associated 'bindVars'
-        StringBuilder query = new StringBuilder("FOR doc in shipLogs FILTER doc.mmsi == @mmsi RETURN {'longitude':doc.longitude, 'latitude':doc.latitude}");
+        StringBuilder query = new StringBuilder(
+                "FOR doc IN shipLogs FILTER TO_STRING(doc.mmsi) == TO_STRING(@mmsi) SORT doc.timestamp ASC RETURN { "
+                        + "'longitude': doc.longitude, 'latitude': doc.latitude, 'timestamp': doc.timestamp }");
         Map<String,String> bindVars = Map.of("mmsi", mmsi);
 
         // Execute query string in appropriate database
         try {
-            Map<String,Object> response = queryService.executeQuery(companyName, query.toString(), bindVars, 100, null, null, null).block();
+            Map<String,Object> response = queryService.executeQuery(companyName, query.toString(), bindVars, 25_000, null, null, null).block();
             return new ResponseEntity<>(response.get("result"), HttpStatus.OK);
         } catch (IllegalArgumentException e)  {
             return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
@@ -119,4 +124,5 @@ public class MaritimeController {
         Map<String,Object> result = maritimeLCAService.calculateRoughCarbonFootprint(companyName, mmsi);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
 }

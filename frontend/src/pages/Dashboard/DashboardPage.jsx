@@ -11,7 +11,7 @@ import {
   Factory, ChevronLeft, ChevronRight, LayoutDashboard, Wind, Scale, AlertTriangle, Plane
 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
-import { API_BASE, productAPI, getLocalLcaMap, getLocalLcaCacheByName, normalizeUserIdKey } from '../../services/api';
+import { API_BASE, productAPI, maritimeAPI, getLocalLcaMap, getLocalLcaCacheByName, normalizeUserIdKey } from '../../services/api';
 import { chatCompletion, POPUP_MODEL } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
@@ -563,6 +563,47 @@ const DASHBOARD_CAROUSEL_SLIDES = [
   { title: 'Pro Insight & AI', description: 'Pro users get AI-generated insights at the top of the breakdown. You can also open the chat popup (sparkles button) to ask questions about your dashboard or get a summary.', icon: <Sparkles size={40} /> },
 ];
 
+const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
+function getStoredTemplates() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getEffectiveKey(p) {
+  const directKey = (p?.key && String(p.key).trim()) || (p?._key && String(p._key).trim());
+  if (directKey) return directKey;
+  const rawId = p?.id ?? p?._id;
+  if (rawId && String(rawId).includes('/')) return String(rawId).split('/').pop();
+  return rawId ? String(rawId) : '';
+}
+
+/** Match Inventory / Voyage Emissions (localStorage company sector · industry). */
+function isMarineTransportProfile(sector, industry) {
+  const s = String(sector || '').toLowerCase().trim();
+  const i = String(industry || '').toLowerCase().trim();
+  return (
+    s.includes('maritime') ||
+    i.includes('maritime') ||
+    s.includes('marine transport') ||
+    i.includes('marine transportation') ||
+    i.includes('marine transport')
+  );
+}
+
+function scope1KgFromMaritimeLcaResponse(lcaRes) {
+  const raw = lcaRes?.data?.scope1;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (raw && typeof raw === 'object' && raw.kgCO2e != null) {
+    const n = Number(raw.kgCO2e);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
 const generateInitialMetrics = () => {
   const data = {};
   for (const key in ALL_METRIC_DATA_DEFINITIONS) {
@@ -633,19 +674,25 @@ const DashboardPage = () => {
         const userCompany = allCompanyData[currentUserId] ?? allCompanyData[storageKey] ?? null;
         const sector = (userCompany?.sector || '').trim();
         const industry = (userCompany?.industry || '').trim();
+        const isMarineTransport = isMarineTransportProfile(sector, industry);
 
-        // Product list: used for "has products" and for computed scope totals from LCA results.
+        // Product list: must match Inventory fetch scope to keep totals consistent.
         let productsList = [];
         try {
-          const res = await productAPI.getAllProducts();
-          productsList = Array.isArray(res?.data) ? res.data : [];
+          const normalizedCurrentUserId = normalizeUserIdKey(currentUserId);
+          const res = await productAPI.getAllProducts(
+            normalizedCurrentUserId ? { userId: normalizedCurrentUserId } : {}
+          );
+          const rawProducts = Array.isArray(res?.data) ? res.data : [];
+          // Same safety filter as Inventory
+          productsList = normalizedCurrentUserId
+            ? rawProducts.filter((p) => !p.userId || normalizeUserIdKey(p.userId) === normalizedCurrentUserId)
+            : rawProducts;
         } catch (_) {
           productsList = [];
         }
 
         const productCount = productsList.length;
-        const hasAnyProducts = productCount > 0;
-        setHasProducts(hasAnyProducts);
 
         let baseData = generateInitialMetrics();
         const savedMetricsStr = localStorage.getItem('carbonx_dashboard_metrics');
@@ -670,52 +717,126 @@ const DashboardPage = () => {
         // 2) localStorage by productKey, 3) raw DPP/emissionInformation as final fallback.
         const localLcaMap = getLocalLcaMap(currentUserId);
         const localLcaByName = getLocalLcaCacheByName();
+        const storedTemplates = getStoredTemplates();
         // Include user's backend products and any template products that have a cached LCA
+        // Match Inventory behavior: include products without userId as shared/default data,
+        // plus products owned by the current user.
+        const normalizedCurrentUserId = normalizeUserIdKey(currentUserId);
         const userFilteredProducts = productsList.filter(
-          (p) => normalizeUserIdKey(p.userId) === normalizeUserIdKey(currentUserId)
+          (p) => !p.userId || normalizeUserIdKey(p.userId) === normalizedCurrentUserId
         );
-        const totals = userFilteredProducts.reduce(
-          (acc, p) => {
-            const effectiveKey = (p.key && String(p.key).trim()) || (p._key && String(p._key).trim())
-              || (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : String(p.id ?? ''));
-            const nameKey = (p.name || '').toLowerCase().trim();
-            const cachedByName = nameKey ? localLcaByName[nameKey] : null;
-            const localLcaTotal = localLcaMap[effectiveKey] != null ? Number(localLcaMap[effectiveKey]) : null;
-            if (cachedByName && typeof cachedByName.total === 'number') {
-              acc.scope1 += cachedByName.scope1 || 0;
-              acc.scope2 += cachedByName.scope2 || 0;
-              acc.scope3 += cachedByName.scope3 || 0;
-            } else if (localLcaTotal != null && !Number.isNaN(localLcaTotal)) {
-              acc.scope3 += localLcaTotal;
-            } else {
-              const t = getScopeTotalsFromProduct({
-                DPP: p?.DPP ?? p?.dpp,
-                emissionInformation: p?.emissionInformation ?? p?.emission_information,
-              });
-              acc.scope1 += t.scope1 || 0;
-              acc.scope2 += t.scope2 || 0;
-              acc.scope3 += t.scope3 || 0;
-            }
-            return acc;
-          },
-          { scope1: 0, scope2: 0, scope3: 0 }
+        const backendNameSet = new Set(
+          userFilteredProducts.map((p) => String(p?.name || '').toLowerCase().trim()).filter(Boolean)
         );
-        // Also aggregate template products that have cached LCA values (they have no userId so are excluded above)
-        Object.entries(localLcaMap).forEach(([key, val]) => {
-          if (!key.startsWith('template-')) return;
-          const lcaTotal = Number(val);
-          if (Number.isNaN(lcaTotal)) return;
-          // Find scope breakdown from name cache by matching template key → already stored there after calculation
-          // Template lcaResult is the full total; we use scope3 as conservative fallback if no name match
-          const foundByKey = Object.values(localLcaByName).find((c) => Math.abs((c.total ?? 0) - lcaTotal) < 0.001);
-          if (foundByKey && typeof foundByKey.total === 'number') {
-            totals.scope1 += foundByKey.scope1 || 0;
-            totals.scope2 += foundByKey.scope2 || 0;
-            totals.scope3 += foundByKey.scope3 || 0;
-          } else {
-            totals.scope3 += lcaTotal;
+        // Mirror Inventory: templates are active only when no backend product has the same name.
+        const activeTemplates = storedTemplates.filter(
+          (t) => !backendNameSet.has(String(t?.name || '').toLowerCase().trim())
+        );
+        const activeTemplateKeySet = new Set(
+          activeTemplates
+            .map((t) => (t?.id != null ? `template-${String(t.id)}` : ''))
+            .filter(Boolean)
+        );
+        const hasTemplateEntries = activeTemplates.length > 0;
+        const hasTemplateLcaEntries = Object.keys(localLcaMap).some((k) => activeTemplateKeySet.has(String(k)));
+
+        let maritimeVesselCount = 0;
+        let maritimeVoyageKg = 0;
+        if (isMarineTransport) {
+          try {
+            const logsRes = await maritimeAPI.getShipLogs();
+            const rawLogs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+            const mmsiSet = new Set();
+            rawLogs.forEach((log) => {
+              const m = String(log?.mmsi || log?.MMSI || '').trim();
+              if (m) mmsiSet.add(m);
+            });
+            maritimeVesselCount = mmsiSet.size;
+            const lcaRows = await Promise.all(
+              [...mmsiSet].map(async (mmsi) => {
+                try {
+                  const lcaRes = await maritimeAPI.getLca(mmsi);
+                  return scope1KgFromMaritimeLcaResponse(lcaRes);
+                } catch {
+                  return 0;
+                }
+              })
+            );
+            maritimeVoyageKg = lcaRows.reduce((a, b) => a + b, 0);
+          } catch (e) {
+            console.warn('[Dashboard] Maritime voyage aggregate failed:', e?.message || e);
+          }
+        }
+
+        const hasAnyProducts =
+          productCount > 0 || hasTemplateEntries || hasTemplateLcaEntries || maritimeVesselCount > 0;
+        setHasProducts(hasAnyProducts);
+        // Dashboard must reflect calculated values (same source as Inventory), not raw emission defaults.
+        const totals = { scope1: 0, scope2: 0, scope3: 0 };
+        let hasAnyCacheContribution = false;
+        const addedNames = new Set();
+        const addByNameCache = (name) => {
+          const nameKey = String(name || '').toLowerCase().trim();
+          if (!nameKey || addedNames.has(nameKey)) return false;
+          const cached = localLcaByName[nameKey];
+          if (!cached || typeof cached !== 'object' || typeof cached.total !== 'number') return false;
+          totals.scope1 += Number(cached.scope1) || 0;
+          totals.scope2 += Number(cached.scope2) || 0;
+          totals.scope3 += Number(cached.scope3) || 0;
+          addedNames.add(nameKey);
+          hasAnyCacheContribution = true;
+          return true;
+        };
+
+        // 1) Prefer scope breakdowns cached by product name (one per product name).
+        userFilteredProducts.forEach((p) => {
+          addByNameCache(p.name);
+        });
+        const templateIdToName = new Map();
+        activeTemplates.forEach((t) => {
+          const tid = t?.id != null ? String(t.id) : '';
+          if (tid) templateIdToName.set(`template-${tid}`, String(t?.name || '').toLowerCase().trim());
+          addByNameCache(t?.name);
+        });
+
+        // 2) Fallback: if a user product has key-based LCA only, treat it as scope3 total.
+        userFilteredProducts.forEach((p) => {
+          const nameKey = String(p.name || '').toLowerCase().trim();
+          if (nameKey && addedNames.has(nameKey)) return;
+          const effectiveKey = getEffectiveKey(p);
+          const localLcaTotal = localLcaMap[effectiveKey] != null ? Number(localLcaMap[effectiveKey]) : null;
+          if (localLcaTotal != null && !Number.isNaN(localLcaTotal)) {
+            totals.scope3 += localLcaTotal;
+            hasAnyCacheContribution = true;
           }
         });
+
+        // 3) Template key-only fallback.
+        Object.entries(localLcaMap).forEach(([key, val]) => {
+          if (!String(key).startsWith('template-')) return;
+          if (!activeTemplateKeySet.has(String(key))) return;
+          const templateNameKey = templateIdToName.get(String(key));
+          if (templateNameKey && addedNames.has(templateNameKey)) return;
+          const lcaTotal = Number(val);
+          if (Number.isNaN(lcaTotal)) return;
+          totals.scope3 += lcaTotal;
+          hasAnyCacheContribution = true;
+        });
+
+        // If no calculated cache exists yet, fallback to backend product scope values
+        // (same filtered product set) so Dashboard does not show all zeros.
+        if (!hasAnyCacheContribution && userFilteredProducts.length > 0) {
+          userFilteredProducts.forEach((p) => {
+            const t = getScopeTotalsFromProduct({
+              DPP: p?.DPP ?? p?.dpp,
+              emissionInformation: p?.emissionInformation ?? p?.emission_information,
+            });
+            totals.scope1 += t.scope1 || 0;
+            totals.scope2 += t.scope2 || 0;
+            totals.scope3 += t.scope3 || 0;
+          });
+        }
+        totals.scope1 += maritimeVoyageKg;
         totals.total = totals.scope1 + totals.scope2 + totals.scope3;
 
         // Always prefer computed totals when products exist (reflects latest calculations).
@@ -731,9 +852,10 @@ const DashboardPage = () => {
           // Approximate fleet fuel consumed (GJ) from total LCA kgCO₂e using diesel emission factor.
           // Diesel: ~2.68 kgCO₂e/litre, energy content ~0.0386 GJ/litre → GJ = (kgCO₂e / 2.68) * 0.0386
           // Only set if the user hasn't manually entered a value already.
+          const skipFnBFuelHeuristic = isMarineTransport && maritimeVesselCount > 0;
           const fuelEntry = baseData['FB-FR-110a.2'];
           const fuelAlreadySet = fuelEntry && fuelEntry.value !== null && fuelEntry.value !== 'User Input' && parseFloat(fuelEntry.value) > 0;
-          if (!fuelAlreadySet && totals.total > 0) {
+          if (!skipFnBFuelHeuristic && !fuelAlreadySet && totals.total > 0) {
             const approxLitres = totals.total / 2.68;
             const approxGj = round2(approxLitres * 0.0386);
             if (baseData['FB-FR-110a.2']) baseData['FB-FR-110a.2'].value = approxGj;
@@ -744,7 +866,7 @@ const DashboardPage = () => {
           // Scope 2 (grid electricity): use avg grid factor 0.233 kgCO₂e/kWh → GJ = scope2 / 0.233 * 0.0036
           const energyEntry = baseData['FB-FR-130a.1'];
           const energyAlreadySet = energyEntry && energyEntry.value !== null && energyEntry.value !== 'User Input' && parseFloat(energyEntry.value) > 0;
-          if (!energyAlreadySet && (totals.scope1 > 0 || totals.scope2 > 0)) {
+          if (!skipFnBFuelHeuristic && !energyAlreadySet && (totals.scope1 > 0 || totals.scope2 > 0)) {
             const gjFromScope1 = (totals.scope1 / 2.68) * 0.0386;
             const gjFromScope2 = (totals.scope2 / 0.233) * 0.0036;
             const totalEnergyGj = round2(gjFromScope1 + gjFromScope2);
@@ -759,9 +881,10 @@ const DashboardPage = () => {
             }
           }
 
-          const isMarineTransport = sector === 'Transportation' && industry === 'Marine Transportation';
           const isAirlines = sector === 'Transportation' && industry === 'Airlines';
-          if (isMarineTransport && baseData['TR-MR-GHG-1']) baseData['TR-MR-GHG-1'].value = round2(totals.total);
+          if (isMarineTransport && baseData['TR-MR-GHG-1']) {
+            baseData['TR-MR-GHG-1'].value = round2(totals.scope1);
+          }
           if (isAirlines && baseData['TR-AR-GHG-1']) baseData['TR-AR-GHG-1'].value = round2(totals.total);
         }
 
@@ -821,7 +944,6 @@ const DashboardPage = () => {
         ];
 
         const isFnb = sector === 'Food & Beverages' || sector === 'FNB' || sector === 'F&B';
-        const isMarineTransport = sector === 'Transportation' && industry === 'Marine Transportation';
         const isAirlines = sector === 'Transportation' && industry === 'Airlines';
 
         let metricList;
@@ -841,6 +963,8 @@ const DashboardPage = () => {
           topContributors: [],
           sector: sector || null,
           industry: industry || null,
+          maritimeVesselCount,
+          maritimeVoyageKg: Math.round(maritimeVoyageKg * 100) / 100,
         });
 
         if (metricList.length > 0) {
@@ -1155,6 +1279,15 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
               <p className='descriptor-medium'>Key Metrics</p>
               {hasProducts ? (
                 <p style = {{color: "rgba(var(--greys), 1)"}}>
+                  {metrics?.maritimeVesselCount > 0 && (
+                    <>
+                      Aggregated voyage LCA from {metrics.maritimeVesselCount} vessel
+                      {metrics.maritimeVesselCount === 1 ? '' : 's'} in ship logs
+                      {typeof metrics.maritimeVoyageKg === 'number'
+                        ? ` (~${Number(metrics.maritimeVoyageKg).toFixed(2)} kgCO₂e scope 1). `
+                        : '. '}
+                    </>
+                  )}
                   {metrics?.sector
                     ? `Showing ${metricsForIndustry.length} metrics for ${metrics.sector}${metrics.industry ? ` · ${metrics.industry}` : ''}`
                     : `Showing ${metricsForIndustry.length} metrics`}

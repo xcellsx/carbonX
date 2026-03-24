@@ -4,7 +4,7 @@ import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import dashboard from '../../assets/dashboard.png';
-import { authAPI, usersAPI } from '../../services/api';
+import { authAPI, usersAPI, stableSessionUserId } from '../../services/api';
 
 const SignupPage = () => {
   const [fullName, setFullName] = useState('');
@@ -48,9 +48,14 @@ const SignupPage = () => {
     setLoading(true);
     try {
       const { data } = await authAPI.register({ fullName, email, password });
+      const sessionId = stableSessionUserId(data);
+      if (!sessionId) {
+        setMessage({ type: 'error', text: 'Account was created but we could not start your session. Please sign in.' });
+        return;
+      }
       localStorage.removeItem('isProUser');
       localStorage.removeItem('settingsTab');
-      localStorage.setItem('userId', data.id || data.key || `user-${Date.now()}`);
+      localStorage.setItem('userId', sessionId);
       const savedFullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || fullName || '';
       try {
         localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName: savedFullName, email: data.email || email, phone: '' }));

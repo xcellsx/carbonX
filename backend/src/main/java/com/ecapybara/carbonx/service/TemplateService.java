@@ -91,4 +91,23 @@ public class TemplateService {
 		Collection<String> result = (Collection<String>) queryService.executeQuery(database, query, bindVars, 100, null, null, null).block().get("result");
 		return result;
 	}
+
+	/**
+	 * Returns product ids that are actually connected in the graph via outputs edges.
+	 * This avoids flooding frontend with disconnected products that produce empty maps.
+	 */
+	public Collection<String> listConnectedProductNodes(String database) {
+		String query = "FOR o IN outputs \n" +
+						"    COLLECT productName = o.productName \n" +
+						"    LET latestProductId = FIRST( \n" +
+						"        FOR p IN products \n" +
+						"            FILTER p.name == productName \n" +
+						"            SORT TO_NUMBER(p._key) DESC \n" +
+						"            RETURN p._id \n" +
+						"    ) \n" +
+						"    FILTER latestProductId != null \n" +
+						"    RETURN latestProductId";
+		Collection<String> result = (Collection<String>) queryService.executeQuery(database, query, Map.of(), 100, null, null, null).block().get("result");
+		return result != null ? result : new ArrayList<>();
+	}
 }

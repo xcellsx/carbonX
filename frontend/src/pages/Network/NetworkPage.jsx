@@ -5,7 +5,8 @@ import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown, Network } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import './NetworkPage.css';
-import { API_BASE, productAPI, networkAPI, getLocalLcaMap } from '../../services/api';
+import { API_BASE, productAPI, networkAPI, templateAPI, maritimeAPI, getLocalLcaMap } from '../../services/api';
+import VesselLocationsMap, { normalizeShipLocationRows } from '../../components/VesselLocationsMap/VesselLocationsMap.jsx';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getScopeTotalsFromProduct as getScopeTotalsFromProductUtil, formatEmission as formatEmissionUtil } from '../../utils/emission';
 
@@ -42,6 +43,34 @@ const NETWORK_CAROUSEL_SLIDES = [
   { title: 'Product & impact category', description: 'Use the dropdowns to choose a product from your inventory and an impact category (e.g. Climate Change, Land Use). The graph updates to show the network for that combination.', icon: <Network size={40} /> },
   { title: 'Consolidated vs component view', description: 'Toggle between Consolidated View (single graph) and Component View (per-component breakdown) to explore the supply chain at different levels of detail.', icon: <Network size={40} /> },
 ];
+
+const MARITIME_NETWORK_CAROUSEL_SLIDES = [
+  { title: 'Vessel track map', description: 'Select a vessel (MMSI) from your ship logs. The map animates along the voyage in log time order; use Replay movement to run it again.', icon: <Network size={40} /> },
+  { title: 'Voyage emissions', description: 'Approximate voyage LCA (kgCO₂e) uses the same rough AIS model as Voyage Emissions, shown under the map.', icon: <Network size={40} /> },
+  { title: 'Data density', description: 'More AIS fixes in ship logs mean a richer track. Seed data may only include a few positions per vessel.', icon: <Network size={40} /> },
+];
+
+function isMaritimeNetworkProfile(sector, industry) {
+  const s = String(sector || '').toLowerCase().trim();
+  const i = String(industry || '').toLowerCase().trim();
+  return (
+    s.includes('maritime') ||
+    i.includes('maritime') ||
+    s.includes('marine transport') ||
+    i.includes('marine transportation') ||
+    i.includes('marine transport')
+  );
+}
+
+function scope1KgFromMaritimeLcaResponse(lcaRes) {
+  const raw = lcaRes?.data?.scope1;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (raw && typeof raw === 'object' && raw.kgCO2e != null) {
+    const n = Number(raw.kgCO2e);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
 
 // --- Same template helpers as Analytics/Inventory ---
 const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
@@ -408,12 +437,17 @@ const NetworkPage = () => {
   const sector = (companyData?.sector || '').trim();
   const industry = (companyData?.industry || '').trim();
   const isTransportationIndustry = sector === 'Transportation';
+  const maritimeNetworkMode = isMaritimeNetworkProfile(sector, industry);
   const vesselDemoProduct = {
     productId: VESSEL_DEMO_PRODUCT_ID,
     productName: 'Vessel route: Port A → Port B (demo)',
     _isVesselDemo: true,
   };
-  const displayProducts = isTransportationIndustry ? [vesselDemoProduct, ...userProducts] : userProducts;
+  const displayProducts = maritimeNetworkMode
+    ? userProducts
+    : isTransportationIndustry
+      ? [vesselDemoProduct, ...userProducts]
+      : userProducts;
   
   // --- PERSISTENCE ---
   const [selectedProductId, setSelectedProductId] = useState(
@@ -435,6 +469,7 @@ const NetworkPage = () => {
   
   const [loadingNetwork, setLoadingNetwork] = useState(false);
   const [error, setError] = useState('');
+  const [vesselTrack, setVesselTrack] = useState({ points: [], loading: false, error: '' });
 
   // Helper function to filter graph for a specific component
   // Returns a subgraph showing only nodes/edges that feed into the component
@@ -495,6 +530,81 @@ const NetworkPage = () => {
   // --- Fetch Product List (exact same logic as Analytics/Inventory) ---
   const fetchProducts = useCallback(async () => {
     try {
+      let sector = '';
+      let industry = '';
+      try {
+        const raw = localStorage.getItem('companyData') || '{}';
+        const data = JSON.parse(raw);
+        const uid = localStorage.getItem('userId') || '';
+        const key = uid.includes('/') ? uid.split('/').pop() : uid;
+        const c = data[uid] ?? data[key] ?? null;
+        sector = (c?.sector || '').trim();
+        industry = (c?.industry || '').trim();
+      } catch {
+        /* ignore */
+      }
+
+      if (isMaritimeNetworkProfile(sector, industry)) {
+        try {
+          const logsRes = await maritimeAPI.getShipLogs();
+          const rawLogs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+          const mmsiSet = new Set();
+          rawLogs.forEach((log) => {
+            const m = String(log?.mmsi || log?.MMSI || '').trim();
+            if (m) mmsiSet.add(m);
+          });
+          const mmsiList = [...mmsiSet].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+          const lcaByMmsi = await Promise.all(
+            mmsiList.map(async (mmsi) => {
+              try {
+                const lcaRes = await maritimeAPI.getLca(mmsi);
+                return scope1KgFromMaritimeLcaResponse(lcaRes);
+              } catch {
+                return 0;
+              }
+            })
+          );
+          const mapped = mmsiList.map((mmsi, idx) => {
+            const scope1 = lcaByMmsi[idx] ?? 0;
+            const name = `Vessel ${mmsi}`;
+            return {
+              productId: `mmsi-${mmsi}`,
+              productName: name,
+              dppData: '[]',
+              lcaResult: scope1,
+              scope1,
+              scope2: 0,
+              scope3: scope1,
+              DPP: {
+                name,
+                carbonFootprint: {
+                  scope1: { kgCO2e: scope1 },
+                  scope2: { kgCO2e: 0 },
+                  scope3: { kgCO2e: scope1 },
+                },
+              },
+              emissionInformation: null,
+              backendProductId: null,
+              _maritimeVessel: true,
+              mmsi,
+            };
+          });
+          setProducts(mapped);
+          setUserProducts(mapped);
+          setRawProductsData([]);
+          setBackendNameToKey(new Map());
+          setError(mapped.length === 0 ? 'No vessels found in ship logs.' : '');
+        } catch (err) {
+          console.warn('[Network] Maritime vessel list failed', err);
+          setProducts([]);
+          setUserProducts([]);
+          setRawProductsData([]);
+          setBackendNameToKey(new Map());
+          setError('Could not load vessels from ship logs.');
+        }
+        return;
+      }
+
       let mapped = [];
       const backendNames = new Set();
       const nameToKey = new Map();
@@ -580,6 +690,13 @@ const NetworkPage = () => {
       setComponentMeta([]);
       return;
     }
+    if (typeof productId === 'string' && productId.startsWith('mmsi-')) {
+      setConsolidatedData(null);
+      setComponentGraphData([]);
+      setComponentMeta([]);
+      setLoadingNetwork(false);
+      return;
+    }
     setLoadingNetwork(true);
     setError('');
 
@@ -648,14 +765,34 @@ const NetworkPage = () => {
         setLoadingNetwork(false);
         return;
       }
-      let res = await networkAPI.getProductGraphArango(apiKey);
-      let { nodes: backendNodes, links: backendLinks } = parseGraphResponse(res);
-      console.log('[Network] getProductGraph(apiKey="' + apiKey + '") →', backendNodes.length, 'nodes,', backendLinks.length, 'links');
+      const fetchGraphCandidates = async (candidate) => {
+        const keyOnly = typeof candidate === 'string' && candidate.includes('/') ? candidate.split('/').pop() : candidate;
+        if (!keyOnly) return { nodes: [], links: [] };
+        // Primary: legacy graph endpoint (can return 500 for some inputs; do not fail hard)
+        let parsed = { nodes: [], links: [] };
+        try {
+          const primary = await networkAPI.getProductGraphArango(keyOnly);
+          parsed = parseGraphResponse(primary);
+          if (parsed.nodes.length > 0 || parsed.links.length > 0) return parsed;
+        } catch (e) {
+          console.warn('[Network] Primary graph endpoint failed for', keyOnly, e?.message);
+        }
+        // Fallback: template map endpoint (currently the most reliable graph source)
+        try {
+          const fallback = await templateAPI.getTemplateMap('products', keyOnly);
+          parsed = parseGraphResponse(fallback);
+          return parsed;
+        } catch {
+          return parsed;
+        }
+      };
+
+      let { nodes: backendNodes, links: backendLinks } = await fetchGraphCandidates(apiKey);
+      console.log('[Network] graph fetch(apiKey="' + apiKey + '") →', backendNodes.length, 'nodes,', backendLinks.length, 'links');
 
       // If we got no edges, try by product name (backend might resolve name to key)
       if (backendLinks.length === 0 && productName?.trim() && apiKey !== productName.trim()) {
-        res = await networkAPI.getProductGraphArango(productName.trim());
-        const fallback = parseGraphResponse(res);
+        const fallback = await fetchGraphCandidates(productName.trim());
         if (fallback.nodes.length > 0 || fallback.links.length > 0) {
           backendNodes = fallback.nodes;
           backendLinks = fallback.links;
@@ -784,6 +921,36 @@ const NetworkPage = () => {
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [fetchProducts, location.pathname]);
 
+  // Load AIS track for selected maritime vessel
+  useEffect(() => {
+    if (!maritimeNetworkMode || !selectedProductId || !String(selectedProductId).startsWith('mmsi-')) {
+      setVesselTrack({ points: [], loading: false, error: '' });
+      return;
+    }
+    const mmsi = String(selectedProductId).replace(/^mmsi-/, '');
+    let cancelled = false;
+    setVesselTrack((t) => ({ ...t, loading: true, error: '' }));
+    (async () => {
+      try {
+        const res = await maritimeAPI.getShipLocations(mmsi);
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        const points = normalizeShipLocationRows(rows);
+        if (!cancelled) setVesselTrack({ points, loading: false, error: '' });
+      } catch (e) {
+        if (!cancelled) {
+          setVesselTrack({
+            points: [],
+            loading: false,
+            error: e?.message || 'Could not load vessel positions.',
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [maritimeNetworkMode, selectedProductId]);
+
   // Restore selection from storage, or default to first available product (or vessel demo for Transportation)
   useEffect(() => {
     if (displayProducts.length === 0) return;
@@ -791,6 +958,9 @@ const NetworkPage = () => {
     if (productExists) {
       if (productExists._isVesselDemo) {
         fetchNetworkData(VESSEL_DEMO_PRODUCT_ID, products);
+      } else if (productExists._maritimeVessel) {
+        setComponents([]);
+        fetchNetworkData(selectedProductId, products);
       } else {
         if (productExists.dppData) {
           try { setComponents(JSON.parse(productExists.dppData)); } catch(e) {}
@@ -802,11 +972,17 @@ const NetworkPage = () => {
         setSelectedProductId('');
         sessionStorage.removeItem('network_selectedProductId');
       }
-      const defaultProduct = displayProducts.find(p => (p.productName || '').toLowerCase().trim() === 'spaghetti') || displayProducts[0];
+      const defaultProduct = maritimeNetworkMode
+        ? displayProducts[0]
+        : displayProducts.find(p => (p.productName || '').toLowerCase().trim() === 'spaghetti') || displayProducts[0];
+      if (!defaultProduct) return;
       setSelectedProductId(defaultProduct.productId);
       sessionStorage.setItem('network_selectedProductId', defaultProduct.productId);
       if (defaultProduct._isVesselDemo) {
         fetchNetworkData(VESSEL_DEMO_PRODUCT_ID, products);
+      } else if (defaultProduct._maritimeVessel) {
+        setComponents([]);
+        fetchNetworkData(defaultProduct.productId, products);
       } else {
         if (defaultProduct.dppData) {
           try { setComponents(JSON.parse(defaultProduct.dppData)); } catch(e) {}
@@ -814,7 +990,7 @@ const NetworkPage = () => {
         fetchNetworkData(defaultProduct.productId, products);
       }
     }
-  }, [products, displayProducts, fetchNetworkData]);
+  }, [products, displayProducts, fetchNetworkData, maritimeNetworkMode]);
 
   const handleProductChange = (e) => {
     const newProductId = e.target.value;
@@ -828,6 +1004,9 @@ const NetworkPage = () => {
       if (newProductId === VESSEL_DEMO_PRODUCT_ID) {
         setComponents([{ ingredient: 'Vessel / Voyage' }]);
         fetchNetworkData(VESSEL_DEMO_PRODUCT_ID, products);
+      } else if (String(newProductId).startsWith('mmsi-')) {
+        setComponents([]);
+        fetchNetworkData(newProductId, products);
       } else {
         const product = products.find(p => p.productId == newProductId);
         if (product && product.dppData) {
@@ -858,85 +1037,156 @@ const NetworkPage = () => {
 
   const selectedProduct = displayProducts.find(p => p.productId == selectedProductId);
   const productName = selectedProduct ? selectedProduct.productName : "Unknown Product";
+  const maritimeVoyageKg = selectedProduct
+    ? selectedProduct.scope1 ?? selectedProduct.lcaResult
+    : null;
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="network" slides={NETWORK_CAROUSEL_SLIDES} newUserOnly />
+      <InstructionalCarousel
+        pageId="network"
+        slides={maritimeNetworkMode ? MARITIME_NETWORK_CAROUSEL_SLIDES : NETWORK_CAROUSEL_SLIDES}
+        newUserOnly
+      />
       <Navbar />
       <div className="content-section-main">
-        <div className="content-container-main">
+        <div className={`content-container-main${maritimeNetworkMode ? ' content-container-main--maritime-network' : ''}`}>
           <div className="header-group">
             <h1>Network</h1>
-            <p className = "medium-regular">View your product supply chain network here.</p>
+            <p className = "medium-regular">
+              {maritimeNetworkMode
+                ? 'Vessel tracks from AIS logs and approximate voyage emissions (supply-chain graph is not used).'
+                : 'View your product supply chain network here.'}
+            </p>
           </div>
           
-          {/* Product dropdown (reverted to original style) */}
-          <div className="sub-header" style={{ display: 'flex', alignItems: 'stretch', gap: '1.5rem' }}>
-            <div className="header-col">
-              <label htmlFor="product-select" className="normal-bold">Select your product:</label>
-              <div className="select-wrapper">
-                <select
-                  id="product-select"
-                  className="input-base"
-                  value={selectedProductId}
-                  onChange={handleProductChange}
-                  disabled={displayProducts.length === 0}
-                >
-                  <option value="">{displayProducts.length === 0 ? "No products found" : "-- Select a product --"}</option>
-                  {displayProducts.map(product => (
-                    <option key={product.productId} value={product.productId}>
-                      {product.productName}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="select-arrow" />
-              </div>
-            </div>
-          </div>
-
-          {/* Carbon Scope (left) and View types (right) */}
-          <div className="network-controls-row">
-            <div className="header-col">
-              <label htmlFor="scope-select" className="normal-bold">Carbon Emission Scope:</label>
-              <div className="select-wrapper">
-                <select
-                  id="scope-select"
-                  className="input-base"
-                  value={selectedScope.id}
-                  onChange={handleScopeChange}
-                >
-                  {EMISSION_SCOPES.map(scope => (
-                    <option key={scope.id} value={scope.id}>
-                      {scope.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="select-arrow" />
-              </div>
-            </div>
-            {selectedProductId && (
-              <div className="network-view-toggle-wrap">
-                <span className={`view-label ${currentView === 'consolidated' ? 'active' : ''}`}>Consolidated View</span>
-                <label className="switch">
-                  <input
-                    type="checkbox"
-                    checked={currentView === 'component'}
-                    onChange={handleViewToggle}
-                  />
-                  <span className="slider round"></span>
+          {/* Product / vessel selector — maritime: full-width row + voyage stat card */}
+          {maritimeNetworkMode ? (
+            <div className="network-maritime-toolbar">
+              <div className="network-maritime-toolbar__vessel">
+                <label htmlFor="product-select" className="network-maritime-toolbar__label">
+                  Vessel
                 </label>
-                <span className={`view-label ${currentView === 'component' ? 'active' : ''}`}>Component View</span>
+                <div className="select-wrapper network-maritime-toolbar__select-wrap">
+                  <select
+                    id="product-select"
+                    className="input-base network-maritime-toolbar__select"
+                    value={selectedProductId}
+                    onChange={handleProductChange}
+                    disabled={displayProducts.length === 0}
+                  >
+                    <option value="">
+                      {displayProducts.length === 0
+                        ? 'No vessels found'
+                        : '-- Choose a vessel --'}
+                    </option>
+                    {displayProducts.map(product => (
+                      <option key={product.productId} value={product.productId}>
+                        {product.productName}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="select-arrow" />
+                </div>
               </div>
-            )}
-          </div>
+              {selectedProductId && selectedProduct?._maritimeVessel ? (
+                <aside className="network-maritime-stat" aria-label="Approximate voyage lifecycle emissions">
+                  <span className="network-maritime-stat__label">Voyage LCA (approx.)</span>
+                  <span className="network-maritime-stat__value">
+                    {maritimeVoyageKg != null && Number.isFinite(Number(maritimeVoyageKg))
+                      ? `${Number(maritimeVoyageKg).toLocaleString(undefined, { maximumFractionDigits: 3 })} kg CO₂e`
+                      : '—'}
+                  </span>
+                  <span className="network-maritime-stat__hint">Rough AIS-based model</span>
+                </aside>
+              ) : null}
+            </div>
+          ) : (
+            <div className="sub-header" style={{ display: 'flex', alignItems: 'stretch', gap: '1.5rem' }}>
+              <div className="header-col">
+                <label htmlFor="product-select" className="normal-bold">
+                  Select your product:
+                </label>
+                <div className="select-wrapper">
+                  <select
+                    id="product-select"
+                    className="input-base"
+                    value={selectedProductId}
+                    onChange={handleProductChange}
+                    disabled={displayProducts.length === 0}
+                  >
+                    <option value="">
+                      {displayProducts.length === 0 ? 'No products found' : '-- Select a product --'}
+                    </option>
+                    {displayProducts.map(product => (
+                      <option key={product.productId} value={product.productId}>
+                        {product.productName}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="select-arrow" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Carbon scope + view toggle (hidden for maritime — map replaces graph) */}
+          {!maritimeNetworkMode && (
+            <div className="network-controls-row">
+              <div className="header-col">
+                <label htmlFor="scope-select" className="normal-bold">Carbon Emission Scope:</label>
+                <div className="select-wrapper">
+                  <select
+                    id="scope-select"
+                    className="input-base"
+                    value={selectedScope.id}
+                    onChange={handleScopeChange}
+                  >
+                    {EMISSION_SCOPES.map((scope) => (
+                      <option key={scope.id} value={scope.id}>
+                        {scope.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="select-arrow" />
+                </div>
+              </div>
+              {selectedProductId && (
+                <div className="network-view-toggle-wrap">
+                  <span className={`view-label ${currentView === 'consolidated' ? 'active' : ''}`}>Consolidated View</span>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={currentView === 'component'}
+                      onChange={handleViewToggle}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                  <span className={`view-label ${currentView === 'component' ? 'active' : ''}`}>Component View</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {error && <div className="submit-error" style={{ marginBottom: '0.5rem' }}>{error}</div>}
 
           {/* Consolidated View: D3 supply-chain graph */}
-          {currentView === 'consolidated' && (
-            <div className="analytics-card network-page" style={{ marginTop: 0 }}>
+          {(maritimeNetworkMode || currentView === 'consolidated') && (
+            <div
+              className={`analytics-card network-page${maritimeNetworkMode && selectedProduct?._maritimeVessel ? ' network-page--vessel-map' : ''}`}
+              style={{ marginTop: 0 }}
+            >
               <div className="analytics-table-container">
-                {loadingNetwork ? (
+                {maritimeNetworkMode && selectedProduct?._maritimeVessel ? (
+                  <VesselLocationsMap
+                    points={vesselTrack.points}
+                    vesselName={selectedProduct.productName}
+                    voyageKgCO2e={selectedProduct.scope1 ?? selectedProduct.lcaResult}
+                    showVoyageSummary={false}
+                    loading={vesselTrack.loading}
+                    error={vesselTrack.error}
+                  />
+                ) : loadingNetwork ? (
                   <div className="loading-message">Loading network data...</div>
                 ) : consolidatedData?.nodes?.length > 0 ? (
                   <NetworkGraph
@@ -950,7 +1200,13 @@ const NetworkPage = () => {
                   />
                 ) : (
                   <div className="no-data-message">
-                    {selectedProductId ? "No network data available for this selection." : "Select a product to view its network."}
+                    {selectedProductId
+                      ? maritimeNetworkMode
+                        ? 'Select a vessel to load its map.'
+                        : 'No network data available for this selection.'
+                      : maritimeNetworkMode
+                        ? 'Select a vessel to view its track.'
+                        : 'Select a product to view its network.'}
                   </div>
                 )}
               </div>
@@ -958,7 +1214,7 @@ const NetworkPage = () => {
           )}
 
           {/* Component View: per-component D3 graph (only components with upstream links) */}
-          {currentView === 'component' && (() => {
+          {!maritimeNetworkMode && currentView === 'component' && (() => {
             const visibleComponents = components
               .map((comp, index) => ({ comp, index, meta: componentMeta[index] }))
               .filter(({ comp, meta }) => {

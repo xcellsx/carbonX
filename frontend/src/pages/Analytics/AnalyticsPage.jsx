@@ -4,7 +4,7 @@ import './AnalyticsPage.css';
 import Navbar from '../../components/Navbar/Navbar';
 import { ChevronDown, Sparkles, Lock, X, BarChart3 } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
-import { API_BASE, productAPI, getLocalLcaMap } from '../../services/api';
+import { API_BASE, productAPI, processAPI, maritimeAPI, getLocalLcaMap } from '../../services/api';
 import { generateProductAnalysisSuggestions } from '../../services/openRouter';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import ProModal from '../../components/ProModal/ProModal';
@@ -81,6 +81,42 @@ const ANALYTICS_CAROUSEL_SLIDES = [
   { title: 'AI summary', description: 'Use the sparkles button to open the AI assistant and ask for a summary of your analytics or to explore your impact data in plain language.', icon: <Sparkles size={40} /> },
 ];
 
+const MARITIME_ANALYTICS_CAROUSEL_SLIDES = [
+  { title: 'Welcome to Analytics', description: 'For maritime profiles, select a vessel (MMSI) from ship logs. Analytics shows voyage LCA as Scope 1 / 2 / 3 totals from the backend rough voyage model (no ingredient breakdown).', icon: <BarChart3 size={40} /> },
+  { title: 'Scopes 1–3', description: 'Use the Scope 1, 2, and 3 tabs to see the same voyage totals formatted per scope. Detailed category breakdowns (e.g. stationary combustion) appear when full emission inventories exist—voyage mode is totals only.', icon: <BarChart3 size={40} /> },
+  { title: 'AI summary', description: 'Use the sparkles button to open the AI assistant for a plain-language summary of your vessel emissions.', icon: <Sparkles size={40} /> },
+];
+
+function isMaritimeCompanyProfile() {
+  try {
+    const uid = localStorage.getItem('userId') || '';
+    const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+    const storageKey = uid.includes('/') ? uid.split('/').pop() : uid;
+    const company = allCompanyData[uid] ?? allCompanyData[storageKey] ?? null;
+    const s = String(company?.sector || '').toLowerCase().trim();
+    const i = String(company?.industry || '').toLowerCase().trim();
+    return (
+      s.includes('maritime') ||
+      i.includes('maritime') ||
+      s.includes('marine transport') ||
+      i.includes('marine transportation') ||
+      i.includes('marine transport')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function scope1FromMaritimeLcaResponse(lcaRes) {
+  const raw = lcaRes?.data?.scope1;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (raw && typeof raw === 'object' && raw.kgCO2e != null) {
+    const n = Number(raw.kgCO2e);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
 function templateToProduct(template, localLcaMap = {}) {
   const dpp = templateToDppData(template);
   const templateProductId = `template-${template.id}`;
@@ -135,8 +171,8 @@ const AnalyticsPage = () => {
   const [userId] = useState(localStorage.getItem('userId') || '');
   const { isProUser } = useProSubscription();
   const navigate = useNavigate();
-  
-  
+  const maritimeMode = isMaritimeCompanyProfile();
+
   const [products, setProducts] = useState([]);
   
   // --- Initialize state from sessionStorage ---
@@ -164,6 +200,7 @@ const AnalyticsPage = () => {
   
   // Raw products data from API (for component matching)
   const [rawProductsData, setRawProductsData] = useState([]);
+  const [rawProcessesData, setRawProcessesData] = useState([]);
   
   // UI State
   const [activeScopeElements, setActiveScopeElements] = useState('scope1');
@@ -194,6 +231,64 @@ const AnalyticsPage = () => {
   // --- Fetch Product List (same sources as Inventory: API + localStorage templates) ---
   const fetchProducts = useCallback(async () => {
     try {
+      if (isMaritimeCompanyProfile()) {
+        try {
+          const logsRes = await maritimeAPI.getShipLogs();
+          const rawLogs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+          const mmsiSet = new Set();
+          rawLogs.forEach((log) => {
+            const m = String(log?.mmsi || log?.MMSI || '').trim();
+            if (m) mmsiSet.add(m);
+          });
+          const mmsiList = [...mmsiSet].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+          const lcaByMmsi = await Promise.all(
+            mmsiList.map(async (mmsi) => {
+              try {
+                const lcaRes = await maritimeAPI.getLca(mmsi);
+                return scope1FromMaritimeLcaResponse(lcaRes);
+              } catch {
+                return 0;
+              }
+            })
+          );
+          const mapped = mmsiList.map((mmsi, idx) => {
+            const scope1 = lcaByMmsi[idx] ?? 0;
+            const name = `Vessel ${mmsi}`;
+            return {
+              productId: `mmsi-${mmsi}`,
+              productName: name,
+              dppData: '[]',
+              lcaResult: scope1,
+              scope1,
+              scope2: 0,
+              scope3: scope1,
+              DPP: {
+                name,
+                carbonFootprint: {
+                  scope1: { kgCO2e: scope1 },
+                  scope2: { kgCO2e: 0 },
+                  scope3: { kgCO2e: scope1 },
+                },
+              },
+              emissionInformation: null,
+              _maritimeVessel: true,
+              mmsi,
+            };
+          });
+          setProducts(mapped);
+          setRawProductsData([]);
+          setRawProcessesData([]);
+          setError(mapped.length === 0 ? 'No vessel logs found in the maritime database.' : '');
+        } catch (err) {
+          console.warn('Analytics: maritime fetch failed', err);
+          setProducts([]);
+          setRawProductsData([]);
+          setRawProcessesData([]);
+          setError('Could not load vessels from ship logs.');
+        }
+        return;
+      }
+
       let mapped = [];
       const backendNames = new Set();
       try {
@@ -243,9 +338,20 @@ const AnalyticsPage = () => {
             emissionInformation: p.emissionInformation,
           };
         });
+        const processRes = await processAPI.getProcesses();
+        const processRaw = Array.isArray(processRes?.data) ? processRes.data : [];
+        const normalizedProcesses = processRaw.map((p) => {
+          const fromDpp = p.dpp;
+          const name = p.name ?? fromDpp?.name ?? '';
+          const key = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id);
+          const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
+          return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
+        });
+        setRawProcessesData(normalizedProcesses);
       } catch (err) {
         console.warn('Analytics: could not fetch API products', err);
         setRawProductsData([]); // Set empty array on error
+        setRawProcessesData([]);
       }
       const localLcaMap = getLocalLcaMap(userId);
       const customTemplates = getStoredTemplates();
@@ -262,6 +368,7 @@ const AnalyticsPage = () => {
       setError('Could not load product list.');
       setProducts([]);
       setRawProductsData([]); // Set empty array on error
+      setRawProcessesData([]);
     }
   }, [userId]);
 
@@ -280,11 +387,12 @@ const AnalyticsPage = () => {
 
   // Fetch component product with emissionInformation from rawProductsData (backend getProducts API)
   // Simply maps component name to product name from getProducts API
-  const fetchInputProducts = useCallback(async (componentName, componentMaterialId, setProducts, setLoading) => {
+  const fetchInputProducts = useCallback(async (componentName, componentMaterialId, setProducts, setLoading, sourceType = 'product') => {
     setLoading(true);
     try {
       let inputProductsData = [];
-      if (!componentName || rawProductsData.length === 0) {
+      const sourceData = sourceType === 'process' ? rawProcessesData : rawProductsData;
+      if (!componentName || sourceData.length === 0) {
         setProducts([]);
         return;
       }
@@ -293,14 +401,20 @@ const AnalyticsPage = () => {
       let matchedProduct = null;
       if (componentMaterialId) {
         const productId = componentMaterialId.toString();
-        matchedProduct = rawProductsData.find((p) => {
+        matchedProduct = sourceData.find((p) => {
           const pId = p.key ?? p._key ?? (p.id && String(p.id).includes('/') ? String(p.id).split('/').pop() : p.id) ?? p._id ?? p.id;
           const pIdStr = pId?.toString();
-          return pIdStr === productId || pIdStr === `products/${productId}` || pIdStr === `products/${productId.split('/').pop()}`;
+          const keyOnly = productId.includes('/') ? productId.split('/').pop() : productId;
+          return (
+            pIdStr === productId ||
+            pIdStr === keyOnly ||
+            pIdStr === `products/${keyOnly}` ||
+            pIdStr === `processes/${keyOnly}`
+          );
         });
       }
       if (!matchedProduct) {
-        matchedProduct = rawProductsData.find((p) => {
+        matchedProduct = sourceData.find((p) => {
           if (!p || !p.name) return false;
           return normalizeString(p.name) === normalizedComponentName;
         });
@@ -321,7 +435,7 @@ const AnalyticsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [rawProductsData]);
+  }, [rawProductsData, rawProcessesData]);
 
   // Generate AI insights for Product Analysis — always product-level totals, not per-ingredient
   const generateProductInsights = useCallback(async (product) => {
@@ -441,23 +555,28 @@ const AnalyticsPage = () => {
     setActiveScopeProcesses('scope1');
     
     if (newProductId) {
-      const allProducts = products; 
-      const product = allProducts.find(p => p.productId == newProductId);
-      if (product && product.dppData) {
-         try {
-           const components = JSON.parse(product.dppData);
-           if (components.length > 0) {
-             fetchAnalyticsDataForProduct(newProductId, 0, allProducts);
-           } else {
-             setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-           }
-         } catch (e) {
+      const allProducts = products;
+      const product = allProducts.find((p) => p.productId == newProductId);
+      if (product) {
+        fetchAnalyticsDataForProduct(newProductId, 0, allProducts);
+        generateProductInsights(product);
+        if (product._maritimeVessel) {
+          setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
+        } else if (product.dppData) {
+          try {
+            const comps = JSON.parse(product.dppData);
+            if (comps.length === 0) {
+              setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
+            }
+          } catch {
             setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-         }
-         generateProductInsights(product);
+          }
+        } else {
+          setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
+        }
       } else {
-         setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
-         setProductInsights(null);
+        setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
+        setProductInsights(null);
       }
     } else {
       setAnalyticsData({ inputs: [], outputs: [], impacts: [] });
@@ -674,6 +793,12 @@ const AnalyticsPage = () => {
     };
   };
 
+  /** Maritime / voyage-only: one row per scope from vessel DPP (no ingredient tables). */
+  const getMaritimeVesselScopeData = (scopeKey) => {
+    const dppData = getScopeDataFromDPP();
+    return dppData[scopeKey] || [];
+  };
+
   // Get scope data for elements — prefer element input products, fallback to DPP
   const getElementScopeData = (scopeKey) => {
     const inputData = getScopeDataFromInputs(scopeKey, elementInputProducts);
@@ -710,7 +835,7 @@ const AnalyticsPage = () => {
     if (!el) { setElementInputProducts([]); return; }
     const componentName = (el.ingredient || '').toString().trim();
     const componentMaterialId = el.materialId || null;
-    fetchInputProducts(componentName, componentMaterialId, setElementInputProducts, setLoadingElementInputs);
+    fetchInputProducts(componentName, componentMaterialId, setElementInputProducts, setLoadingElementInputs, 'product');
   }, [selectedElementIndex, selectedProductId, fetchInputProducts, elements.length]);
 
   // Update process input products when selected process changes
@@ -723,7 +848,7 @@ const AnalyticsPage = () => {
     if (!proc) { setProcessInputProducts([]); return; }
     const componentName = (proc.ingredient || '').toString().trim().replace(/^Process:\s*/, '');
     const componentMaterialId = proc.materialId || null;
-    fetchInputProducts(componentName, componentMaterialId, setProcessInputProducts, setLoadingProcessInputs);
+    fetchInputProducts(componentName, componentMaterialId, setProcessInputProducts, setLoadingProcessInputs, 'process');
   }, [selectedProcessIndex, selectedProductId, fetchInputProducts, processes.length]);
 
   // When Top 5 was "No emission data available" but we have scope data, use that so the card and AI see the same data as the table
@@ -808,13 +933,19 @@ const AnalyticsPage = () => {
   // Summary of current Analytics page data for the AI popup (so it can summarise the page)
   const analyticsContextSummary = React.useMemo(() => {
     const lines = [];
-    lines.push(`Products in inventory: ${products.length}`);
+    lines.push(
+      maritimeMode
+        ? `Vessels in analytics list: ${products.length}`
+        : `Products in inventory: ${products.length}`
+    );
     if (products.length > 0) {
       const names = products.slice(0, 15).map((p) => p.productName || p.productId).filter(Boolean);
-      lines.push(`Product names: ${names.join(', ')}${products.length > 15 ? '…' : ''}`);
+      lines.push(`${maritimeMode ? 'Vessel names' : 'Product names'}: ${names.join(', ')}${products.length > 15 ? '…' : ''}`);
     }
     if (selectedProduct) {
-      lines.push(`Currently selected product: ${selectedProduct.productName || selectedProduct.productId}`);
+      lines.push(
+        `Currently selected ${maritimeMode ? 'vessel' : 'product'}: ${selectedProduct.productName || selectedProduct.productId}`
+      );
       if (components.length > 0) {
         const el = elements[selectedElementIndex];
         const pr = processes[selectedProcessIndex];
@@ -842,23 +973,45 @@ const AnalyticsPage = () => {
       if (suggestions.length > 0) lines.push(`Suggestions: ${suggestions.slice(0, 3).join(' ')}`);
     }
     return lines.join('\n') || 'No analytics data loaded yet.';
-  }, [products, selectedProductId, selectedProduct, components, selectedElementIndex, selectedProcessIndex, productInsights, elementInputProducts, processInputProducts, activeScopeElements]);
+  }, [
+    maritimeMode,
+    products,
+    selectedProductId,
+    selectedProduct,
+    components,
+    selectedElementIndex,
+    selectedProcessIndex,
+    productInsights,
+    elementInputProducts,
+    processInputProducts,
+    activeScopeElements,
+  ]);
 
   return (
     <div className="container">
-      <InstructionalCarousel pageId="analytics" slides={ANALYTICS_CAROUSEL_SLIDES} newUserOnly />
+      <InstructionalCarousel
+        pageId="analytics"
+        slides={maritimeMode ? MARITIME_ANALYTICS_CAROUSEL_SLIDES : ANALYTICS_CAROUSEL_SLIDES}
+        newUserOnly
+      />
       <Navbar />
       <div className="content-section-main">
         <div className="content-container-main">
           <header className="header-group">
             <h1>Analytics</h1>
-            <p className="medium-regular">Breakdown of your products and processes.</p>
+            <p className="medium-regular">
+              {maritimeMode
+                ? 'Voyage LCA by vessel (Scope 1–3 totals from backend ship logs).'
+                : 'Breakdown of your products and processes.'}
+            </p>
           </header>
           
-          {/* --- Product Selection --- */}
+          {/* --- Product / vessel selection --- */}
           <div className="sub-header" style={{ display: 'flex', alignItems: 'stretch' }}>
             <div className = "header-col">
-              <label htmlFor="product-select" className="normal-bold">Select your product:</label>
+              <label htmlFor="product-select" className="normal-bold">
+                {maritimeMode ? 'Select vessel:' : 'Select your product:'}
+              </label>
               <div className="select-wrapper">
                 <select 
                   id="product-select" 
@@ -867,7 +1020,15 @@ const AnalyticsPage = () => {
                   onChange={handleProductChange}
                   disabled={products.length === 0}
                 >
-                  <option value="">{products.length === 0 ? "No products found" : "-- Select a product --"}</option>
+                  <option value="">
+                    {products.length === 0
+                      ? maritimeMode
+                        ? 'No vessels found'
+                        : 'No products found'
+                      : maritimeMode
+                        ? '-- Select a vessel --'
+                        : '-- Select a product --'}
+                  </option>
                   {products.map(product => (
                     <option key={product.productId} value={product.productId}>
                       {product.productName}
@@ -903,7 +1064,7 @@ const AnalyticsPage = () => {
             <>
               <div className = "sub-header">
                 <div className = "header-col">
-                  <p className='descriptor-medium'>Product Analysis</p>
+                  <p className='descriptor-medium'>{maritimeMode ? 'Vessel analysis' : 'Product Analysis'}</p>
                 </div>
               </div>
               
@@ -957,11 +1118,33 @@ const AnalyticsPage = () => {
           {/* --- Component Analysis Section --- */}
           <div className = "sub-header" style={{marginTop: '2rem'}}>
             <div className = "header-col">
-              <p className='descriptor-medium'>Component Analysis</p>
+              <p className='descriptor-medium'>
+                {maritimeMode ? 'Voyage emissions by scope' : 'Component Analysis'}
+              </p>
             </div>
           </div>
 
-          {selectedProductId && components.length > 0 ? (
+          {selectedProductId && maritimeMode && selectedProduct?._maritimeVessel ? (
+            <div className="component-analysis-container" style={{ marginBottom: '2rem' }}>
+              <p className="normal-regular" style={{ color: 'rgba(var(--greys), 1)', marginBottom: '1rem' }}>
+                Rough voyage model from AIS (same as Voyage Emissions). There is no ingredient or process breakdown—only
+                Scope 1 / 2 / 3 totals (S2 is zero; S3 mirrors voyage total for passport compatibility).
+              </p>
+              <div className="chip-group" style={{ marginBottom: '1rem' }}>
+                {['scope1', 'scope2', 'scope3'].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`chip ${activeScopeElements === s ? 'active' : ''}`}
+                    onClick={() => setActiveScopeElements(s)}
+                  >
+                    {s.replace('scope', 'Scope ')}
+                  </button>
+                ))}
+              </div>
+              {renderScopeTableData(activeScopeElements, getMaritimeVesselScopeData)}
+            </div>
+          ) : selectedProductId && components.length > 0 ? (
             <>
               {/* Elements Section with Table */}
               {elements.length > 0 && (
@@ -1044,7 +1227,13 @@ const AnalyticsPage = () => {
             </>
           ) : (
             <p className="normal-regular" style={{color: 'rgba(var(--greys), 1)'}}>
-              {selectedProductId ? 'This product has no components.' : 'Please select a product to see component details.'}
+              {selectedProductId
+                ? maritimeMode
+                  ? ''
+                  : 'This product has no components.'
+                : maritimeMode
+                  ? 'Select a vessel to see voyage scope breakdown.'
+                  : 'Please select a product to see component details.'}
             </p>
           )}
         </div>

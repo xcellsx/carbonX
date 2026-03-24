@@ -1,0 +1,234 @@
+.vessel-locations-map {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: inherit;
+}
+
+/*
+ * Explicit height so Leaflet always gets a non-zero box (percentage heights on the map
+ * alone were unreliable when the parent only had min-height).
+ */
+.vessel-locations-map__map-wrap {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  height: clamp(380px, calc(100vh - 210px), 1024px);
+  min-height: clamp(380px, calc(100vh - 210px), 1024px);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--blacks), 0.07);
+}
+
+.vessel-locations-map__container {
+  height: 100% !important;
+  width: 100%;
+  min-height: 0;
+  border-radius: 10px;
+  z-index: 0;
+}
+
+.vessel-locations-map__container.leaflet-container {
+  height: 100% !important;
+  min-height: 0;
+}
+
+.vessel-locations-map--message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(50vh, 400px);
+  padding: 2rem;
+  text-align: center;
+  color: rgba(var(--greys), 1);
+  font-style: italic;
+  background: rgba(var(--greys), 0.06);
+  border-radius: 8px;
+}
+
+.vessel-locations-map--error {
+  color: rgba(var(--danger), 1);
+  font-style: normal;
+}
+
+.vessel-locations-map__caption {
+  margin-top: 0.75rem;
+  color: rgba(var(--greys), 1);
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+/* Animated “flow” along the track while playing (SVG path in Leaflet) */
+.vessel-track-line--playing {
+  animation: vessel-track-flow 1.1s linear infinite;
+}
+
+@keyframes vessel-track-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+/* react-leaflet passes className to path in some versions — dash pattern for motion */
+.leaflet-overlay-pane svg path.vessel-track-line--playing {
+  stroke-dasharray: 14 10;
+  stroke-linecap: round;
+}
+
+.leaflet-overlay-pane svg path.vessel-track-line--done {
+  stroke-linecap: round;
+}
+
+.vessel-map-ship-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.vessel-map-ship-marker__inner {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.65rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+  animation: vessel-ship-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes vessel-ship-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.vessel-locations-map__overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.55rem 1rem 0.95rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.99) 0%,
+    rgba(255, 255, 255, 0.94) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(3px);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* Captures clicks: parent is pointer-events none so drags pass through to the map above the panel */
+.vessel-locations-map__overlay-panel {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.vessel-locations-map__overlay-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.vessel-locations-map__overlay-scrub {
+  width: 100%;
+}
+
+.vessel-locations-map__overlay > .vessel-locations-map__overlay-single {
+  pointer-events: auto;
+}
+
+.vessel-locations-map__play-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(var(--whites), 1);
+  background: rgba(var(--primary), 1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(var(--blacks), 0.18);
+}
+
+.vessel-locations-map__play-btn:hover {
+  filter: brightness(1.05);
+}
+
+.vessel-locations-map__play-btn:focus-visible {
+  outline: 2px solid rgba(var(--primary), 0.55);
+  outline-offset: 2px;
+}
+
+.vessel-locations-map__scrub-label {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.vessel-locations-map__scrub-hint {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(var(--greys), 0.88);
+}
+
+.vessel-locations-map__scrub {
+  width: 100%;
+  height: 0.45rem;
+  accent-color: rgba(var(--primary), 1);
+  cursor: pointer;
+}
+
+.vessel-locations-map__scrub:disabled {
+  opacity: 0.55;
+}
+
+.vessel-locations-map__overlay-meta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--blacks), 0.88);
+  white-space: nowrap;
+}
+
+.vessel-locations-map__overlay-meta-sub {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(var(--greys), 1);
+}
+
+.vessel-locations-map__overlay-single {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgba(var(--greys), 1);
+  line-height: 1.45;
+  max-width: 48rem;
+}
+
+.vessel-locations-map__hint-below {
+  margin: 0.15rem 0 0;
+  padding: 0 0.15rem;
+  color: rgba(var(--greys), 1);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}

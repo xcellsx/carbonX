@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
-import { productAPI, userLcaAPI, normalizeUserIdKey } from '../../services/api';
+import { productAPI, maritimeAPI, normalizeUserIdKey } from '../../services/api';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import Navbar from '../../components/Navbar/Navbar';
 import { Search, X, Triangle, CirclePlus, Trash2, FilePlus, Package, ListOrdered, FileUp } from 'lucide-react';
@@ -9,8 +9,17 @@ import ConfirmationModal from '../../components/ConfirmationModal/ConfirmationMo
 import DppModal from '../../components/DppModal/DppModal';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 
-// --- CSV parser: name and type only ---
-const parseCsvFile = (file) => {
+const splitCsvLine = (line) => {
+  // Split CSV while preserving commas inside quoted values.
+  return String(line)
+    .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+    .map((v) => v.trim().replace(/^"|"$/g, ''));
+};
+
+// --- CSV parser ---
+// Standard mode: requires name + type.
+// Maritime mode: accepts name/type OR MMSI-based logs and auto-generates vessel names.
+const parseCsvFile = (file, maritimeMode = false) => {
   return new Promise((resolve, reject) => {
     if (!file) return reject(new Error("No file provided."));
     const reader = new FileReader();
@@ -20,20 +29,36 @@ const parseCsvFile = (file) => {
         if (text.charCodeAt(0) === 0xFEFF) text = text.substring(1);
         const lines = text.split(/[\r\n]+/).filter(line => line.trim() !== '');
         if (lines.length < 2) return reject(new Error("CSV must have a header and at least one data row."));
-        const headerLine = lines[0];
-        const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const headers = splitCsvLine(lines[0]);
         const lower = headers.map(h => h.toLowerCase());
-        const nameIdx = lower.findIndex(h => h === 'product name' || h === 'name');
+        const nameIdx = lower.findIndex(h => h === 'product name' || h === 'name' || h === 'vessel name' || h === 'vessel');
         const typeIdx = lower.findIndex(h => h === 'type');
-        if (nameIdx === -1 || typeIdx === -1) {
-          return reject(new Error('CSV must have columns "Product Name" (or "name") and "Type".'));
-        }
+        const mmsiIdx = lower.findIndex(h => h === 'mmsi');
         const data = [];
+        const seen = new Set();
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-          const name = (values[nameIdx] || '').trim();
-          const type = (values[typeIdx] || 'product').trim();
-          if (name) data.push({ name, type });
+          const values = splitCsvLine(lines[i]);
+          const explicitName = nameIdx >= 0 ? (values[nameIdx] || '').trim() : '';
+          const typeRaw = typeIdx >= 0 ? (values[typeIdx] || '').trim() : '';
+          const mmsi = mmsiIdx >= 0 ? (values[mmsiIdx] || '').trim() : '';
+
+          if (explicitName) {
+            data.push({ name: explicitName, type: typeRaw || (maritimeMode ? 'vessel' : 'product'), mmsi: mmsi || null });
+            continue;
+          }
+
+          if (maritimeMode && mmsi) {
+            if (seen.has(mmsi)) continue;
+            seen.add(mmsi);
+            data.push({ name: `Vessel ${mmsi}`, type: typeRaw || 'vessel', mmsi });
+          }
+        }
+
+        if (data.length === 0) {
+          if (maritimeMode) {
+            return reject(new Error('For maritime upload, include either "name"/"vessel name" or "MMSI" column with data.'));
+          }
+          return reject(new Error('CSV must have columns "Product Name" (or "name") and "Type".'));
         }
         resolve(data);
       } catch (err) {
@@ -118,16 +143,21 @@ function templateToProduct(template, localLcaMap = {}, lcaCacheByName = {}) {
   const templateProductId = `template-${template.id}`;
   const rawLca = localLcaMap[templateProductId];
   const lcaResult = (rawLca != null && !Number.isNaN(Number(rawLca))) ? Number(rawLca) : 0;
+  const qty = quantityNum != null && Number.isFinite(Number(quantityNum)) && Number(quantityNum) > 0 ? Number(quantityNum) : 1;
+  const savedQty = getLcaQtySnapshot(templateProductId);
+  const quantityMatchesCalculated = savedQty != null ? Math.abs(savedQty - qty) < 1e-9 : true;
   // Read scope breakdown from name cache if available
   const nameKey = (template.name || '').toLowerCase().trim();
   const cached = nameKey ? lcaCacheByName[nameKey] : null;
+  const hasCalculatedLca = (rawLca != null && !Number.isNaN(Number(rawLca))) && quantityMatchesCalculated;
   return {
     productId: templateProductId,
     productName: template.name || 'Unnamed template',
     productQuantity: Number.isNaN(quantityNum) ? null : quantityNum,
     productQuantifiableUnit: null,
     dppData: JSON.stringify(dpp),
-    lcaResult,
+    lcaResult: quantityMatchesCalculated ? lcaResult : 0,
+    hasCalculatedLca: !!hasCalculatedLca,
     scope1: cached?.scope1 ?? 0,
     scope2: cached?.scope2 ?? 0,
     scope3: cached?.scope3 ?? 0,
@@ -196,8 +226,85 @@ function toCanonicalAmount(displayValue, unit, isProcess) {
   return num * u.toCanonical;
 }
 
+function hydrateDppWeights(dppRaw, productByName) {
+  let dpp;
+  try {
+    dpp = typeof dppRaw === 'string' ? JSON.parse(dppRaw) : dppRaw;
+  } catch {
+    return '[]';
+  }
+  if (!Array.isArray(dpp)) return '[]';
+
+  const next = dpp.map((item) => {
+    const out = { ...item };
+    const isProcess = isProcessItem(out);
+    const isTransport = out.isTransport || false;
+    if (isProcess || isTransport) return out;
+
+    const current = Number(out.weightKg);
+    const hasWeight = Number.isFinite(current) && current > 0;
+    if (hasWeight) return out;
+
+    const ingredientName = String(out.ingredient || '').replace(/^Element:\s*/i, '').trim().toLowerCase();
+    const source = ingredientName ? productByName.get(ingredientName) : null;
+    if (!source || source.quantityValue == null || Number.isNaN(Number(source.quantityValue))) return out;
+
+    const preferredUnit = (out.unit && out.unit !== '-') ? out.unit : (source.quantifiableUnit || 'kg');
+    out.weightKg = toCanonicalAmount(source.quantityValue, preferredUnit, false);
+    if (!out.unit || out.unit === '-') out.unit = preferredUnit;
+    return out;
+  });
+
+  return JSON.stringify(next);
+}
+
+function parseDppArray(dppRaw) {
+  try {
+    const parsed = typeof dppRaw === 'string' ? JSON.parse(dppRaw) : dppRaw;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function hasPositiveBreakdownWeight(dppRaw) {
+  const dpp = parseDppArray(dppRaw);
+  if (dpp.length === 0) return false;
+  return dpp.some((item) => {
+    const w = Number(item?.weightKg);
+    return Number.isFinite(w) && w > 0;
+  });
+}
+
+function toFiniteNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function extractMmsiFromProduct(product = {}) {
+  const direct = String(product?.mmsi || product?.MMSI || product?.functionalProperties?.mmsi || '').trim();
+  if (direct) return direct;
+  const fromName = String(product?.productName || product?.name || '').match(/\b\d{7,12}\b/);
+  return fromName ? fromName[0] : '';
+}
+
+/** Parse GET /api/maritime/lca response → scope1 kgCO2e (rough voyage model). */
+function scope1FromMaritimeLcaResponse(lcaRes) {
+  const rawScope1 = lcaRes?.data?.scope1;
+  return toFiniteNumber(
+    typeof rawScope1 === 'number' ? rawScope1 : rawScope1?.kgCO2e,
+    0
+  );
+}
+
+function quantityFactor(quantityValue) {
+  const q = Number(quantityValue);
+  if (!Number.isFinite(q)) return 1;
+  return q >= 0 ? q : 1;
+}
+
 // --- JSON parser: array of { name, type } or single object ---
-const parseJsonFile = (file) => {
+const parseJsonFile = (file, maritimeMode = false) => {
   return new Promise((resolve, reject) => {
     if (!file) return reject(new Error("No file provided."));
     const reader = new FileReader();
@@ -207,11 +314,12 @@ const parseJsonFile = (file) => {
         const arr = Array.isArray(json) ? json : [json];
         const data = arr
           .map((item) => ({
-            name: (item.name ?? item.productName ?? '').toString().trim(),
-            type: (item.type ?? 'product').toString().trim(),
+            name: (item.name ?? item.productName ?? item.vesselName ?? item.vessel ?? item.mmsi ?? '').toString().trim(),
+            type: (item.type ?? (maritimeMode ? 'vessel' : 'product')).toString().trim(),
+            mmsi: (item.mmsi ?? item.MMSI ?? '').toString().trim() || null,
           }))
           .filter((item) => item.name);
-        if (data.length === 0) return reject(new Error("JSON must contain at least one object with \"name\" and optionally \"type\"."));
+        if (data.length === 0) return reject(new Error("JSON must contain at least one object with \"name\" (or vesselName/mmsi) and optionally \"type\"."));
         resolve(data);
       } catch (err) {
         reject(new Error("JSON parsing failed: " + err.message));
@@ -225,10 +333,12 @@ const parseJsonFile = (file) => {
 // Local-only cache for LCA totals so they persist across page reloads without touching the backend.
 // Shape: { [productNameLower]: { scope1, scope2, scope3, total, updatedAt } }
 const LCA_CACHE_KEY = 'carbonx_lca_cache_by_name_v1';
+const DPP_CACHE_BY_PRODUCT_KEY = 'carbonx_dpp_cache_by_product_v1';
 
 // LCA stored by userId + productKey (localStorage only, no backend). Survives refresh/navigation.
 // Shape: { [normalizedUserId]: { [productKey]: lcaValue } }
 const LCA_LOCAL_BY_USER_PRODUCT_KEY = 'carbonx_lca_by_user_product_v1';
+const LCA_QTY_SNAPSHOT_KEY = 'carbonx_lca_qty_snapshot_v1';
 
 function getLocalLcaMap(userId) {
   try {
@@ -255,10 +365,105 @@ function setLocalLca(userId, productKey, lcaValue) {
   }
 }
 
+function getLcaQtySnapshotMap() {
+  try {
+    const raw = localStorage.getItem(LCA_QTY_SNAPSHOT_KEY) || '{}';
+    const parsed = JSON.parse(raw) || {};
+    return (parsed && typeof parsed === 'object') ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getLcaQtySnapshot(productKey) {
+  const map = getLcaQtySnapshotMap();
+  const v = map[String(productKey)];
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function setLcaQtySnapshot(productKey, quantityValue) {
+  if (!productKey) return;
+  const q = Number(quantityValue);
+  const normalizedQty = Number.isFinite(q) && q > 0 ? q : 1;
+  try {
+    const map = getLcaQtySnapshotMap();
+    map[String(productKey)] = normalizedQty;
+    localStorage.setItem(LCA_QTY_SNAPSHOT_KEY, JSON.stringify(map));
+  } catch (e) {
+    console.warn('[LCA] setLcaQtySnapshot failed', e);
+  }
+}
+
+function getLocalDppCache() {
+  try {
+    const raw = localStorage.getItem(DPP_CACHE_BY_PRODUCT_KEY) || '{}';
+    const parsed = JSON.parse(raw) || {};
+    return (parsed && typeof parsed === 'object') ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function dppCacheNameKey(productName) {
+  const name = String(productName || '').trim().toLowerCase();
+  return name ? `name:${name}` : '';
+}
+
+function setLocalDppCache(productKey, dppValue, productName = '') {
+  if (!dppValue) return;
+  try {
+    const cache = getLocalDppCache();
+    if (productKey) cache[String(productKey)] = dppValue;
+    const nameKey = dppCacheNameKey(productName);
+    if (nameKey) cache[nameKey] = dppValue;
+    localStorage.setItem(DPP_CACHE_BY_PRODUCT_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.warn('[DPP] setLocalDppCache failed', e);
+  }
+}
+
 const InventoryPage = () => {
   const location = useLocation();
   const [userId] = useState(localStorage.getItem('userId') || '');
   const navigate = useNavigate();
+  const isMaritimeMode = useCallback(() => {
+    try {
+      const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
+      const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
+      const company = allCompanyData[userId] ?? allCompanyData[storageKey] ?? null;
+      const sector = String(company?.sector || '').toLowerCase().trim();
+      const industry = String(company?.industry || '').toLowerCase().trim();
+      return (
+        sector.includes('maritime') ||
+        industry.includes('maritime') ||
+        sector.includes('marine transport') ||
+        industry.includes('marine transport')
+      );
+    } catch {
+      return false;
+    }
+  }, [userId]);
+  const maritimeMode = isMaritimeMode();
+  const labels = maritimeMode
+    ? {
+        pageTitle: 'Voyage Emissions',
+        subtitle: 'Overview of your vessels and voyage emissions.',
+        entityPlural: 'vessels',
+        entitySingular: 'vessel',
+        nameHeader: 'Vessel Name / MMSI',
+        quantityHeader: 'Data Source',
+        lcaHeader: 'Voyage LCA',
+      }
+    : {
+        pageTitle: 'Inventory',
+        subtitle: 'Overview of your products.',
+        entityPlural: 'products',
+        entitySingular: 'product',
+        nameHeader: 'Product Name',
+        quantityHeader: 'Quantity',
+        lcaHeader: 'LCA (Scope 3)',
+      };
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -279,9 +484,11 @@ const InventoryPage = () => {
   const [subProductWeights, setSubProductWeights] = useState({});
   const [editableIngredients, setEditableIngredients] = useState({});
   const [productNameEdits, setProductNameEdits] = useState({});
+  const [productQuantityEdits, setProductQuantityEdits] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => {},
   });
+  const [lcaDirtyMap, setLcaDirtyMap] = useState({});
 
   const fetchProducts = useCallback(async () => {
     const validUserId = userId && String(userId).trim() !== '' && String(userId) !== 'undefined';
@@ -293,6 +500,89 @@ const InventoryPage = () => {
     setLoading(true);
     setError('');
     try {
+      if (maritimeMode) {
+        const logsRes = await maritimeAPI.getShipLogs();
+        const rawLogs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+        const byMmsi = new Map();
+
+        rawLogs.forEach((log, idx) => {
+          const mmsi = String(log?.mmsi || log?.MMSI || '').trim();
+          if (!mmsi) return;
+          const ts = String(log?.timestamp || '').trim();
+          const existing = byMmsi.get(mmsi);
+          if (!existing) {
+            byMmsi.set(mmsi, {
+              productId: `mmsi-${mmsi}`,
+              productName: `Vessel ${mmsi}`,
+              productQuantity: null,
+              productQuantifiableUnit: null,
+              dppData: '[]',
+              lcaResult: 0,
+              scope1: 0,
+              scope2: 0,
+              scope3: 0,
+              userId: '',
+              type: 'vessel',
+              hasCalculatedLca: false,
+              functionalProperties: { mmsi },
+              mmsi,
+              _logCount: 1,
+              _firstTimestamp: ts,
+              _lastTimestamp: ts,
+              _seq: idx,
+            });
+            return;
+          }
+          existing._logCount += 1;
+          if (ts && (!existing._firstTimestamp || ts < existing._firstTimestamp)) existing._firstTimestamp = ts;
+          if (ts && (!existing._lastTimestamp || ts > existing._lastTimestamp)) existing._lastTimestamp = ts;
+        });
+
+        const mapped = Array.from(byMmsi.values())
+          .sort((a, b) => a.productName.localeCompare(b.productName, undefined, { sensitivity: 'base' }));
+        const withPending = mapped.map((p) => ({ ...p, _maritimeLcaPending: true }));
+        setProducts(withPending);
+
+        const lcaResults = await Promise.all(
+          mapped.map(async (v) => {
+            const mmsi = extractMmsiFromProduct(v);
+            if (!mmsi) {
+              return { productId: v.productId, scope1: 0 };
+            }
+            try {
+              const lcaRes = await maritimeAPI.getLca(mmsi);
+              return { productId: v.productId, scope1: scope1FromMaritimeLcaResponse(lcaRes) };
+            } catch (err) {
+              console.warn('[Maritime LCA] Auto-fetch failed for MMSI', mmsi, err?.message);
+              return { productId: v.productId, scope1: 0 };
+            }
+          })
+        );
+
+        setProducts((prev) =>
+          prev.map((prod) => {
+            const r = lcaResults.find((x) => x.productId === prod.productId);
+            if (!r) return { ...prod, _maritimeLcaPending: false };
+            const scope1 = r.scope1;
+            return {
+              ...prod,
+              _maritimeLcaPending: false,
+              hasCalculatedLca: true,
+              scope1,
+              scope2: 0,
+              scope3: scope1,
+              lcaResult: scope1,
+              DPP: {
+                ...(prod.DPP || {}),
+                name: prod.productName || '',
+                carbonFootprint: { scope1, scope2: 0, scope3: scope1 },
+              },
+            };
+          })
+        );
+        return;
+      }
+
       const normalizedUserId = normalizeUserIdKey(userId);
       const res = await productAPI.getAllProducts(normalizedUserId ? { userId: normalizedUserId } : {});
       const raw = Array.isArray(res?.data) ? res.data : [];
@@ -313,18 +603,17 @@ const InventoryPage = () => {
       });
       // Secondary client-side filter as safety net for any products that slipped through without a userId
       const filtered = normalizedUserId ? normalized.filter((p) => !p.userId || normalizeUserIdKey(p.userId) === normalizedUserId) : normalized;
+      const productByName = new Map(
+        filtered
+          .filter((p) => p?.name)
+          .map((p) => [String(p.name).trim().toLowerCase(), { quantityValue: p.quantityValue ?? p.quantity, quantifiableUnit: p.quantifiableUnit ?? 'kg' }])
+      );
       // LCA: localStorage first (no backend required), then optional backend user LCA
       const validUserId = userId && String(userId).trim() !== '' && String(userId) !== 'undefined';
       const localLcaMap = getLocalLcaMap(userId);
-      let userLcaMap = {};
-      try {
-        if (validUserId) {
-          const userLcaRes = await userLcaAPI.getByUserId(userId);
-          userLcaMap = (userLcaRes?.data && typeof userLcaRes.data === 'object') ? userLcaRes.data : {};
-        }
-      } catch (e) {
-        // Backend optional
-      }
+      // Backend /users/:id/lca endpoint is not reliable in current backend routing.
+      // Keep LCA persistence fully client-side via localStorage map.
+      const userLcaMap = {};
       // Load any locally cached LCA totals from previous calculations (keyed by product name only).
       let lcaCacheByName = {};
       try {
@@ -351,13 +640,20 @@ const InventoryPage = () => {
         const localLca = (rawLocalLca != null && !Number.isNaN(Number(rawLocalLca))) ? Number(rawLocalLca) : null;
         const rawUserLca = userLcaMap[apiKey] ?? userLcaMap[String(apiKey)];
         const userLca = (rawUserLca != null && !Number.isNaN(Number(rawUserLca))) ? Number(rawUserLca) : null;
+        const currentQty = (() => {
+          const q = Number(p.quantityValue ?? p.quantity);
+          return Number.isFinite(q) && q > 0 ? q : 1;
+        })();
+        const savedQty = getLcaQtySnapshot(apiKey);
+        const quantityMatchesCalculated = savedQty != null ? Math.abs(savedQty - currentQty) < 1e-9 : true;
+        const hasBackendCalculatedLca = localLca != null || userLca != null || persistedLca != null;
         const base = {
           productId: apiKey,
           productName: p.name ?? '',
           productQuantity: p.quantityValue ?? p.quantity ?? null,
           productQuantifiableUnit: p.quantifiableUnit ?? null,
           dppData: (p.functionalProperties && p.functionalProperties.dppData) || (typeof p.dppData === 'string' ? p.dppData : '[]'),
-          lcaResult: localLca ?? userLca ?? persistedLca ?? totals.total,
+          lcaResult: quantityMatchesCalculated ? (localLca ?? userLca ?? persistedLca ?? totals.total) : 0,
           scope1: totals.scope1,
           scope2: totals.scope2,
           scope3: totals.scope3,
@@ -368,16 +664,42 @@ const InventoryPage = () => {
           functionalProperties: p.functionalProperties,
           DPP: p.DPP ?? p.dpp ?? null,
           emissionInformation: p.emissionInformation ?? null,
+          hasCalculatedLca: hasBackendCalculatedLca && quantityMatchesCalculated,
         };
 
-        // Overlay name cache only if no localStorage or backend LCA
+        if (!base.DPP) {
+          const dppCache = getLocalDppCache();
+          const cachedDpp = dppCache[String(apiKey)] ?? dppCache[dppCacheNameKey(base.productName)];
+          if (cachedDpp) base.DPP = cachedDpp;
+        }
+
+        base.dppData = hydrateDppWeights(base.dppData, productByName);
+        if (!hasPositiveBreakdownWeight(base.dppData)) {
+          base.scope1 = 0;
+          base.scope2 = 0;
+          base.scope3 = 0;
+          base.lcaResult = 0;
+          base.hasCalculatedLca = false;
+        }
+        if (!quantityMatchesCalculated) {
+          base.scope1 = 0;
+          base.scope2 = 0;
+          base.scope3 = 0;
+          base.lcaResult = 0;
+          base.hasCalculatedLca = false;
+        }
+
+        // Overlay scope cache by product name so Scope 1/2/3 stays in sync after reload.
+        // lcaResult source remains unchanged (local/user/persisted precedence above).
         const nameNorm = (s) => String(s || '').toLowerCase().trim();
-        const cacheEntry = base.productName && localLca == null && userLca == null && persistedLca == null ? lcaCacheByName[nameNorm(base.productName)] : null;
+        const cacheEntry = base.productName ? lcaCacheByName[nameNorm(base.productName)] : null;
         if (cacheEntry && typeof cacheEntry === 'object') {
-          if (typeof cacheEntry.total === 'number') base.lcaResult = cacheEntry.total;
           if (typeof cacheEntry.scope1 === 'number') base.scope1 = cacheEntry.scope1;
           if (typeof cacheEntry.scope2 === 'number') base.scope2 = cacheEntry.scope2;
           if (typeof cacheEntry.scope3 === 'number') base.scope3 = cacheEntry.scope3;
+          if (localLca == null && userLca == null && persistedLca == null && typeof cacheEntry.total === 'number') {
+            base.lcaResult = cacheEntry.total;
+          }
         }
 
         return base;
@@ -400,7 +722,7 @@ const InventoryPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, maritimeMode]);
 
   useEffect(() => {
     fetchProducts();
@@ -414,6 +736,7 @@ const InventoryPage = () => {
   // so edits made on Edit Template or Browse Templates are reflected here.
   // No products.length dependency — that caused an infinite re-fetch loop.
   const syncTemplatesIntoProducts = useCallback(() => {
+    if (maritimeMode) return;
     setProducts((prev) => {
       if (prev.length === 0) return prev;
       const templates = getStoredTemplates();
@@ -425,16 +748,19 @@ const InventoryPage = () => {
           if (!t) return null;
           const q = t.quantity;
           const quantityNum = q != null && q !== '' ? Number(q) : null;
+          const nextQuantity = Number.isNaN(quantityNum) ? p.productQuantity : quantityNum;
+          const quantityChanged = nextQuantity !== p.productQuantity;
           return {
             ...p,
             productName: t.name || p.productName,
-            productQuantity: Number.isNaN(quantityNum) ? p.productQuantity : quantityNum,
+            productQuantity: nextQuantity,
             dppData: JSON.stringify(templateToDppData(t)),
+            ...(quantityChanged ? { hasCalculatedLca: false, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0 } : {}),
           };
         })
         .filter(Boolean);
     });
-  }, []);
+  }, [maritimeMode]);
 
   useEffect(() => {
     syncTemplatesIntoProducts();
@@ -569,7 +895,7 @@ function dppDataToTemplate(dppJson) {
     }
   };
 
-  // --- Upload BOM: .csv or .json, name and type only ---
+  // --- Upload details: .csv or .json ---
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!userId) return alert("Error: No user is logged in.");
@@ -581,9 +907,9 @@ function dppDataToTemplate(dppJson) {
     try {
       const name = productFile.name.toLowerCase();
       if (name.endsWith('.json')) {
-        items = await parseJsonFile(productFile);
+        items = await parseJsonFile(productFile, maritimeMode);
       } else if (name.endsWith('.csv')) {
-        items = await parseCsvFile(productFile);
+        items = await parseCsvFile(productFile, maritimeMode);
       } else {
         alert("Please select a .csv or .json file.");
         setUploading(false);
@@ -602,28 +928,30 @@ function dppDataToTemplate(dppJson) {
     }
 
     try {
-      const productsToCreate = items.map(({ name, type }) => ({
+      const productsToCreate = items.map(({ name, type, mmsi }) => ({
         name,
         type: type || 'product',
         productOrigin: null,
-        functionalProperties: null,
+        functionalProperties: maritimeMode && mmsi ? { mmsi } : null,
         userId,
         uploadedFile: productFile.name,
         DPP: null,
       }));
       await productAPI.createProducts(productsToCreate);
-      // Create a template card per BOM product (empty ingredients/processes) for Browse Templates
-      const existing = getStoredTemplates();
-      const newTemplates = items.map(({ name }, i) => ({
-        id: `bom-${Date.now()}-${i}`,
-        name: name || 'Unnamed',
-        ingredients: [],
-        processes: [],
-      }));
-      try {
-        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify([...existing, ...newTemplates]));
-      } catch (e) {
-        console.warn('Could not save BOM templates to localStorage', e);
+      // Non-maritime mode keeps existing template-card behavior.
+      if (!maritimeMode) {
+        const existing = getStoredTemplates();
+        const newTemplates = items.map(({ name }, i) => ({
+          id: `bom-${Date.now()}-${i}`,
+          name: name || 'Unnamed',
+          ingredients: [],
+          processes: [],
+        }));
+        try {
+          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify([...existing, ...newTemplates]));
+        } catch (e) {
+          console.warn('Could not save BOM templates to localStorage', e);
+        }
       }
       setShowAddProduct(false);
       setProductFile(null);
@@ -684,12 +1012,76 @@ function dppDataToTemplate(dppJson) {
     }
   };
 
+  const handleProductQuantityBlur = async (productId, currentDisplayQuantity) => {
+    const product = products.find((p) => p.productId === productId);
+    if (!product) return;
+
+    const parsedQty = Number(currentDisplayQuantity);
+    const newQty = Number.isFinite(parsedQty) && parsedQty >= 0 ? parsedQty : null;
+    const prevQty = product.productQuantity != null ? Number(product.productQuantity) : null;
+
+    setProductQuantityEdits((prev) => {
+      const next = { ...prev };
+      delete next[productId];
+      return next;
+    });
+
+    const changed =
+      (prevQty == null && newQty != null) ||
+      (prevQty != null && newQty == null) ||
+      (prevQty != null && newQty != null && Math.abs(prevQty - newQty) > 1e-9);
+    if (!changed) return;
+
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.productId === productId
+          ? { ...p, productQuantity: newQty, hasCalculatedLca: false, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0 }
+          : p
+      )
+    );
+    setLcaDirtyMap((prev) => ({ ...prev, [productId]: true }));
+
+    // Persist quantity first, then run backend LCA automatically.
+    if (product._fromTemplate && product._templateId) {
+      const templates = getStoredTemplates();
+      const idx = templates.findIndex((t) => t.id === product._templateId);
+      if (idx >= 0) {
+        const next = [...templates];
+        next[idx] = { ...next[idx], quantity: newQty == null ? '' : String(newQty) };
+        try {
+          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(next));
+        } catch (e) {
+          console.warn('Could not update template quantity in localStorage', e);
+        }
+      }
+    } else {
+      try {
+        const body = {
+          name: product.productName,
+          type: product.type || 'product',
+          quantityValue: newQty,
+          quantifiableUnit: product.productQuantifiableUnit ?? 'kg',
+          productOrigin: product.productOrigin ?? null,
+          functionalProperties: { ...(product.functionalProperties || {}), dppData: product.dppData },
+          userId: product.userId ?? null,
+          uploadedFile: product.uploadedFile ?? null,
+          DPP: product.DPP ?? null,
+        };
+        await productAPI.updateProduct(productId, body);
+      } catch (err) {
+        console.error('Failed to update quantity:', err);
+      }
+    }
+
+    runFullLcaCalculation(productId, newQty);
+  };
+
   const handleDelete = (productId) => {
     const product = products.find(p => p.productId === productId);
     setDeleteConfirm({
       isOpen: true,
-      title: 'Delete Product',
-      message: `Are you sure you want to delete "${product ? product.productName : 'this product'}"? This action cannot be undone.`,
+      title: maritimeMode ? 'Delete Vessel' : 'Delete Product',
+      message: `Are you sure you want to delete "${product ? product.productName : `this ${labels.entitySingular}`}"? This action cannot be undone.`,
       onConfirm: () => performActualDeleteProduct(productId)
     });
   };
@@ -712,6 +1104,7 @@ function dppDataToTemplate(dppJson) {
         return prod;
       })
     );
+    setLcaDirtyMap((prev) => ({ ...prev, [p.productId]: true }));
   };
 
   const handleWeightBlur = (e, p, idx) => {
@@ -732,6 +1125,7 @@ function dppDataToTemplate(dppJson) {
     const effectiveUnit = unit === '-' ? (isProcess ? 's' : 'kg') : unit;
     const canonical = isTransport ? Number(displayVal) || 0 : toCanonicalAmount(displayVal, effectiveUnit, isProcess);
     runLcaCalculation(p.productId, idx, canonical);
+    setLcaDirtyMap((prev) => ({ ...prev, [p.productId]: true }));
   };
 
   const handleUnitChange = (p, idx, newUnit) => {
@@ -744,6 +1138,7 @@ function dppDataToTemplate(dppJson) {
     dpp[idx].unit = newUnit;
     autoSaveProduct(p.productId, JSON.stringify(dpp));
     setSubProductWeights(prev => ({ ...prev, [`${p.productId}_${idx}`]: undefined }));
+    setLcaDirtyMap((prev) => ({ ...prev, [p.productId]: true }));
   };
 
   const handleDeleteSubcomponent = (productId, indexToDelete) => {
@@ -769,6 +1164,7 @@ function dppDataToTemplate(dppJson) {
     
     const totalLca = dpp.reduce((sum, item) => sum + (item.lcaValue || 0), 0);
     autoSaveProduct(productId, JSON.stringify(dpp), totalLca);
+    setLcaDirtyMap((prev) => ({ ...prev, [productId]: true }));
   };
 
   const handleAddSubcomponent = (productId) => {
@@ -784,6 +1180,7 @@ function dppDataToTemplate(dppJson) {
       isPackaging: false, isTransport: false
     });
     autoSaveProduct(productId, JSON.stringify(dpp));
+    setLcaDirtyMap((prev) => ({ ...prev, [productId]: true }));
   };
   
   // --- SINGLE ITEM: save weight to backend (LCA calculate not exposed by Java backend)
@@ -795,9 +1192,16 @@ function dppDataToTemplate(dppJson) {
     if (!dpp[subcomponentIndex]) return;
     dpp[subcomponentIndex].weightKg = weightToUse;
     const newDppJson = JSON.stringify(dpp);
+    const zeroBreakdown = !hasPositiveBreakdownWeight(newDppJson);
     setProducts(currentProducts =>
       currentProducts.map(prod =>
-        prod.productId === productId ? { ...prod, dppData: newDppJson } : prod
+        prod.productId === productId
+          ? {
+              ...prod,
+              dppData: newDppJson,
+              ...(zeroBreakdown ? { lcaResult: 0, scope1: 0, scope2: 0, scope3: 0 } : {}),
+            }
+          : prod
       )
     );
     try {
@@ -817,25 +1221,72 @@ function dppDataToTemplate(dppJson) {
   };
 
   // --- FULL LCA: backend by productId, or for template products match backend by name (template never stored in backend)
-  const runFullLcaCalculation = async (productId) => {
+  const runFullLcaCalculation = async (productId, quantityOverride = null) => {
     const product = products.find(p => p.productId === productId);
     console.log('[LCA] runFullLcaCalculation called', { productId, productName: product?.productName, found: !!product, _fromTemplate: product?._fromTemplate });
     if (!product) {
       console.warn('[LCA] Abort: product not found for id', productId);
       return;
     }
+    if (maritimeMode) {
+      const mmsi = extractMmsiFromProduct(product);
+      if (!mmsi) {
+        alert('Missing MMSI for this vessel. Include an MMSI column in your upload, or add MMSI in the vessel name.');
+        return;
+      }
+      setCalculatingProductId(productId);
+      try {
+        const lcaRes = await maritimeAPI.getLca(mmsi);
+        const scope1 = scope1FromMaritimeLcaResponse(lcaRes);
+        setProducts((currentProducts) =>
+          currentProducts.map((prod) =>
+            prod.productId === productId
+              ? {
+                  ...prod,
+                  scope1,
+                  scope2: 0,
+                  scope3: scope1, // Displayed in the existing LCA column for maritime rows
+                  lcaResult: scope1,
+                  hasCalculatedLca: true,
+                  DPP: {
+                    ...(prod.DPP || {}),
+                    name: prod.productName || '',
+                    carbonFootprint: { scope1, scope2: 0, scope3: scope1 },
+                  },
+                }
+              : prod
+          )
+        );
+        setLcaDirtyMap((prev) => ({ ...prev, [productId]: false }));
+      } catch (err) {
+        console.error('[Maritime LCA] Error:', err?.response?.status, err?.response?.data ?? err?.message, err);
+        const status = err?.response?.status;
+        const unreachable = status === 502 || status === 503 || status === 504 || err?.code === 'ECONNREFUSED' || !err?.response;
+        alert(
+          unreachable
+            ? 'Could not reach the API while calculating voyage LCA. Start the Spring Boot backend (default port 8080) and check that Vite proxies /api to it (VITE_API_PROXY_TARGET).'
+            : 'Failed to calculate vessel LCA. If logs exist for this MMSI in the maritime database, try again; otherwise voyage emissions will show as 0.'
+        );
+      } finally {
+        setCalculatingProductId((prev) => (prev === productId ? null : prev));
+      }
+      return;
+    }
     // When quantity is empty (shown as "—"), do not run backend calculation; set scopes to 0.
-    const q = product.productQuantity;
-    const quantityEmpty = (q === null || q === undefined || (typeof q === 'string' && String(q).trim() === ''));
+    const q = quantityOverride != null ? quantityOverride : product.productQuantity;
+    const quantityEmpty =
+      (q === null || q === undefined || (typeof q === 'string' && String(q).trim() === '')) ||
+      (Number.isFinite(Number(q)) && Number(q) <= 0);
     if (quantityEmpty) {
       console.log('[LCA] Quantity empty – skipping backend calculation and setting scopes to 0');
       setProducts((currentProducts) =>
         currentProducts.map((prod) =>
           prod.productId === productId
-            ? { ...prod, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0 }
+            ? { ...prod, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0, hasCalculatedLca: false }
             : prod
         )
       );
+      setLcaDirtyMap((prev) => ({ ...prev, [productId]: false }));
       return;
     }
     let dpp;
@@ -845,6 +1296,21 @@ function dppDataToTemplate(dppJson) {
     }
     if (!Array.isArray(dpp)) {
       console.warn('[LCA] Abort: dppData is not array', productId);
+      return;
+    }
+    if (!hasPositiveBreakdownWeight(dpp)) {
+      console.log('[LCA] Breakdown weights are all zero/empty – forcing Scope 3 to 0');
+      setProducts((currentProducts) =>
+        currentProducts.map((prod) =>
+          prod.productId === productId
+            ? { ...prod, scope1: 0, scope2: 0, scope3: 0, lcaResult: 0, hasCalculatedLca: false }
+            : prod
+        )
+      );
+      if (userId) {
+        setLocalLca(userId, productId, 0);
+      }
+      setLcaDirtyMap((prev) => ({ ...prev, [productId]: false }));
       return;
     }
 
@@ -888,51 +1354,75 @@ function dppDataToTemplate(dppJson) {
       if (!product._fromTemplate) await autoSaveProduct(productId, product.dppData);
 
       // Run LCA on backend product (by key); pass userId so backend can save to user_product_lca
-      console.log('[LCA] Requesting GET /api/experiments/products/' + backendKey + '/lca', userId ? { userId } : '');
+      console.log('[LCA] Requesting GET /api/lca/rough', { backendKey, ...(userId ? { userId } : {}) });
       const lcaRes = await productAPI.calculateProduct(backendKey, userId);
       console.log('[LCA] LCA response:', { status: lcaRes?.status, data: lcaRes?.data });
 
-      // Backend persists only lcaValue; totals come from the LCA response (carbonFootprint).
-      const carbonFootprint = lcaRes?.data;
-      const productWithCf = carbonFootprint ? { DPP: { carbonFootprint }, emissionInformation: null } : null;
-      const totals = productWithCf ? getScopeTotalsFromProduct(productWithCf) : { scope1: 0, scope2: 0, scope3: 0, total: 0 };
+      // Prefer direct scope values returned by backend LCA endpoint.
+      // Fallback to generic parser for legacy payload shapes.
+      const lcaData = lcaRes?.data;
+      let totals;
+      if (lcaData && typeof lcaData === 'object') {
+        const hasDirectScopes =
+          lcaData.scope1 != null || lcaData.Scope1 != null ||
+          lcaData.scope2 != null || lcaData.Scope2 != null ||
+          lcaData.scope3 != null || lcaData.Scope3 != null;
+        if (hasDirectScopes) {
+          const scope1 = toFiniteNumber(lcaData.scope1 ?? lcaData.Scope1, 0);
+          const scope2 = toFiniteNumber(lcaData.scope2 ?? lcaData.Scope2, 0);
+          const scope3 = toFiniteNumber(lcaData.scope3 ?? lcaData.Scope3, 0);
+          totals = { scope1, scope2, scope3, total: scope1 + scope2 + scope3 };
+        } else {
+          const productWithCf = { DPP: { carbonFootprint: lcaData }, emissionInformation: null };
+          totals = getScopeTotalsFromProduct(productWithCf);
+        }
+      } else {
+        totals = { scope1: 0, scope2: 0, scope3: 0, total: 0 };
+      }
+      const factor = quantityFactor(q);
+      const scaledTotals = {
+        scope1: totals.scope1 * factor,
+        scope2: totals.scope2 * factor,
+        scope3: totals.scope3 * factor,
+        total: totals.total * factor,
+      };
       console.log('[LCA] Totals from response:', totals);
 
       // Persist LCA in localStorage only (no backend). Survives refresh and navigation.
       // For template products, also save under the template's own productId so it survives reload
       // (template products are not in the backend product list, so backendKey won't match on reload).
       if (userId) {
-        setLocalLca(userId, backendKey, totals.total);
+        setLocalLca(userId, backendKey, scaledTotals.total);
         if (product._fromTemplate && productId !== backendKey) {
-          setLocalLca(userId, productId, totals.total);
+          setLocalLca(userId, productId, scaledTotals.total);
         }
-        console.log('[LCA] Saved to localStorage:', { productKey: backendKey, templateId: product._fromTemplate ? productId : null, total: totals.total });
+        console.log('[LCA] Saved to localStorage:', { productKey: backendKey, templateId: product._fromTemplate ? productId : null, total: scaledTotals.total });
+      }
+      setLcaQtySnapshot(backendKey, q);
+      if (productId !== backendKey) {
+        setLcaQtySnapshot(productId, q);
       }
       // Optional: persist to backend (comment out to use localStorage only)
       // try { await userLcaAPI.save(userId, backendKey, totals.total); } catch (e) {}
       // try { await productAPI.saveProductLca(backendKey, totals.total); } catch (e) {}
 
-      // Refetch products so LCA (Total) comes from localStorage and persists across navigation
-      try {
-        await fetchProducts();
-      } catch (_) {}
       console.log('[LCA] Refetching product GET /api/products/' + backendKey);
       const res = await productAPI.getProductById(backendKey);
       const updatedProduct = res?.data;
       console.log('[LCA] Refetch response:', { status: res?.status, hasProduct: !!updatedProduct, lcaValue: updatedProduct?.lcaValue ?? updatedProduct?.LCAvalue ?? updatedProduct?.LCAValue });
-      if (updatedProduct || totals.total > 0) {
+      if (updatedProduct || scaledTotals.total >= 0) {
         // Use persisted lcaValue when present, else total from response (support both key casings)
         const refetchedLca = updatedProduct?.lcaValue ?? updatedProduct?.lcavalue ?? updatedProduct?.LCAvalue ?? updatedProduct?.LCAValue;
-        const lcaResult = typeof refetchedLca === 'number' ? refetchedLca : totals.total;
+        const lcaResult = typeof refetchedLca === 'number' ? refetchedLca * factor : scaledTotals.total;
 
         // Optional: keep local cache as fallback for template products or old sessions
         try {
           const cacheRaw = localStorage.getItem(LCA_CACHE_KEY) || '{}';
           const cache = JSON.parse(cacheRaw) || {};
           const entry = {
-            scope1: totals.scope1 || 0,
-            scope2: totals.scope2 || 0,
-            scope3: totals.scope3 || 0,
+            scope1: scaledTotals.scope1 || 0,
+            scope2: scaledTotals.scope2 || 0,
+            scope3: scaledTotals.scope3 || 0,
             total: lcaResult,
             updatedAt: Date.now(),
           };
@@ -943,24 +1433,39 @@ function dppDataToTemplate(dppJson) {
           console.warn('[LCA] Failed to update local LCA cache', e);
         }
 
-        // Update the row so UI shows the new LCA (from response + persisted lcaValue)
+        // Update the row so UI shows backend-calculated scopes directly.
         setProducts((currentProducts) =>
           currentProducts.map((prod) => {
             if (prod.productId === productId) {
+              const dppFromBackend = updatedProduct?.DPP ?? updatedProduct?.dpp ?? null;
+              const computedDpp = dppFromBackend ?? {
+                name: product.productName || prod.productName || '',
+                carbonFootprint: {
+                  scope1: totals.scope1,
+                  scope2: totals.scope2,
+                  scope3: totals.scope3,
+                },
+              };
+              setLocalDppCache(backendKey, computedDpp, product.productName);
+              if (productId !== backendKey) {
+                setLocalDppCache(productId, computedDpp, product.productName);
+              }
               return {
                 ...prod,
-                DPP: updatedProduct?.DPP ?? updatedProduct?.dpp ?? prod.DPP,
+                DPP: computedDpp ?? prod.DPP,
                 emissionInformation: updatedProduct?.emissionInformation ?? prod.emissionInformation,
                 lcaResult,
-                scope1: totals.scope1,
-                scope2: totals.scope2,
-                scope3: totals.scope3,
+                scope1: scaledTotals.scope1,
+                scope2: scaledTotals.scope2,
+                scope3: scaledTotals.scope3,
+                hasCalculatedLca: true,
                 functionalProperties: updatedProduct?.functionalProperties ?? prod.functionalProperties,
               };
             }
             return prod;
           })
         );
+        setLcaDirtyMap((prev) => ({ ...prev, [productId]: false }));
       } else {
         console.warn('[LCA] No product or totals – cannot update UI');
       }
@@ -988,12 +1493,22 @@ function dppDataToTemplate(dppJson) {
     }
     return String(scope);
   };
-  /** Compact number only for inline scope line (e.g. "11.56"). */
+  /** kgCO₂e numeric string; keep 3 dp so table and DPP modal match. */
   const fmtScopeNum = (scope) => {
     if (scope == null) return '—';
-    if (typeof scope === 'number' && !Number.isNaN(scope)) return Number(scope).toFixed(2);
-    if (typeof scope === 'object' && scope.kgCO2e != null) return Number(scope.kgCO2e).toFixed(2);
+    if (typeof scope === 'number' && !Number.isNaN(scope)) return Number(scope).toFixed(3);
+    if (typeof scope === 'object' && scope.kgCO2e != null) return Number(scope.kgCO2e).toFixed(3);
     return '—';
+  };
+
+  const scopeToKg = (scope) => {
+    if (scope == null) return null;
+    if (typeof scope === 'number' && Number.isFinite(scope)) return scope;
+    if (typeof scope === 'object' && scope.kgCO2e != null) {
+      const n = Number(scope.kgCO2e);
+      return Number.isFinite(n) ? n : null;
+    }
+    return null;
   };
 
   /** Render DPP and all backend product info in a structured layout. */
@@ -1011,7 +1526,7 @@ function dppDataToTemplate(dppJson) {
     return (
       <div className="dpp-modal-structured">
         <section className="dpp-section">
-          <h3 className="dpp-section-title">Product</h3>
+          <h3 className="dpp-section-title">{maritimeMode ? 'Vessel' : 'Product'}</h3>
           {kv('name', productName)}
           {kv('type', product.type)}
           {kv('id', product.id)}
@@ -1046,7 +1561,48 @@ function dppDataToTemplate(dppJson) {
                 <div className="dpp-carbon dpp-carbon--compact">
                   {(() => {
                     const cf = dpp.carbonFootprint ?? dpp.CarbonFootprint;
-                    const n1 = fmtScopeNum(cf.scope1 ?? cf.Scope1); const n2 = fmtScopeNum(cf.scope2 ?? cf.Scope2); const n3 = fmtScopeNum(cf.scope3 ?? cf.Scope3);
+                    if (maritimeMode) {
+                      if (product._maritimeLcaPending) {
+                        return (
+                          <span className="dpp-scopes-inline" style={{ fontStyle: 'italic', color: 'rgba(var(--greys), 0.85)' }}>
+                            Voyage LCA is still loading…
+                          </span>
+                        );
+                      }
+                      const rowS1 = Number(product.scope1 ?? 0);
+                      const cfS1 = scopeToKg(cf.scope1 ?? cf.Scope1);
+                      const cfS2 = scopeToKg(cf.scope2 ?? cf.Scope2);
+                      const cfS3 = scopeToKg(cf.scope3 ?? cf.Scope3);
+                      const dppMismatch =
+                        cfS1 != null &&
+                        (Math.abs(cfS1 - rowS1) > 1e-3 ||
+                          (cfS2 != null && Math.abs(cfS2 - Number(product.scope2 ?? 0)) > 1e-3) ||
+                          (cfS3 != null && Math.abs(cfS3 - Number(product.scope3 ?? 0)) > 1e-3));
+                      return (
+                        <>
+                          <div className="dpp-scopes-inline">
+                            Voyage LCA: <strong>{formatTotalLca(rowS1)}</strong>
+                          </div>
+                          <p className="small-regular" style={{ color: 'rgba(var(--greys), 0.75)', marginTop: '0.35rem' }}>
+                            Scopes (kgCO₂e): S1: {fmtScopeNum(cf.scope1 ?? cf.Scope1)} · S2: {fmtScopeNum(cf.scope2 ?? cf.Scope2)} · S3:{' '}
+                            {fmtScopeNum(cf.scope3 ?? cf.Scope3)}
+                          </p>
+                          {!dppMismatch && (
+                            <p className="small-regular" style={{ color: 'rgba(var(--success), 0.95)', marginTop: '0.35rem' }}>
+                              Row and passport figures are consistent.
+                            </p>
+                          )}
+                          {dppMismatch && (
+                            <p className="small-regular" style={{ color: 'rgba(var(--danger), 1)', marginTop: '0.35rem' }}>
+                              Row data and passport snapshot differ — refresh the page or reopen after voyage LCA finishes loading.
+                            </p>
+                          )}
+                        </>
+                      );
+                    }
+                    const n1 = fmtScopeNum(cf.scope1 ?? cf.Scope1);
+                    const n2 = fmtScopeNum(cf.scope2 ?? cf.Scope2);
+                    const n3 = fmtScopeNum(cf.scope3 ?? cf.Scope3);
                     return <span className="dpp-scopes-inline">S1: {n1} · S2: {n2} · S3: {n3} kgCO₂e</span>;
                   })()}
                 </div>
@@ -1075,8 +1631,9 @@ function dppDataToTemplate(dppJson) {
   };
 
   const formatTotalLca = (value) => {
-    if (value === null || value === undefined) return '0.000 kgCO₂e';
-    return `${value.toFixed(3)} kgCO₂e`;
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '0.000 kgCO₂e';
+    return `${n.toFixed(3)} kgCO₂e`;
   };
 
   const filteredProducts = products
@@ -1098,45 +1655,49 @@ function dppDataToTemplate(dppJson) {
       <div className="content-section-main">
         <div className="content-container-main"> 
           <div className="header-group">
-            <h1>Inventory</h1>
-            <p className = "medium-regular">Overview of your products.</p>
+            <h1>{labels.pageTitle}</h1>
+            <p className = "medium-regular">{labels.subtitle}</p>
           </div>
           <div className = "sub-header">
-            <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} products</p>
+            <p style = {{color: "rgba(var(--greys), 1)"}}>Showing {filteredProducts.length} of {products.length} {labels.entityPlural}</p>
               <div className = "two-row-component-container">
               <div className = "input-base search-bar"><Search />
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               </div>
-              <button type="button" className="default" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => navigate('/add-products')}>
-                Browse Templates
-              </button>
-              <button type="button" className="outline" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => setShowAddProduct(true)}>
-                Upload BOM
-              </button>
+              {!maritimeMode && (
+                <button type="button" className="default" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => navigate('/add-products')}>
+                  Browse Templates
+                </button>
+              )}
+              {!maritimeMode && (
+                <button type="button" className="outline" style={{ whiteSpace: 'nowrap', width: 'auto', paddingLeft: '1rem', paddingRight: '1rem' }} onClick={() => setShowAddProduct(true)}>
+                  Upload BOM
+                </button>
+              )}
             </div>
           </div>
           <div className="inventory-table-container">
             <table className="inventory-table">
               <thead className = "normal-bold">
                 <tr>
-                  <th></th>
-                  <th>Product Name</th>
-                  <th>Quantity</th>
+                  {!maritimeMode && <th />}
+                  <th>{labels.nameHeader}</th>
+                  {!maritimeMode && <th>{labels.quantityHeader}</th>}
                   <th>DPP</th>
-                  <th>LCA (Scope 3)</th>
+                  <th>{labels.lcaHeader}</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={6} className="no-products-message">Loading products...</td>
+                    <td colSpan={maritimeMode ? 4 : 6} className="no-products-message">Loading {labels.entityPlural}...</td>
                   </tr>
                 )}
                 
                 {!loading && error && (
                   <tr>
-                    <td colSpan={6} className="no-products-message" style={{ color: 'rgba(var(--danger), 1)' }}>
+                    <td colSpan={maritimeMode ? 5 : 6} className="no-products-message" style={{ color: 'rgba(var(--danger), 1)' }}>
                       {error}
                     </td>
                   </tr>
@@ -1144,16 +1705,18 @@ function dppDataToTemplate(dppJson) {
                 
                 {!loading && !error && products.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="no-products-message">
-                      Add a new product. Click Upload BOM or Create Your Own.
+                    <td colSpan={maritimeMode ? 4 : 6} className="no-products-message">
+                      {maritimeMode
+                        ? 'No backend vessel logs found. Ensure maritime ship log data exists in the backend.'
+                        : `Add a new ${labels.entitySingular}. Click Upload BOM or Create Your Own.`}
                     </td>
                   </tr>
                 )}
                 
                 {!loading && !error && products.length > 0 && filteredProducts.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="no-products-message">
-                      No products match your search query.
+                    <td colSpan={maritimeMode ? 4 : 6} className="no-products-message">
+                      {`No ${labels.entityPlural} match your search query.`}
                     </td>
                   </tr>
                 )}
@@ -1165,21 +1728,27 @@ function dppDataToTemplate(dppJson) {
                   return (
                     <React.Fragment key={p.productId}>
                       <tr>
-                        <td>
-                          <button
-                            className="icon icon-small"
-                            disabled={calculatingProductId === p.productId}
-                            title={expandedRows[p.productId] ? 'Collapse' : 'Expand'}
-                            onClick={() => {
-                              const isOpening = !expandedRows[p.productId];
-                              setExpandedRows((prev) => ({ ...prev, [p.productId]: !prev[p.productId] }));
-                              // Only run LCA if opening and no value has been calculated yet
-                              if (isOpening && !(p.lcaResult > 0)) runFullLcaCalculation(p.productId);
-                            }}
-                          >
-                            <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
-                          </button>
-                        </td>
+                        {!maritimeMode && (
+                          <td>
+                            <button
+                              className="icon icon-small"
+                              disabled={calculatingProductId === p.productId}
+                              title={expandedRows[p.productId] ? 'Collapse' : 'Expand'}
+                              onClick={() => {
+                                const isOpening = !expandedRows[p.productId];
+                                setExpandedRows((prev) => ({ ...prev, [p.productId]: !prev[p.productId] }));
+                                if (
+                                  isOpening &&
+                                  (!p.hasCalculatedLca || lcaDirtyMap[p.productId])
+                                ) {
+                                  runFullLcaCalculation(p.productId);
+                                }
+                              }}
+                            >
+                              <Triangle style={{ transform: expandedRows[p.productId] ? 'rotate(180deg)' : 'rotate(90deg)' }} />
+                            </button>
+                          </td>
+                        )}
                         <td>
                           <input
                             type="text"
@@ -1190,30 +1759,77 @@ function dppDataToTemplate(dppJson) {
                             onBlur={(e) => handleProductNameBlur(p.productId, e.target.value)}
                           />
                         </td>
-                        <td>{p.productQuantity != null ? (p.productQuantifiableUnit ? `${p.productQuantity} ${p.productQuantifiableUnit}` : p.productQuantity) : '—'}</td>
+                        {!maritimeMode && (
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.000001"
+                                className="input-base"
+                                style={{ width: '7rem' }}
+                                value={productQuantityEdits[p.productId] ?? (p.productQuantity ?? '')}
+                                onChange={(e) =>
+                                  setProductQuantityEdits((prev) => ({ ...prev, [p.productId]: e.target.value }))
+                                }
+                                onBlur={(e) => handleProductQuantityBlur(p.productId, e.target.value)}
+                              />
+                            </div>
+                          </td>
+                        )}
                         <td>
-                          <a href="#" className="link normal-bold" onClick={(e) => { e.preventDefault(); setShowDppModal(true); setCurrentDppProduct(p); }}>
+                          <a
+                            href="#"
+                            className="link normal-bold"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowDppModal(true);
+                              setCurrentDppProduct(p);
+                              if (!maritimeMode && (!p.hasCalculatedLca || !p.DPP)) {
+                                runFullLcaCalculation(p.productId);
+                              }
+                            }}
+                          >
                             View DPP
                           </a>
                         </td>
                         <td>
-                          {calculatingProductId === p.productId ? (
-                            <span className="lca-calculating" style={{ color: 'rgba(var(--greys), 0.9)', fontStyle: 'italic' }}>Calculating LCA…</span>
+                          {maritimeMode ? (
+                            p._maritimeLcaPending ? (
+                              <span
+                                className="lca-calculating"
+                                style={{ color: 'rgba(var(--greys), 0.9)', fontStyle: 'italic' }}
+                              >
+                                Calculating voyage LCA…
+                              </span>
+                            ) : (
+                              <strong style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                {formatTotalLca(p.scope3 ?? 0)}
+                              </strong>
+                            )
+                          ) : calculatingProductId === p.productId ? (
+                            <span className="lca-calculating" style={{ color: 'rgba(var(--greys), 0.9)', fontStyle: 'italic' }}>
+                              Calculating LCA…
+                            </span>
                           ) : (
-                            <strong>{formatTotalLca(p.scope3 ?? 0)}</strong>
+                            <strong>{p.hasCalculatedLca ? formatTotalLca(p.scope3 ?? 0) : formatTotalLca(0)}</strong>
                           )}
                         </td>
                         <td>
                           <div className='two-row-component-container'>
-                            <button className="icon" title="Add component" onClick={() => { console.log('[Inventory] Add component clicked (this does not run LCA)', p.productId); handleAddSubcomponent(p.productId); }}><CirclePlus /></button>
-                            <button className="icon" style = {{backgroundColor: "rgba(var(--danger), 1)"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
-                              <Trash2 />
-                            </button>
+                            {!maritimeMode && (
+                              <>
+                                <button className="icon" title="Add component" onClick={() => { console.log('[Inventory] Add component clicked (this does not run LCA)', p.productId); handleAddSubcomponent(p.productId); }}><CirclePlus /></button>
+                                <button className="icon" style = {{backgroundColor: "rgba(var(--danger), 1)"}} title = "Delete product" onClick={() => handleDelete(p.productId)}>
+                                  <Trash2 />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
 
-                      {expandedRows[p.productId] && dpp && Array.isArray(dpp) && (
+                      {!maritimeMode && expandedRows[p.productId] && dpp && Array.isArray(dpp) && dpp.length > 0 && (
                         <tr className="sub-table-row">
                           <td colSpan={6}>
                             <div className="sub-table-container">
@@ -1327,11 +1943,11 @@ function dppDataToTemplate(dppJson) {
         </div>
       </div>
       {/* ... Modals ... */}
-      {showAddProduct && (
+      {!maritimeMode && showAddProduct && (
         <div className="modal-overlay active">
           <div className="modal-content">
             <div className="modal-header">
-              <p className = "medium-bold">Upload BOM</p>
+              <p className = "medium-bold">{maritimeMode ? 'Upload Vessel Details' : 'Upload BOM'}</p>
               <button className="close-modal-btn" onClick={() => setShowAddProduct(false)}><X /></button>
             </div>
             <form id="addProductForm" onSubmit={handleAddProduct}>
@@ -1365,7 +1981,7 @@ function dppDataToTemplate(dppJson) {
                   </label>
                 </div>
                 <button type="submit" className="default" disabled={uploading || !productFile}>
-                  {uploading ? "Uploading..." : "Upload BOM"}
+                  {uploading ? "Uploading..." : (maritimeMode ? "Upload Vessel Details" : "Upload BOM")}
                 </button>
               </div>
             </form>
