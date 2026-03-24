@@ -5,14 +5,27 @@ meta {
 }
 
 put {
-  url: {{host}}/api/outputs
+  url: {{host}}/api/outputs/:companyName
   body: json
   auth: inherit
 }
 
+params:path {
+  companyName: default
+}
+
 body:json {
   [
-    
+    {
+      "processName": "au",
+      "productName": "au",
+      "_key": "1"
+    },
+    {
+      "processName": "sala",
+      "productName": "kau",
+      "_key": "2"
+    }
   ]
 }
 

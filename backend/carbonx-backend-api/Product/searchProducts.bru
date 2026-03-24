@@ -5,15 +5,16 @@ meta {
 }
 
 get {
-  url: {{host}}/api/products?database=default&name=spaghetti
+  url: {{host}}/api/products?type=ingredient
   body: none
   auth: inherit
 }
 
 params:query {
-  database: default
-  name: spaghetti
+  type: ingredient
+  ~database: 
   ~key: 1
+  ~name: chicken
   ~type: 
   ~productOrigin: supplier
   ~userId: 

@@ -1,17 +1,18 @@
 meta {
   name: getInput
   type: http
-  seq: 2
+  seq: 5
 }
 
 get {
-  url: {{host}}/api/inputs/:id
+  url: {{host}}/api/inputs/:companyName/:key
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 147468
+  key: 
+  companyName: default
 }
 
 settings {

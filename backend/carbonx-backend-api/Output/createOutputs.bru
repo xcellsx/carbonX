@@ -5,35 +5,30 @@ meta {
 }
 
 post {
-  url: {{host}}/api/outputs
+  url: {{host}}/api/outputs/:companyName
   body: json
   auth: inherit
+}
+
+params:path {
+  companyName: default
 }
 
 body:json {
   [
     {
-      "process": {
-        "id": "94662",
-        "arangoId": "processes/94662",
-        "name": "combining",
-        "processType": "mixing",
-        "functionalProperties": null,
-        "nonFunctionalProperties": null,
-        "inputs": []
-      },
-      "product": {
-        "arangoId": "products/94636",
-        "id": "94636",
-        "name": "lemonade",
-        "productNature": "drink",
-        "productOrigin": null,
-        "functionalProperties": null,
-        "procedure": [],
-        "userId": null,
-        "uploadedFile": null,
-        "dpp": null
-      }
+      "processName": "boiling",
+      "productName": "pasta",
+      "_key": "1",
+      "_from": "processes/1",
+      "_to": "products/5"
+    },
+    {
+      "processName": "boiling",
+      "productName": "pasta",
+      "_key": "2",
+      "_from": "processes/1",
+      "_to": "products/5"
     }
   ]
   

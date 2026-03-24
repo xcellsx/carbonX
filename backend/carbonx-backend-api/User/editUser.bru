@@ -1,0 +1,27 @@
+meta {
+  name: editUser
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{host}}/api/users/:companyName/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  companyName: testCompany
+  id: 151764
+}
+
+body:json {
+  {
+    "username": "bobeychau"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

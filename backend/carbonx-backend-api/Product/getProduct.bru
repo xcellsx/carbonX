@@ -1,17 +1,18 @@
 meta {
   name: getProduct
   type: http
-  seq: 2
+  seq: 5
 }
 
 get {
-  url: {{host}}/api/products/:id
+  url: {{host}}/api/products/:companyName/:key
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 3
+  key: 1
+  companyName: testCompany
 }
 
 settings {

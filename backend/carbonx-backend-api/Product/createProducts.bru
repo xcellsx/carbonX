@@ -5,15 +5,19 @@ meta {
 }
 
 post {
-  url: {{host}}/api/products
+  url: {{host}}/api/products/:companyName
   body: json
   auth: inherit
+}
+
+params:path {
+  companyName: testCompany
 }
 
 body:json {
   [
     {
-    "productNature": "ingredient",
+    "type": "ingredient",
     "name": "lemon juice",
     "productOrigin": null,
     "functionalProperties": null,
@@ -22,7 +26,7 @@ body:json {
     "uploadedFile": null
     },
     {
-    "productNature": "drink",
+    "type": "drink",
     "name": "lemonade",
     "productOrigin": null,
     "functionalProperties": null,

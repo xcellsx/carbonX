@@ -1,0 +1,29 @@
+meta {
+  name: createUser
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/users/:companyName
+  body: json
+  auth: inherit
+}
+
+params:path {
+  companyName: testCompany
+}
+
+body:json {
+  {
+    "username": "six",
+    "email": "capy@gmail.com",
+    "firstName": "Bob",
+    "role": "admin"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,33 @@
+meta {
+  name: editUsers
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{host}}/api/users/:companyName
+  body: json
+  auth: inherit
+}
+
+params:path {
+  companyName: testCompany
+}
+
+body:json {
+  [
+    {
+      "_key":"151236",
+      "username": "auau"
+    },
+    {
+      "_key":"1363082",
+      "username": "salakau"
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

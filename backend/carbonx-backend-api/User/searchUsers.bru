@@ -1,0 +1,30 @@
+meta {
+  name: searchUsers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/users/:companyName?key=151764
+  body: none
+  auth: inherit
+}
+
+params:query {
+  key: 151764
+  ~email: ingredient
+  ~username: 
+  ~firstName: chicken
+  ~lastName: 
+  ~active: supplier
+  ~role: 
+}
+
+params:path {
+  companyName: testCompany
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

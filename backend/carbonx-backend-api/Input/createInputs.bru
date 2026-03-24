@@ -5,58 +5,32 @@ meta {
 }
 
 post {
-  url: {{host}}/api/inputs
+  url: {{host}}/api/inputs/:companyName
   body: json
   auth: inherit
+}
+
+params:path {
+  companyName: default
 }
 
 body:json {
   [  
     {
-      "product": {
-        "arangoId": "products/94630",
-        "id": "94630",
-        "name": "lemon juice",
-        "productNature": "ingredient",
-        "productOrigin": null,
-        "functionalProperties": null,
-        "procedure": [],
-        "userId": null,
-        "uploadedFile": null,
-        "dpp": null
-      },
-      "process": {
-        "id": "94662",
-        "arangoId": "processes/94662",
-        "name": "combining",
-        "processType": "mixing",
-        "functionalProperties": null,
-        "nonFunctionalProperties": null,
-        "inputs": []
-      }
+      "productName": "raw pasta",
+      "processName": "boiling",
+      "_key": "1",
+      "_from": "products/2",
+      "_to": "processes/1",
+      "_class": "com.ecapybara.carbonx.model.issb.Input"
     },
     {
-      "product": {
-        "arangoId": "products/94412",
-        "id": "94412",
-        "name": "clean water",
-        "productNature": "ingredient",
-        "productOrigin": null,
-        "functionalProperties": null,
-        "procedure": [],
-        "userId": null,
-        "uploadedFile": null,
-        "dpp": null
-      },
-      "process": {
-        "id": "94662",
-        "arangoId": "processes/94662",
-        "name": "combining",
-        "processType": "mixing",
-        "functionalProperties": null,
-        "nonFunctionalProperties": null,
-        "inputs": []
-      }
+      "productName": "raw pasta",
+      "processName": "boiling",
+      "_key": "2",
+      "_from": "products/2",
+      "_to": "processes/1",
+      "_class": "com.ecapybara.carbonx.model.issb.Input"
     }
   ]
 }

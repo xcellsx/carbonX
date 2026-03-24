@@ -1,5 +1,0 @@
-id,from,processName,to,productName
-outputs/107306,processes/107122,boiling,products/107072,pasta
-outputs/107311,processes/107122,boiling,products/107096,waste water
-outputs/107316,processes/107125,simmering,products/107066,tomato sauce
-outputs/107321,processes/107128,combining,products/107060,spaghetti

@@ -1,0 +1,110 @@
+package com.ecapybara.carbonx.controller;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ecapybara.carbonx.model.issb.Product;
+import com.ecapybara.carbonx.model.issb.Process;
+import com.ecapybara.carbonx.service.*;
+import com.ecapybara.carbonx.service.arango.ArangoDocumentService;
+import com.ecapybara.carbonx.service.industry.maritime.MaritimeLCAService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
+
+
+@Slf4j
+@RestController
+@RequestMapping("/api/experiments")
+public class ExperimentController {
+
+  @Autowired
+  ExperimentalService experimentalService;
+  @Autowired
+  ImportExportService importExportService;
+  @Autowired
+  LCAService lcaService;
+  @Autowired
+  ArangoDocumentService documentService;
+  @Autowired
+  ReportService reportService;
+  @Autowired
+  ProductController productController;
+  @Autowired
+  ProcessController processController;
+
+  @Autowired
+  private MaritimeLCAService maritimeLCAService;
+
+/* 
+  @PostMapping("/httpExport")
+  public Mono<?> exportComplexCSV(HttpServletResponse response) throws Exception {
+    response.setContentType("text/csv");
+    response.setHeader("Content-Disposition", "attachment; filename=products.csv");
+
+    Iterable<Product> products = productController.getProducts(new Product());
+    List<Product> list = new ArrayList<>();
+    for (Product item : products) {
+        list.add(item);
+    }
+
+    StatefulBeanToCsv<Product> beanToCsv = new StatefulBeanToCsvBuilder<Product>(response.getWriter()).build();
+
+    beanToCsv.write(list);
+
+    return Mono.just("Export successful!");
+  }
+*/
+
+  @PostMapping("/export")
+  public Mono<?> exportComplexCSV() throws Exception {
+    return importExportService.exportCSV("inputs", "exportInputs.csv");
+  }
+
+  @PostMapping("/import")
+  public Mono<?> importComplexCSV() {      
+    return Mono.just("Something");
+  }
+
+
+  // ---- UNFINISHED ----
+  @PostMapping("/report")
+  public Mono<?> generateReport() throws IOException {
+      Map<String,String> values = Map.of( "companyName", "carbonx",
+                                          "scope 1", "45.6",
+                                          "scope 2", "47.5",
+                                          "scope 3 category 1", "22.7",
+                                          "scope 3 category 2", "5");
+      
+      reportService.getReport(values);
+      
+      return Mono.just("i dont know");
+  }
+
+  @GetMapping("/ships/lca")
+  public Mono<Map> calculateShipsLCA() throws IOException {
+      Map<String,Object> result = maritimeLCAService.calculateRoughCarbonFootprint("testCompany", "563014970");
+      return Mono.just(result);
+  }
+}

@@ -1,0 +1,21 @@
+meta {
+  name: getUser
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/users/:companyName/:key
+  body: none
+  auth: inherit
+}
+
+params:path {
+  key: 151764
+  companyName: testCompany
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
