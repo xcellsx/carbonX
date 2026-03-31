@@ -6,7 +6,7 @@ import axios from 'axios';
 const envApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
 export const API_BASE_URL = envApiBaseUrl.replace(/\/+$/, '');
 export const API_BASE = API_BASE_URL ? `${API_BASE_URL}/api` : '/api';
-const COMPANY_NAME = (import.meta.env.VITE_COMPANY_NAME || 'testCompany').trim();
+const COMPANY_NAME = (import.meta.env.VITE_COMPANY_NAME || 'SingaporeMarine').trim();
 const DATA_DATABASE = (import.meta.env.VITE_DATA_DATABASE || 'default').trim();
 /** Arango DB name for shipLogs/ships + maritime LCA (seed data uses SingaporeMarine, not default/testCompany). */
 const _maritimeDbRaw = (import.meta.env.VITE_MARITIME_DATABASE || 'SingaporeMarine').trim();
@@ -133,7 +133,7 @@ export const processAPI = {
   getProcessById: (id) => api.get(`/processes/${id}`),
 };
 
-// Must match backend application.properties: arangodb.spring.data.database=testCompany
+// Must match an existing backend company database (InitialSetup seeds SingaporeMarine).
 const DEFAULT_GRAPH_DATABASE = DATA_DATABASE || 'default';
 
 // Graph API – matches misfit-1-3 backend GraphController: GET /api/graph/productgraph?database=&productid=

@@ -11,6 +11,7 @@ import { useProSubscription } from '../../hooks/useProSubscription';
 import { validateReportSchema } from '../../utils/reportSchema';
 import { productAPI } from '../../services/api';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
+import { buildSasbIndexRows, loadSasbInputs } from '../../utils/sasb';
 
 const MarkdownMessage = ({ content }) => (
   <div className="message-markdown">
@@ -21,6 +22,13 @@ const MarkdownMessage = ({ content }) => (
 const SESSIONS_KEY = 'sproutai_sessions';
 const CURRENT_MESSAGES_KEY = 'sproutai_current_messages';
 const FEEDBACK_KEY = 'sproutai_feedback';
+const REPORTS_STORAGE_PREFIX = 'carbonx_reports';
+const getReportsStorageKey = () => {
+  const rawUserId = localStorage.getItem('userId') || '';
+  const userKey = rawUserId.includes('/') ? rawUserId.split('/').pop() : rawUserId;
+  const normalized = String(userKey || '').trim();
+  return normalized ? `${REPORTS_STORAGE_PREFIX}:${normalized}` : `${REPORTS_STORAGE_PREFIX}:guest`;
+};
 
 function loadFeedbackMap() {
   try {
@@ -254,6 +262,12 @@ function loadCurrentMessages() {
   return [];
 }
 
+function getDashboardMetricsStorageKey() {
+  const raw = localStorage.getItem('userId') || '';
+  const key = raw.includes('/') ? raw.split('/').pop() : raw;
+  return `carbonx_dashboard_metrics:${String(key || '').trim() || 'guest'}`;
+}
+
 const SproutAiPage = () => {
   const { isProUser } = useProSubscription();
   const navigate = useNavigate();
@@ -372,14 +386,22 @@ const SproutAiPage = () => {
         });
 
         const fallbackProduct = topProducts[0]?.name || 'my product';
+        const reportPrompt = 'Generate a sustainability report for my company based on my current data.';
         const fallback = [
           `Summarize my current Scope 1, 2, and 3 emissions and what they mean.`,
           `Which of my products has the highest carbon footprint, and what should I improve first?`,
-          `Create a 30-day reduction plan for ${fallbackProduct} based on my inventory.`,
+          reportPrompt,
         ];
 
         if (isCancelled) return;
-        setSuggestedPrompts(Array.isArray(ai) && ai.length >= 3 ? ai : fallback);
+        if (Array.isArray(ai) && ai.length >= 3) {
+          const hasReportPrompt = ai.some((p) => /\breport\b/i.test(String(p)));
+          const base = ai.slice(0, 3);
+          const next = hasReportPrompt ? base : [base[0], base[1], reportPrompt];
+          setSuggestedPrompts(next.slice(0, 3));
+        } else {
+          setSuggestedPrompts(fallback.slice(0, 3));
+        }
       } finally {
         if (!isCancelled) setSuggestedPromptsLoading(false);
       }
@@ -644,7 +666,7 @@ const SproutAiPage = () => {
       'FB-FR-110b.3': 'Average refrigerant emissions rate',
     };
     try {
-      const dashMetrics = JSON.parse(localStorage.getItem('carbonx_dashboard_metrics') || '{}');
+      const dashMetrics = JSON.parse(localStorage.getItem(getDashboardMetricsStorageKey()) || '{}');
       const enteredMetrics = Object.entries(dashMetrics).filter(([key, entry]) => {
         if (!METRIC_LABELS[key]) return false;
         const v = entry?.value;
@@ -746,8 +768,8 @@ const SproutAiPage = () => {
             generating: true,
           },
         };
-        const existingReports = JSON.parse(localStorage.getItem('carbonx_reports') || '[]');
-        localStorage.setItem('carbonx_reports', JSON.stringify([placeholderReport, ...existingReports]));
+        const existingReports = JSON.parse(localStorage.getItem(getReportsStorageKey()) || '[]');
+        localStorage.setItem(getReportsStorageKey(), JSON.stringify([placeholderReport, ...existingReports]));
 
         // Show the summary + View button immediately — user is unblocked
         setMessages(prev => [...prev, { sender: 'assistant', type: 'report_success', content: chatSummary, reportId }]);
@@ -786,12 +808,14 @@ const SproutAiPage = () => {
 
           const finalName = fullData.reportTitle || reportName;
           const description = fullData.reportSummary || chatSummary.slice(0, 200);
-          const finalReport = { id: reportId, reportName: finalName, description, date: placeholderReport.date, fullData };
+          const sasbIndex = buildSasbIndexRows(loadSasbInputs());
+          const fullDataWithSasb = { ...fullData, sasbIndex, frameworks: Array.from(new Set([...(fullData.frameworks || []), 'SASB (FB-FR)'])) };
+          const finalReport = { id: reportId, reportName: finalName, description, date: placeholderReport.date, fullData: fullDataWithSasb };
 
           // Replace the placeholder with the completed report
-          const current = JSON.parse(localStorage.getItem('carbonx_reports') || '[]');
+          const current = JSON.parse(localStorage.getItem(getReportsStorageKey()) || '[]');
           const updated = current.map((r) => r.id === reportId ? finalReport : r);
-          localStorage.setItem('carbonx_reports', JSON.stringify(updated));
+          localStorage.setItem(getReportsStorageKey(), JSON.stringify(updated));
 
           // Show "ready" toast now that the full report is complete
           showReportToast(reportId, false);
@@ -932,8 +956,8 @@ const SproutAiPage = () => {
                   {(suggestedPrompts.length ? suggestedPrompts : [
                     'Summarize my current Scope 1, 2, and 3 emissions.',
                     'Which of my products has the highest carbon footprint?',
-                    'Generate a reduction plan for my highest-emission product.'
-                  ]).slice(0, 6).map((prompt, idx) => (
+                    'Generate a sustainability report for my company based on my current data.'
+                  ]).slice(0, 3).map((prompt, idx) => (
                     <div key={idx} className="suggestion-card" onClick={() => handleSend(prompt)}>
                       <Sparkles size={18} />
                       <p>{prompt}</p>

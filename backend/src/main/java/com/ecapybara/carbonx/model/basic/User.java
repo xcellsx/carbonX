@@ -25,9 +25,11 @@ public class User {
     private final String clazz = this.getClass().getTypeName();
 
     @ArangoId // db document field: _id
+    @JsonProperty("_id")
     private String id;
 
     @Id // db document field: _key
+    @JsonProperty("_key")
     private String key;    
 
     private String username;

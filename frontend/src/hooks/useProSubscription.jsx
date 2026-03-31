@@ -7,13 +7,21 @@ import { useState, useEffect } from 'react';
  * @returns {Object} { isProUser: boolean, subscriptionPlan: string, refreshSubscription: function }
  */
 export const useProSubscription = () => {
+  const getUserStorageKey = () => {
+    const raw = localStorage.getItem('userId') || '';
+    const normalized = raw.includes('/') ? raw.split('/').pop() : raw;
+    return String(normalized || '').trim() || 'guest';
+  };
+
   const getProStatus = () => {
-    const isPro = localStorage.getItem('isProUser') === 'true';
-    const userId = localStorage.getItem('userId') || 'guest';
+    const userId = getUserStorageKey();
     const billingData = JSON.parse(localStorage.getItem(`billing_${userId}`) || '{}');
+    const plan = String(billingData.plan || '').toLowerCase();
+    // Source of truth should be per-user billing plan; keep global flag only as fallback.
+    const isPro = plan ? plan === 'pro' : localStorage.getItem('isProUser') === 'true';
     return {
       isProUser: isPro,
-      subscriptionPlan: billingData.plan || 'basic',
+      subscriptionPlan: plan || 'basic',
       billingData,
     };
   };

@@ -18,6 +18,7 @@ import DownloadFormatModal from '../../components/DownloadFormatModal/DownloadFo
 import { exportReportToDocxBlob } from '../../utils/reportToDocx';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getEffectiveTargets } from '../../utils/reportTargets';
+import { buildSasbIndexRows, loadSasbInputs } from '../../utils/sasb';
 
 // --- Generate Report Modal ---
 const GenerateReportModal = ({ isOpen, onClose, onNavigate }) => {
@@ -343,6 +344,32 @@ const ReportContent = ({ data, onBack, onGoToSproutAI, onAIClick, onDownload }) 
             </table>
           </div>
       </ReportSection>
+
+      {/* 10. SASB INDEX */}
+      <ReportSection icon={FileText} title="10. SASB Index (FB-FR)">
+        <div className="inventory-table-container">
+          <table className="inventory-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th>SASB Code</th>
+                <th>Metric</th>
+                <th>Disclosed Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(Array.isArray(data.sasbIndex) ? data.sasbIndex : []).map((r, idx) => (
+                <tr key={`${r.code}-${idx}`}>
+                  <td className="medium-bold">{r.code}</td>
+                  <td>{r.metric}</td>
+                  <td>{r.value}</td>
+                  <td>{r.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ReportSection>
     </div>
   );
 };
@@ -357,6 +384,14 @@ const REPORT_VIEW_CAROUSEL_SLIDES = [
   { title: 'Viewing a report', description: 'This is the full report content. Scroll to read the board statement, company profile, environmental and social analysis, and future targets.', icon: <BookOpen size={40} /> },
   { title: 'Download', description: 'Click Download to choose PDF or DOCX and save the report to your device. Use "Back to all reports" to return to the list.', icon: <Download size={40} /> },
 ];
+
+const REPORTS_STORAGE_PREFIX = 'carbonx_reports';
+const getReportsStorageKey = () => {
+  const rawUserId = localStorage.getItem('userId') || '';
+  const userKey = rawUserId.includes('/') ? rawUserId.split('/').pop() : rawUserId;
+  const normalized = String(userKey || '').trim();
+  return normalized ? `${REPORTS_STORAGE_PREFIX}:${normalized}` : `${REPORTS_STORAGE_PREFIX}:guest`;
+};
 
 const ReportPage = () => {
   const navigate = useNavigate();
@@ -482,7 +517,7 @@ const ReportPage = () => {
   const fetchReportsList = () => {
     setLoading(true);
     setTimeout(() => {
-      const stored = localStorage.getItem('carbonx_reports');
+      const stored = localStorage.getItem(getReportsStorageKey());
       const parsed = stored ? JSON.parse(stored) : [];
       setReportsList(Array.isArray(parsed) ? parsed : []);
       setLoading(false);
@@ -513,7 +548,7 @@ const ReportPage = () => {
            date: "2025-11-23",
            fullData: FULL_SAMPLE_REPORT
       }];
-      localStorage.setItem('carbonx_reports', JSON.stringify(parsed));
+      localStorage.setItem(getReportsStorageKey(), JSON.stringify(parsed));
       setReportsList(parsed);
       alert("Report reset to comprehensive Golden Lion data!");
   };
@@ -521,7 +556,7 @@ const ReportPage = () => {
   const performActualDeleteReport = (reportId) => {
     const updatedList = reportsList.filter(r => r.id !== reportId);
     setReportsList(updatedList);
-    localStorage.setItem('carbonx_reports', JSON.stringify(updatedList));
+    localStorage.setItem(getReportsStorageKey(), JSON.stringify(updatedList));
   };
 
   const handleDelete = (reportId) => {
@@ -558,7 +593,7 @@ const ReportPage = () => {
     // Also persist the undo to localStorage
     setReportsList(list => {
       const updated = list.map(r => r.fullData === selectedReportData ? { ...r, fullData: prev } : r);
-      localStorage.setItem('carbonx_reports', JSON.stringify(updated));
+      localStorage.setItem(getReportsStorageKey(), JSON.stringify(updated));
       return updated;
     });
   };
@@ -602,7 +637,7 @@ ${JSON.stringify(selectedReportData, null, 2).slice(0, 8000)}`;
         const updatedList = list.map(r =>
           r.id === viewingReportId ? { ...r, fullData: updated } : r
         );
-        localStorage.setItem('carbonx_reports', JSON.stringify(updatedList));
+        localStorage.setItem(getReportsStorageKey(), JSON.stringify(updatedList));
         return updatedList;
       });
     } catch (err) {
@@ -803,6 +838,16 @@ ${JSON.stringify(selectedReportData, null, 2).slice(0, 8000)}`;
       alert('Failed to generate Word document. Try again or download as PDF.');
     }
   };
+
+  useEffect(() => {
+    setReportsList((prev) =>
+      prev.map((r) => {
+        if (r?.fullData?.sasbIndex) return r;
+        const sasbIndex = buildSasbIndexRows(loadSasbInputs());
+        return { ...r, fullData: { ...(r.fullData || {}), sasbIndex } };
+      })
+    );
+  }, []);
 
   const handleBackToList = () => {
     setCurrentView('list');

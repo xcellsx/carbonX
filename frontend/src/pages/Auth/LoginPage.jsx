@@ -51,6 +51,11 @@ const LoginPage = () => {
       localStorage.removeItem('isProUser');
       localStorage.removeItem('settingsTab');
       localStorage.setItem('userId', sessionId);
+      try {
+        const billing = JSON.parse(localStorage.getItem(`billing_${sessionId}`) || '{}');
+        const isPro = String(billing?.plan || '').toLowerCase() === 'pro';
+        localStorage.setItem('isProUser', isPro ? 'true' : 'false');
+      } catch (_) {}
       const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.email || '';
       try {
         localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName, email: data.email || email, phone: data.phone || '' }));

@@ -56,6 +56,7 @@ const SignupPage = () => {
       localStorage.removeItem('isProUser');
       localStorage.removeItem('settingsTab');
       localStorage.setItem('userId', sessionId);
+      localStorage.setItem('isProUser', 'false');
       const savedFullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || fullName || '';
       try {
         localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName: savedFullName, email: data.email || email, phone: '' }));

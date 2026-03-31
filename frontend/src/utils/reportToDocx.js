@@ -132,6 +132,46 @@ export function buildReportDoc(data) {
     })
   );
 
+  if (Array.isArray(data.sasbIndex) && data.sasbIndex.length > 0) {
+    children.push(heading('7. SASB Index (FB-FR)'));
+    const sasbWidths = [1800, 3300, 2400, 1572];
+    const makeSasbCell = (text, colIdx, isHeader = false) =>
+      new TableCell({
+        width: { size: sasbWidths[colIdx], type: WidthType.DXA },
+        borders: cellBorders,
+        shading: isHeader ? { fill: '334761' } : undefined,
+        children: [
+          new Paragraph({
+            children: [new TextRun({ text: text || '', bold: isHeader, color: isHeader ? 'FFFFFF' : '000000' })],
+          }),
+        ],
+      });
+
+    const sasbRows = [
+      new TableRow({
+        children: [
+          makeSasbCell('Code', 0, true),
+          makeSasbCell('Metric', 1, true),
+          makeSasbCell('Value', 2, true),
+          makeSasbCell('Status', 3, true),
+        ],
+      }),
+      ...data.sasbIndex.map(
+        (r) =>
+          new TableRow({
+            children: [
+              makeSasbCell(r.code || '', 0),
+              makeSasbCell(r.metric || '', 1),
+              makeSasbCell(r.value || '', 2),
+              makeSasbCell(r.status || '', 3),
+            ],
+          })
+      ),
+    ];
+
+    children.push(new Table({ rows: sasbRows, width: { size: 9072, type: WidthType.DXA } }));
+  }
+
   return new Document({
     sections: [
       {

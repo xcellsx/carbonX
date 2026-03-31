@@ -1244,7 +1244,7 @@ const AnalyticsPage = () => {
         onClose={() => setShowProModal(false)}
         onGoToSettings={() => {
           setShowProModal(false);
-          navigate('/settings');
+          navigate('/settings', { state: { tab: 'billing' } });
         }}
       />
       <AiSuggestionsModal isOpen={showAiModal} onClose={() => setShowAiModal(false)} />

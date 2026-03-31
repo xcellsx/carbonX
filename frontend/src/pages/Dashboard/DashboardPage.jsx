@@ -573,6 +573,18 @@ function getStoredTemplates() {
   }
 }
 
+function getDashboardStorageKey() {
+  const raw = localStorage.getItem('userId') || '';
+  const key = raw.includes('/') ? raw.split('/').pop() : raw;
+  return `carbonx_dashboard_metrics:${String(key || '').trim() || 'guest'}`;
+}
+
+function getProInsightsCacheKey() {
+  const raw = localStorage.getItem('userId') || '';
+  const key = raw.includes('/') ? raw.split('/').pop() : raw;
+  return `carbonx_pro_insights_cache_v6:${String(key || '').trim() || 'guest'}`;
+}
+
 function getEffectiveKey(p) {
   const directKey = (p?.key && String(p.key).trim()) || (p?._key && String(p._key).trim());
   if (directKey) return directKey;
@@ -655,7 +667,7 @@ const DashboardPage = () => {
           value: newValue 
         };
       }
-      localStorage.setItem('carbonx_dashboard_metrics', JSON.stringify(updatedData));
+      localStorage.setItem(getDashboardStorageKey(), JSON.stringify(updatedData));
       return { ...prev, data: updatedData };
     });
   };
@@ -695,7 +707,7 @@ const DashboardPage = () => {
         const productCount = productsList.length;
 
         let baseData = generateInitialMetrics();
-        const savedMetricsStr = localStorage.getItem('carbonx_dashboard_metrics');
+        const savedMetricsStr = localStorage.getItem(getDashboardStorageKey());
         if (savedMetricsStr) {
           try {
             const savedMetrics = JSON.parse(savedMetricsStr);
@@ -1101,7 +1113,7 @@ const DashboardPage = () => {
     if (proInsightDebounceRef.current) clearTimeout(proInsightDebounceRef.current);
 
     proInsightDebounceRef.current = setTimeout(async () => {
-      const CACHE_KEY = 'carbonx_pro_insights_cache_v6';
+      const CACHE_KEY = getProInsightsCacheKey();
       let cache = {};
       try {
         cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {};
@@ -1625,7 +1637,7 @@ Do not mention that you are an AI. Do not ask questions. Do not include citation
         onClose={() => setShowProModal(false)}
         onGoToSettings={() => {
           setShowProModal(false);
-          navigate('/settings');
+          navigate('/settings', { state: { tab: 'billing' } });
         }}
       />
 

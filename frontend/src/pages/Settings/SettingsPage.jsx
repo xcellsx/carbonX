@@ -8,6 +8,7 @@ import { useCompanyForm } from '../../hooks/useCompanyForm';
 import CompanyForm from '../Company/CompanyForm';
 import BillingSubscriptions from './BillingSubscriptions'; 
 import BillingHistory from './BillingHistory';
+import SasbInputs from './SasbInputs';
 import { usersAPI } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
@@ -183,11 +184,10 @@ const SettingsPage = () => {
   };
   
   const handleLogout = () => {
-    const companyData = localStorage.getItem('companyData');
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
-    localStorage.clear();
-    if (companyData) localStorage.setItem('companyData', companyData);
-    if (rememberedEmail) localStorage.setItem('rememberedEmail', rememberedEmail);
+    // Keep persisted app data; only clear active session-specific keys.
+    localStorage.removeItem('userId');
+    localStorage.removeItem('isProUser');
+    localStorage.removeItem('settingsTab');
     navigate('/login');
   };
   
@@ -262,6 +262,8 @@ const SettingsPage = () => {
         return <BillingSubscriptions onPlanSave={refreshSubscription} />;
       case 'history':
         return <BillingHistory />;
+      case 'sasb':
+        return <SasbInputs />;
       default:
         return null;
     }
@@ -299,6 +301,13 @@ const SettingsPage = () => {
                 onClick={() => setActiveTab('history')}
               >
                 Billing History
+              </button>
+              <button
+                type="button"
+                className = {`chip ${activeTab === 'sasb' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sasb')}
+              >
+                SASB Inputs
               </button>
             </div>
             

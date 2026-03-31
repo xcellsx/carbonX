@@ -70,14 +70,23 @@ const parseCsvFile = (file, maritimeMode = false) => {
   });
 };
 
-const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
+const STORAGE_KEY_TEMPLATES_PREFIX = 'carbonx-custom-templates';
+const getTemplateStorageKey = () => {
+  const uid = normalizeUserIdKey(localStorage.getItem('userId') || '').trim();
+  return uid ? `${STORAGE_KEY_TEMPLATES_PREFIX}:${uid}` : `${STORAGE_KEY_TEMPLATES_PREFIX}:guest`;
+};
 function getStoredTemplates() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+    const saved = localStorage.getItem(getTemplateStorageKey());
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
   }
+}
+function setStoredTemplates(templates) {
+  try {
+    localStorage.setItem(getTemplateStorageKey(), JSON.stringify(Array.isArray(templates) ? templates : []));
+  } catch {}
 }
 
 // Conversion for template → dppData (canonical: kg, seconds)
@@ -601,8 +610,11 @@ const InventoryPage = () => {
         const emission = p.emissionInformation ?? fromDpp?.emissionInformation;
         return { ...p, name: name || p.name, key: key || p.key, emissionInformation: emission ?? p.emissionInformation };
       });
-      // Secondary client-side filter as safety net for any products that slipped through without a userId
-      const filtered = normalizedUserId ? normalized.filter((p) => !p.userId || normalizeUserIdKey(p.userId) === normalizedUserId) : normalized;
+      // Strict per-user isolation on the client as an additional safety net.
+      // Only show products that explicitly belong to the active user.
+      const filtered = normalizedUserId
+        ? normalized.filter((p) => p.userId && normalizeUserIdKey(p.userId) === normalizedUserId)
+        : normalized;
       const productByName = new Map(
         filtered
           .filter((p) => p?.name)
@@ -834,7 +846,7 @@ function dppDataToTemplate(dppJson) {
         const next = [...templates];
         next[idx] = updated;
         try {
-          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(next));
+          setStoredTemplates(next);
         } catch (e) {
           console.warn('Could not save template to localStorage', e);
         }
@@ -864,7 +876,7 @@ function dppDataToTemplate(dppJson) {
         });
         if (changed) {
           try {
-            localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(next));
+            setStoredTemplates(next);
           } catch (e) {
             console.warn('Could not sync BOM template to localStorage', e);
           }
@@ -948,7 +960,7 @@ function dppDataToTemplate(dppJson) {
           processes: [],
         }));
         try {
-          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify([...existing, ...newTemplates]));
+          setStoredTemplates([...existing, ...newTemplates]);
         } catch (e) {
           console.warn('Could not save BOM templates to localStorage', e);
         }
@@ -968,7 +980,7 @@ function dppDataToTemplate(dppJson) {
     if (product && product._fromTemplate && product._templateId) {
       const templates = getStoredTemplates().filter((t) => t.id !== product._templateId);
       try {
-        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(templates));
+        setStoredTemplates(templates);
       } catch (e) {
         console.warn('Could not update templates in localStorage', e);
       }
@@ -1004,7 +1016,7 @@ function dppDataToTemplate(dppJson) {
         const next = [...templates];
         next[idx] = { ...next[idx], name: newName };
         try {
-          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(next));
+          setStoredTemplates(next);
         } catch (e) {
           console.warn('Could not update template name in localStorage', e);
         }
@@ -1049,7 +1061,7 @@ function dppDataToTemplate(dppJson) {
         const next = [...templates];
         next[idx] = { ...next[idx], quantity: newQty == null ? '' : String(newQty) };
         try {
-          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(next));
+          setStoredTemplates(next);
         } catch (e) {
           console.warn('Could not update template quantity in localStorage', e);
         }

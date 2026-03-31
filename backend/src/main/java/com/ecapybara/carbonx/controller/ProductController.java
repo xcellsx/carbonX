@@ -76,7 +76,8 @@ public class ProductController {
             bindVars.put("productOrigin", productOrigin);
         }
         if (userId != null) {
-            query.append("FILTER doc.userId == @userId ");
+            // Backward-compatible user scoping: support both stored forms "6423" and "users/6423"
+            query.append("FILTER doc.userId == @userId OR doc.userId == CONCAT('users/', @userId) ");
             bindVars.put("userId", userId);
         }
         query.append("RETURN doc");
