@@ -1,3 +1,17 @@
+/* Page root: reduce clipping of native <select> menus for SI units */
+.edit-template-page .content-section-main {
+  overflow-x: hidden;
+}
+
+.edit-template-table .edit-template-col-unit {
+  position: relative;
+  z-index: 0;
+}
+
+.edit-template-table .edit-template-col-unit:focus-within {
+  z-index: 30;
+}
+
 .edit-template-field {
   margin-bottom: 1.5rem;
 }
@@ -67,12 +81,16 @@
 }
 
 .edit-template-table-wrap {
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: visible;
   border: 1px solid rgba(var(--greys), 0.25);
   border-radius: 8px;
   position: relative;
-  z-index: 1;
+  z-index: 0;
+}
+
+.edit-template-table-wrap--scroll {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .edit-template-table {

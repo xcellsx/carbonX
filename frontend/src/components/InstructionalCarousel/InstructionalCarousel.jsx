@@ -1,12 +1,28 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { normalizeUserIdKey } from '../../services/api';
 import './InstructionalCarousel.css';
 
-const STORAGE_KEY = 'carbonx_carousel_seen';
+/** v2: per-user only. Do not merge legacy global key — that marked every page "seen" for all accounts. */
+const CAROUSEL_KEY_PREFIX = 'carbonx_carousel_seen_v2';
+
+function carouselStorageKey() {
+  const uid = normalizeUserIdKey(localStorage.getItem('userId') || '').trim();
+  return uid ? `${CAROUSEL_KEY_PREFIX}:${uid}` : `${CAROUSEL_KEY_PREFIX}:guest`;
+}
+
+function readSeenMap() {
+  try {
+    const raw = localStorage.getItem(carouselStorageKey());
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
 function getSeen(pageId) {
   try {
-    const seen = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const seen = readSeenMap();
     return !!seen[pageId];
   } catch {
     return false;
@@ -28,14 +44,31 @@ const InstructionalCarousel = ({ pageId, slides = [], onComplete, newUserOnly = 
   });
 
   useEffect(() => {
-    if (newUserOnly && getSeen(pageId)) setIsVisible(false);
+    const applyVisibility = () => {
+      if (!newUserOnly) {
+        setIsVisible(true);
+        return;
+      }
+      setIsVisible(!getSeen(pageId));
+    };
+    applyVisibility();
+    const onStorage = (e) => {
+      if (e.key === 'userId' || e.key === null) applyVisibility();
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('carbonx-session-updated', applyVisibility);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('carbonx-session-updated', applyVisibility);
+    };
   }, [pageId, newUserOnly]);
 
   const markSeen = useCallback(() => {
     try {
-      const seen = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const key = carouselStorageKey();
+      const seen = readSeenMap();
       seen[pageId] = true;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(seen));
+      localStorage.setItem(key, JSON.stringify(seen));
     } catch (_) {}
   }, [pageId]);
 
@@ -56,6 +89,11 @@ const InstructionalCarousel = ({ pageId, slides = [], onComplete, newUserOnly = 
   const goPrev = useCallback(() => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }, [currentIndex]);
+
+  // Guides are for signed-in users only: one dismissal per account per pageId ("first visit" for that user).
+  if (newUserOnly && !normalizeUserIdKey(localStorage.getItem('userId') || '').trim()) {
+    return null;
+  }
 
   if (!isVisible || !slides.length) return null;
 

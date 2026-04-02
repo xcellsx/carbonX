@@ -9,6 +9,7 @@ import { API_BASE, productAPI, networkAPI, templateAPI, maritimeAPI, getLocalLca
 import VesselLocationsMap, { normalizeShipLocationRows } from '../../components/VesselLocationsMap/VesselLocationsMap.jsx';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getScopeTotalsFromProduct as getScopeTotalsFromProductUtil, formatEmission as formatEmissionUtil } from '../../utils/emission';
+import { getStoredCustomTemplates as getStoredTemplates } from '../../utils/customTemplatesStorage';
 
 // --- CARBON EMISSION SCOPES ---
 const EMISSION_SCOPES = [
@@ -40,7 +41,7 @@ const cleanNodeName = (rawName) => {
 
 const NETWORK_CAROUSEL_SLIDES = [
   { title: 'Welcome to Network', description: 'Visualise your product supply chain and impact flows. Select a product and an impact category to see how processes and materials connect and contribute to that impact.', icon: <Network size={40} /> },
-  { title: 'Product & impact category', description: 'Use the dropdowns to choose a product from your inventory and an impact category (e.g. Climate Change, Land Use). The graph updates to show the network for that combination.', icon: <Network size={40} /> },
+  { title: 'Product & impact category', description: 'Choose a product from your inventory and an impact category (e.g. Climate Change, Land Use). Pick a carbon scope with the radio buttons. The graph updates for your selection.', icon: <Network size={40} /> },
   { title: 'Consolidated vs component view', description: 'Toggle between Consolidated View (single graph) and Component View (per-component breakdown) to explore the supply chain at different levels of detail.', icon: <Network size={40} /> },
 ];
 
@@ -73,13 +74,6 @@ function scope1KgFromMaritimeLcaResponse(lcaRes) {
 }
 
 // --- Same template helpers as Analytics/Inventory ---
-const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
-    return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
-}
 const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
 const TIME_TO_S = { s: 1, min: 60, h: 3600, d: 86400 };
 function toCanonicalWeight(n, unit) { const v = Number(n); return Number.isNaN(v) ? 0 : v * (WEIGHT_TO_KG[unit] ?? 1); }
@@ -1024,11 +1018,10 @@ const NetworkPage = () => {
     }
   };
 
-  const handleScopeChange = (e) => {
-    const newScopeId = e.target.value;
-    const scopeObj = EMISSION_SCOPES.find(s => s.id === newScopeId) || EMISSION_SCOPES[0];
+  const handleScopeRadioChange = (scopeId) => {
+    const scopeObj = EMISSION_SCOPES.find(s => s.id === scopeId) || EMISSION_SCOPES[0];
     setSelectedScope(scopeObj);
-    sessionStorage.setItem('network_selectedScope', newScopeId);
+    sessionStorage.setItem('network_selectedScope', scopeId);
   };
 
   const handleViewToggle = () => {
@@ -1133,24 +1126,23 @@ const NetworkPage = () => {
           {/* Carbon scope + view toggle (hidden for maritime — map replaces graph) */}
           {!maritimeNetworkMode && (
             <div className="network-controls-row">
-              <div className="header-col">
-                <label htmlFor="scope-select" className="normal-bold">Carbon Emission Scope:</label>
-                <div className="select-wrapper">
-                  <select
-                    id="scope-select"
-                    className="input-base"
-                    value={selectedScope.id}
-                    onChange={handleScopeChange}
-                  >
-                    {EMISSION_SCOPES.map((scope) => (
-                      <option key={scope.id} value={scope.id}>
-                        {scope.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="select-arrow" />
+              <fieldset className="network-scope-fieldset">
+                <legend className="network-scope-legend normal-bold">Carbon Emission Scope</legend>
+                <div className="network-scope-radios" role="radiogroup" aria-label="Carbon emission scope">
+                  {EMISSION_SCOPES.map((scope) => (
+                    <label key={scope.id} className="network-scope-radio-label">
+                      <input
+                        type="radio"
+                        name="network-emission-scope"
+                        value={scope.id}
+                        checked={selectedScope.id === scope.id}
+                        onChange={() => handleScopeRadioChange(scope.id)}
+                      />
+                      <span>{scope.name}</span>
+                    </label>
+                  ))}
                 </div>
-              </div>
+              </fieldset>
               {selectedProductId && (
                 <div className="network-view-toggle-wrap">
                   <span className={`view-label ${currentView === 'consolidated' ? 'active' : ''}`}>Consolidated View</span>

@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sprout } from 'lucide-react';
 import { chatCompletion, POPUP_MODEL } from '../../services/openRouter';
 import ReactMarkdown from 'react-markdown';
+import { loadSproutSessions, saveSproutSessions } from '../../utils/sproutAiStorage';
 import './AIChatPopup.css';
-
-const SESSIONS_KEY = 'sproutai_sessions';
 
 const DEFAULT_SYSTEM = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You ONLY answer questions about:
 - Scope 1/2/3 emissions and carbon footprints
@@ -34,23 +33,6 @@ function summarizeSessionTitle(messages) {
 function toSproutMessage(msg) {
   if (msg.role === 'user') return { sender: 'user', text: msg.content };
   return { sender: 'assistant', content: msg.content };
-}
-
-function loadSessions() {
-  try {
-    const s = localStorage.getItem(SESSIONS_KEY);
-    if (s) {
-      const p = JSON.parse(s);
-      return Array.isArray(p) ? p : [];
-    }
-  } catch (e) {}
-  return [];
-}
-
-function saveSessions(sessions) {
-  try {
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-  } catch (e) {}
 }
 
 /**
@@ -100,7 +82,7 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
     if (messages.length === 0) return;
     const sproutMessages = messages.map(toSproutMessage);
     const title = summarizeSessionTitle(messages);
-    const sessions = loadSessions();
+    const sessions = loadSproutSessions();
     if (!sessionIdRef.current) {
       sessionIdRef.current = `sess_popup_${Date.now()}`;
     }
@@ -117,7 +99,7 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
     } else {
       sessions.unshift(session);
     }
-    saveSessions(sessions);
+    saveSproutSessions(sessions);
   }, [messages]);
 
   const handleSend = async (textOrEvent) => {

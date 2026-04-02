@@ -31,6 +31,13 @@ export function stableSessionUserId(user) {
   return normalizeUserIdKey(String(user.id ?? user._id ?? ''));
 }
 
+/** Fires on same-tab login/logout so UI (e.g. instructional carousel) can re-read per-user localStorage. */
+export function notifyCarbonXSessionUpdated() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('carbonx-session-updated'));
+  }
+}
+
 // Demo-only: backend User model has no password field; we store signup passwords locally so login can verify.
 const LOCAL_AUTH_CREDS_KEY = 'carbonx_local_credentials_v1';
 

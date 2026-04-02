@@ -1,26 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Pencil, ChevronDown } from 'lucide-react';
 import InstructionalCarousel from '../../components/InstructionalCarousel/InstructionalCarousel';
 import Navbar from '../../components/Navbar/Navbar';
 import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import { productAPI, processAPI } from '../../services/api';
+import { getStoredCustomTemplates, setStoredCustomTemplates } from '../../utils/customTemplatesStorage';
 import './EditTemplatePage.css';
-
-const STORAGE_KEY = 'carbonx-custom-templates';
-
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveStoredTemplates(templates) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
-}
 
 const WEIGHT_SI_UNITS = ['kg', 'g', 'mg', 'µg', 't'];
 const TIME_SI_UNITS = ['s', 'min', 'h', 'd'];
@@ -53,6 +40,57 @@ function fromCanonicalTime(canonicalSec, unit) {
   if (canonicalSec == null || Number.isNaN(canonicalSec)) return '';
   const v = canonicalSec / factor;
   return v === Math.floor(v) ? String(v) : String(Number(v.toFixed(6)));
+}
+
+/** Renders dropdown list in document.body so it is not clipped by table overflow. */
+function EditTemplateDropdownPortal({ open, anchorId, children }) {
+  const [pos, setPos] = useState(null);
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null);
+      return;
+    }
+    const el = document.getElementById(anchorId);
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 160) });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [open, anchorId]);
+  if (!open || !pos) return null;
+  return createPortal(
+    <ul
+      className="edit-template-element-dropdown-list edit-template-element-dropdown-list--portal"
+      role="listbox"
+      style={{
+        position: 'fixed',
+        top: pos.top,
+        left: pos.left,
+        width: pos.width,
+        zIndex: 100000,
+        margin: 0,
+        padding: '0.25rem 0',
+        listStyle: 'none',
+        background: 'rgba(var(--whites), 1)',
+        border: '1px solid rgba(var(--greys), 0.3)',
+        borderRadius: 6,
+        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.12)',
+        maxHeight: 220,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      }}
+    >
+      {children}
+    </ul>,
+    document.body
+  );
 }
 
 const EDIT_TEMPLATE_CAROUSEL_SLIDES = [
@@ -165,7 +203,7 @@ const EditTemplatePage = () => {
       }
       return;
     }
-    const list = getStoredTemplates();
+    const list = getStoredCustomTemplates();
     const template = list.find((t) => t.id === id);
     if (template) {
       setProductName(template.name || '');
@@ -254,7 +292,7 @@ const EditTemplatePage = () => {
       return;
     }
 
-    const list = getStoredTemplates();
+    const list = getStoredCustomTemplates();
     const qTrim = (quantity || '').toString().trim();
     const numQ = qTrim === '' ? undefined : Number(qTrim);
     const payload = {
@@ -266,22 +304,22 @@ const EditTemplatePage = () => {
     };
 
     if (isNew) {
-      saveStoredTemplates([...list, payload]);
+      setStoredCustomTemplates([...list, payload]);
     } else {
       const idx = list.findIndex((t) => t.id === id);
       if (idx >= 0) {
         const next = [...list];
         next[idx] = payload;
-        saveStoredTemplates(next);
+        setStoredCustomTemplates(next);
       } else {
-        saveStoredTemplates([...list, payload]);
+        setStoredCustomTemplates([...list, payload]);
       }
     }
     navigate('/add-products');
   };
 
   return (
-    <div className="container">
+    <div className="container edit-template-page">
       <InstructionalCarousel pageId="edit-template" slides={EDIT_TEMPLATE_CAROUSEL_SLIDES} newUserOnly />
       <Navbar />
       <div className="content-section-main">
@@ -324,6 +362,7 @@ const EditTemplatePage = () => {
               </button>
             </div>
             <div className="edit-template-table-wrap">
+              <div className="edit-template-table-wrap--scroll">
               <table className="edit-template-table edit-template-table-elements">
                 <colgroup>
                   <col className="edit-template-col-name" />
@@ -357,6 +396,7 @@ const EditTemplatePage = () => {
                       <tr key={i}>
                         <td>
                           <div
+                            id={`element-dropdown-anchor-${i}`}
                             className="edit-template-element-dropdown-wrap"
                             onBlur={() => {
                               elementDropdownBlurRef.current = setTimeout(() => setElementDropdownOpen(null), 150);
@@ -377,33 +417,26 @@ const EditTemplatePage = () => {
                               id={`element-input-${i}`}
                             />
                             <ChevronDown size={16} className="edit-template-element-chevron" aria-hidden />
-                            {isDropdownOpen && (
-                              <ul
-                                id={`element-list-${i}`}
-                                className="edit-template-element-dropdown-list"
-                                role="listbox"
-                                aria-labelledby={`element-input-${i}`}
-                              >
-                                {filteredRaw.length === 0 ? (
-                                  <li className="edit-template-element-dropdown-item empty">No raw materials match. Type to add custom.</li>
-                                ) : (
-                                  filteredRaw.slice(0, 12).map((name) => (
-                                    <li
-                                      key={name}
-                                      role="option"
-                                      className="edit-template-element-dropdown-item"
-                                      onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        updateIngredient(i, 'ingredient', name);
-                                        setElementDropdownOpen(null);
-                                      }}
-                                    >
-                                      {name}
-                                    </li>
-                                  ))
-                                )}
-                              </ul>
-                            )}
+                            <EditTemplateDropdownPortal open={isDropdownOpen} anchorId={`element-dropdown-anchor-${i}`}>
+                              {filteredRaw.length === 0 ? (
+                                <li className="edit-template-element-dropdown-item empty">No raw materials match. Type to add custom.</li>
+                              ) : (
+                                filteredRaw.slice(0, 12).map((name) => (
+                                  <li
+                                    key={name}
+                                    role="option"
+                                    className="edit-template-element-dropdown-item"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      updateIngredient(i, 'ingredient', name);
+                                      setElementDropdownOpen(null);
+                                    }}
+                                  >
+                                    {name}
+                                  </li>
+                                ))
+                              )}
+                            </EditTemplateDropdownPortal>
                           </div>
                         </td>
                         <td>
@@ -444,6 +477,7 @@ const EditTemplatePage = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </section>
 
@@ -455,6 +489,7 @@ const EditTemplatePage = () => {
               </button>
             </div>
             <div className="edit-template-table-wrap">
+              <div className="edit-template-table-wrap--scroll">
               <table className="edit-template-table edit-template-table-processes">
                 <colgroup>
                   <col className="edit-template-col-name" />
@@ -488,6 +523,7 @@ const EditTemplatePage = () => {
                       <tr key={i}>
                         <td>
                           <div
+                            id={`process-dropdown-anchor-${i}`}
                             className="edit-template-element-dropdown-wrap"
                             onBlur={() => {
                               processDropdownBlurRef.current = setTimeout(() => setProcessDropdownOpen(null), 150);
@@ -508,33 +544,26 @@ const EditTemplatePage = () => {
                               id={`process-input-${i}`}
                             />
                             <ChevronDown size={16} className="edit-template-element-chevron" aria-hidden />
-                            {isDropdownOpen && (
-                              <ul
-                                id={`process-list-${i}`}
-                                className="edit-template-element-dropdown-list"
-                                role="listbox"
-                                aria-labelledby={`process-input-${i}`}
-                              >
-                                {filteredProcesses.length === 0 ? (
-                                  <li className="edit-template-element-dropdown-item empty">No processes match. Type to add custom.</li>
-                                ) : (
-                                  filteredProcesses.slice(0, 12).map((name) => (
-                                    <li
-                                      key={name}
-                                      role="option"
-                                      className="edit-template-element-dropdown-item"
-                                      onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        updateProcess(i, 'process', name);
-                                        setProcessDropdownOpen(null);
-                                      }}
-                                    >
-                                      {name}
-                                    </li>
-                                  ))
-                                )}
-                              </ul>
-                            )}
+                            <EditTemplateDropdownPortal open={isDropdownOpen} anchorId={`process-dropdown-anchor-${i}`}>
+                              {filteredProcesses.length === 0 ? (
+                                <li className="edit-template-element-dropdown-item empty">No processes match. Type to add custom.</li>
+                              ) : (
+                                filteredProcesses.slice(0, 12).map((name) => (
+                                  <li
+                                    key={name}
+                                    role="option"
+                                    className="edit-template-element-dropdown-item"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      updateProcess(i, 'process', name);
+                                      setProcessDropdownOpen(null);
+                                    }}
+                                  >
+                                    {name}
+                                  </li>
+                                ))
+                              )}
+                            </EditTemplateDropdownPortal>
                           </div>
                         </td>
                         <td>
@@ -575,6 +604,7 @@ const EditTemplatePage = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </section>
 

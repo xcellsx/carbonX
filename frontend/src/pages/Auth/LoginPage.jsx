@@ -4,7 +4,12 @@ import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
 import dashboard from '../../assets/dashboard.png';
-import { authAPI, stableSessionUserId, verifyLocalLoginCredentials } from '../../services/api';
+import {
+  authAPI,
+  stableSessionUserId,
+  verifyLocalLoginCredentials,
+  notifyCarbonXSessionUpdated,
+} from '../../services/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -51,11 +56,13 @@ const LoginPage = () => {
       localStorage.removeItem('isProUser');
       localStorage.removeItem('settingsTab');
       localStorage.setItem('userId', sessionId);
+      notifyCarbonXSessionUpdated();
       try {
         const billing = JSON.parse(localStorage.getItem(`billing_${sessionId}`) || '{}');
         const isPro = String(billing?.plan || '').toLowerCase() === 'pro';
         localStorage.setItem('isProUser', isPro ? 'true' : 'false');
       } catch (_) {}
+      window.dispatchEvent(new Event('subscriptionUpdated'));
       const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.email || '';
       try {
         localStorage.setItem('carbonx_user_profile', JSON.stringify({ fullName, email: data.email || email, phone: data.phone || '' }));

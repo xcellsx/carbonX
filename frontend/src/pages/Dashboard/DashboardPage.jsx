@@ -15,6 +15,7 @@ import { API_BASE, productAPI, maritimeAPI, getLocalLcaMap, getLocalLcaCacheByNa
 import { chatCompletion, POPUP_MODEL } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
+import { getStoredCustomTemplates as getStoredTemplates } from '../../utils/customTemplatesStorage';
 
 const allMetricDefinitions = [
   { id: 'scope-1', name: 'Scope 1 Emissions', icon: Factory }, 
@@ -562,16 +563,6 @@ const DASHBOARD_CAROUSEL_SLIDES = [
   { title: 'Metric cards', description: 'Click a metric card to expand and see its breakdown. Each metric can have sub-metrics, targets, and a Pro Insight section with AI-generated analysis when available.', icon: <Database size={40} /> },
   { title: 'Pro Insight & AI', description: 'Pro users get AI-generated insights at the top of the breakdown. You can also open the chat popup (sparkles button) to ask questions about your dashboard or get a summary.', icon: <Sparkles size={40} /> },
 ];
-
-const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
 
 function getDashboardStorageKey() {
   const raw = localStorage.getItem('userId') || '';

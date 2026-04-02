@@ -9,7 +9,7 @@ import CompanyForm from '../Company/CompanyForm';
 import BillingSubscriptions from './BillingSubscriptions'; 
 import BillingHistory from './BillingHistory';
 import SasbInputs from './SasbInputs';
-import { usersAPI } from '../../services/api';
+import { usersAPI, notifyCarbonXSessionUpdated } from '../../services/api';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 const isDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
@@ -188,6 +188,8 @@ const SettingsPage = () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('isProUser');
     localStorage.removeItem('settingsTab');
+    notifyCarbonXSessionUpdated();
+    window.dispatchEvent(new Event('subscriptionUpdated'));
     navigate('/login');
   };
   

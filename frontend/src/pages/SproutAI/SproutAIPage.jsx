@@ -12,6 +12,14 @@ import { validateReportSchema } from '../../utils/reportSchema';
 import { productAPI } from '../../services/api';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import { buildSasbIndexRows, loadSasbInputs } from '../../utils/sasb';
+import {
+  loadSproutSessions,
+  saveSproutSessions,
+  loadSproutCurrentMessages,
+  saveSproutCurrentMessages,
+  loadSproutFeedbackMap,
+  saveSproutFeedbackMap,
+} from '../../utils/sproutAiStorage';
 
 const MarkdownMessage = ({ content }) => (
   <div className="message-markdown">
@@ -19,9 +27,6 @@ const MarkdownMessage = ({ content }) => (
   </div>
 );
 
-const SESSIONS_KEY = 'sproutai_sessions';
-const CURRENT_MESSAGES_KEY = 'sproutai_current_messages';
-const FEEDBACK_KEY = 'sproutai_feedback';
 const REPORTS_STORAGE_PREFIX = 'carbonx_reports';
 const getReportsStorageKey = () => {
   const rawUserId = localStorage.getItem('userId') || '';
@@ -29,23 +34,6 @@ const getReportsStorageKey = () => {
   const normalized = String(userKey || '').trim();
   return normalized ? `${REPORTS_STORAGE_PREFIX}:${normalized}` : `${REPORTS_STORAGE_PREFIX}:guest`;
 };
-
-function loadFeedbackMap() {
-  try {
-    const s = localStorage.getItem(FEEDBACK_KEY);
-    if (s) {
-      const o = JSON.parse(s);
-      return typeof o === 'object' && o !== null ? o : {};
-    }
-  } catch (e) {}
-  return {};
-}
-
-function saveFeedbackMap(map) {
-  try {
-    localStorage.setItem(FEEDBACK_KEY, JSON.stringify(map));
-  } catch (e) {}
-}
 
 const SYSTEM_PROMPT = `You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. You ONLY answer questions related to:
 - Climate, carbon and greenhouse gas emissions (Scope 1/2/3)
@@ -240,28 +228,6 @@ const SPROUTAI_CAROUSEL_SLIDES = [
   { title: 'Generate reports', description: 'Ask Sprout to "generate a sustainability report" or "write a carbon report". The report will be created and saved; open the Report page to view and download it as PDF or DOCX.', icon: <FileText size={40} /> },
 ];
 
-function loadSessions() {
-  try {
-    const s = localStorage.getItem(SESSIONS_KEY);
-    if (s) {
-      const p = JSON.parse(s);
-      return Array.isArray(p) ? p : [];
-    }
-  } catch (e) {}
-  return [];
-}
-
-function loadCurrentMessages() {
-  try {
-    const s = localStorage.getItem(CURRENT_MESSAGES_KEY);
-    if (s) {
-      const p = JSON.parse(s);
-      return Array.isArray(p) ? p : [];
-    }
-  } catch (e) {}
-  return [];
-}
-
 function getDashboardMetricsStorageKey() {
   const raw = localStorage.getItem('userId') || '';
   const key = raw.includes('/') ? raw.split('/').pop() : raw;
@@ -273,8 +239,8 @@ const SproutAiPage = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'history'
-  const [sessions, setSessions] = useState(loadSessions);
-  const [messages, setMessages] = useState(loadCurrentMessages);
+  const [sessions, setSessions] = useState(loadSproutSessions);
+  const [messages, setMessages] = useState(loadSproutCurrentMessages);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [deleteConfirmSessionId, setDeleteConfirmSessionId] = useState(null);
@@ -284,7 +250,7 @@ const SproutAiPage = () => {
   const viewingSessionIdRef = useRef(null);
   const openedSessionIdRef = useRef(null);
   const currentChatIdRef = useRef(`cur_${Date.now()}`);
-  const [feedbackMap, setFeedbackMap] = useState(loadFeedbackMap);
+  const [feedbackMap, setFeedbackMap] = useState(loadSproutFeedbackMap);
   const [suggestedPrompts, setSuggestedPrompts] = useState([]);
   const [suggestedPromptsLoading, setSuggestedPromptsLoading] = useState(false);
   const [reportToast, setReportToast] = useState(null); // { reportId, generating, elapsed, failed }
@@ -415,13 +381,13 @@ const SproutAiPage = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem(CURRENT_MESSAGES_KEY, JSON.stringify(messages));
+      saveSproutCurrentMessages(messages);
     } catch (e) {}
   }, [messages]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+      saveSproutSessions(sessions);
     } catch (e) {}
   }, [sessions]);
 
@@ -452,7 +418,7 @@ const SproutAiPage = () => {
             delete next[k];
           }
         });
-        saveFeedbackMap(next);
+        saveSproutFeedbackMap(next);
         return next;
       });
       currentChatIdRef.current = `cur_${Date.now()}`;
@@ -506,7 +472,7 @@ const SproutAiPage = () => {
     const key = `${sessionId}_${messageIndex}`;
     setFeedbackMap((prev) => {
       const next = { ...prev, [key]: helpful };
-      saveFeedbackMap(next);
+      saveSproutFeedbackMap(next);
       return next;
     });
   };

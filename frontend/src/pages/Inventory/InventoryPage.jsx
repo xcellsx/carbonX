@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
 import { productAPI, maritimeAPI, normalizeUserIdKey } from '../../services/api';
+import {
+  getStoredCustomTemplates as getStoredTemplates,
+  setStoredCustomTemplates as setStoredTemplates,
+} from '../../utils/customTemplatesStorage';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import Navbar from '../../components/Navbar/Navbar';
 import { Search, X, Triangle, CirclePlus, Trash2, FilePlus, Package, ListOrdered, FileUp } from 'lucide-react';
@@ -69,25 +73,6 @@ const parseCsvFile = (file, maritimeMode = false) => {
     reader.readAsText(file);
   });
 };
-
-const STORAGE_KEY_TEMPLATES_PREFIX = 'carbonx-custom-templates';
-const getTemplateStorageKey = () => {
-  const uid = normalizeUserIdKey(localStorage.getItem('userId') || '').trim();
-  return uid ? `${STORAGE_KEY_TEMPLATES_PREFIX}:${uid}` : `${STORAGE_KEY_TEMPLATES_PREFIX}:guest`;
-};
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(getTemplateStorageKey());
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
-function setStoredTemplates(templates) {
-  try {
-    localStorage.setItem(getTemplateStorageKey(), JSON.stringify(Array.isArray(templates) ? templates : []));
-  } catch {}
-}
 
 // Conversion for template → dppData (canonical: kg, seconds)
 const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
@@ -729,8 +714,26 @@ const InventoryPage = () => {
       let fallbackNameCache = {};
       try { fallbackNameCache = JSON.parse(localStorage.getItem(LCA_CACHE_KEY) || '{}'); } catch { fallbackNameCache = {}; }
       const templateProducts = customTemplates.map((t) => templateToProduct(t, fallbackLcaMap, fallbackNameCache));
-      setProducts(templateProducts); // no backend names on error, show all templates
-      // Don't set error so empty state shows: "Click + to add your first product"
+      setProducts(templateProducts);
+      const status = err.response?.status;
+      const unreachable =
+        !err.response ||
+        status === 502 ||
+        status === 503 ||
+        status === 504 ||
+        (status === 500 && (!err.response?.data || Object.keys(err.response.data || {}).length === 0));
+      if (unreachable) {
+        setError(
+          'Cannot reach the CarbonX API. Start ArangoDB (localhost:8529), then run the backend on port 8080 (e.g. cd backend && mvn spring-boot:run). With npm run dev, /api is proxied to http://localhost:8080 unless VITE_API_PROXY_TARGET overrides it.'
+        );
+      } else {
+        const detail =
+          (typeof err.response?.data === 'string' && err.response.data) ||
+          err.response?.data?.message ||
+          err.message ||
+          'Request failed';
+        setError(`Could not load products (${status ?? 'network'}). ${detail}`);
+      }
     } finally {
       setLoading(false);
     }

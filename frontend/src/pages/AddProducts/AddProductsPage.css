@@ -66,6 +66,43 @@
   margin-bottom: 1.25rem;
 }
 
+.templates-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(var(--greys), 0.25);
+  border-radius: 8px;
+  background: rgba(var(--whites), 1);
+  max-width: 32rem;
+}
+
+.templates-search-icon {
+  flex-shrink: 0;
+  color: rgba(var(--greys), 0.75);
+}
+
+.templates-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  box-shadow: none;
+  padding: 0.35rem 0;
+}
+
+.templates-search-input:focus {
+  outline: none;
+}
+
+.templates-search-hint {
+  margin: -0.5rem 0 1rem;
+  max-width: 42rem;
+  font-size: var(--small);
+  color: rgba(var(--greys), 1);
+  line-height: 1.45;
+}
+
 /* --- Accordion (food groups) --- */
 .template-accordion {
   display: flex;

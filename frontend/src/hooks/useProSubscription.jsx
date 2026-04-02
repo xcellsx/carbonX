@@ -10,14 +10,22 @@ export const useProSubscription = () => {
   const getUserStorageKey = () => {
     const raw = localStorage.getItem('userId') || '';
     const normalized = raw.includes('/') ? raw.split('/').pop() : raw;
-    return String(normalized || '').trim() || 'guest';
+    return String(normalized || '').trim() || '';
   };
 
   const getProStatus = () => {
     const userId = getUserStorageKey();
+    // Logged out: never treat billing_guest or stale isProUser as Pro.
+    if (!userId) {
+      return {
+        isProUser: false,
+        subscriptionPlan: 'basic',
+        billingData: {},
+      };
+    }
     const billingData = JSON.parse(localStorage.getItem(`billing_${userId}`) || '{}');
     const plan = String(billingData.plan || '').toLowerCase();
-    // Source of truth should be per-user billing plan; keep global flag only as fallback.
+    // billing_* is source of truth when present; isProUser is a login-time cache for UI.
     const isPro = plan ? plan === 'pro' : localStorage.getItem('isProUser') === 'true';
     return {
       isProUser: isPro,
@@ -31,26 +39,26 @@ export const useProSubscription = () => {
   // Listen for localStorage changes (when Settings updates subscription)
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'isProUser' || e.key?.startsWith('billing_')) {
+      if (e.key === 'isProUser' || e.key === 'userId' || e.key?.startsWith('billing_')) {
         setSubscription(getProStatus());
       }
     };
 
     // Listen for storage events from other tabs/windows
     window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom events (same-tab updates)
+
     const handleCustomStorage = () => {
       setSubscription(getProStatus());
     };
     window.addEventListener('subscriptionUpdated', handleCustomStorage);
+    window.addEventListener('carbonx-session-updated', handleCustomStorage);
 
-    // Initial check
     setSubscription(getProStatus());
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('subscriptionUpdated', handleCustomStorage);
+      window.removeEventListener('carbonx-session-updated', handleCustomStorage);
     };
   }, []);
 

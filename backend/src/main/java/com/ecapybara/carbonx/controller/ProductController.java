@@ -87,7 +87,7 @@ public class ProductController {
             ObjectMapper mapper = new ObjectMapper();
             Map<String,Object> response = queryService.executeQuery(database, query.toString(), bindVars, 100, null, null, null).block();       
             List<Product> productList = mapper.convertValue(response.get("result"), new TypeReference<List<Product>>() {});
-            return new ResponseEntity<>(productList.toString(), HttpStatus.OK);
+            return new ResponseEntity<>(productList, HttpStatus.OK);
         } catch (IllegalArgumentException e)  {
             return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
         }

@@ -7,21 +7,12 @@ import InstructionalCarousel from '../../components/InstructionalCarousel/Instru
 import { API_BASE, productAPI, processAPI, maritimeAPI, getLocalLcaMap } from '../../services/api';
 import { generateProductAnalysisSuggestions } from '../../services/openRouter';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
+import { getStoredCustomTemplates as getStoredTemplates } from '../../utils/customTemplatesStorage';
 import ProModal from '../../components/ProModal/ProModal';
 import AIChatPopup from '../../components/AIChatPopup/AIChatPopup';
 import { useProSubscription } from '../../hooks/useProSubscription';
 
 // --- Same data source as Inventory: localStorage templates + API products ---
-const STORAGE_KEY_TEMPLATES = 'carbonx-custom-templates';
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_TEMPLATES);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
-
 const WEIGHT_TO_KG = { kg: 1, g: 0.001, mg: 1e-6, µg: 1e-9, t: 1000 };
 const TIME_TO_S = { s: 1, min: 60, h: 3600, d: 86400 };
 function toCanonicalWeight(displayNum, unit) {

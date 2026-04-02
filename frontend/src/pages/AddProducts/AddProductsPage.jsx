@@ -5,6 +5,11 @@ import InstructionalCarousel from '../../components/InstructionalCarousel/Instru
 import Navbar from '../../components/Navbar/Navbar';
 import TemplateCard from '../../components/TemplateCard/TemplateCard';
 import { productAPI, processAPI, templateAPI } from '../../services/api';
+import {
+  getStoredCustomTemplates,
+  setStoredCustomTemplates,
+  CUSTOM_TEMPLATES_STORAGE_PREFIX,
+} from '../../utils/customTemplatesStorage';
 import './AddProductsPage.css';
 
 /*
@@ -25,16 +30,6 @@ function normalizeGraphResponse(res) {
   };
 }
 
-const STORAGE_KEY = 'carbonx-custom-templates';
-function getStoredTemplates() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
-
 const ADD_PRODUCTS_CAROUSEL_SLIDES = [
   { title: 'Welcome to Browse Templates', description: 'Find product templates by category (Pasta, Bowls, Soup) or use Raw materials—the list of items from your backend. Add any template to "Customize your own" to edit and use it in your inventory.', icon: <Layers size={40} /> },
   { title: 'Customize your own', description: 'Templates you add appear at the top under Customize your own. Edit them to change name, quantity, elements, and processes. Your custom templates are saved and will show on the Inventory page.', icon: <Plus size={40} /> },
@@ -46,7 +41,7 @@ const AddProductsPage = () => {
   const location = useLocation();
   const [templateSearch, setTemplateSearch] = useState('');
   const [accordionOpen, setAccordionOpen] = useState({ 'graph-cards': true, 'raw-materials': false, processes: false });
-  const [customTemplates, setCustomTemplates] = useState(() => getStoredTemplates());
+  const [customTemplates, setCustomTemplates] = useState(() => getStoredCustomTemplates());
   const [rawMaterials, setRawMaterials] = useState([]);
   const [processes, setProcesses] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
@@ -168,7 +163,7 @@ const AddProductsPage = () => {
 
   useEffect(() => {
     if (location.pathname === '/add-products') {
-      setCustomTemplates(getStoredTemplates());
+      setCustomTemplates(getStoredCustomTemplates());
       fetchRawMaterials();
       fetchProcesses();
       fetchGraph();
@@ -184,7 +179,11 @@ const AddProductsPage = () => {
   // Reflect template edits from Inventory or other tabs
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue != null) {
+      if (
+        e.key != null &&
+        e.key.startsWith(CUSTOM_TEMPLATES_STORAGE_PREFIX) &&
+        e.newValue != null
+      ) {
         try {
           setCustomTemplates(JSON.parse(e.newValue));
         } catch (_) {}
@@ -192,7 +191,7 @@ const AddProductsPage = () => {
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible' && location.pathname === '/add-products') {
-        setCustomTemplates(getStoredTemplates());
+        setCustomTemplates(getStoredCustomTemplates());
       }
     };
     window.addEventListener('storage', onStorage);
@@ -206,7 +205,7 @@ const AddProductsPage = () => {
   const saveCustomTemplates = (templates) => {
     setCustomTemplates(templates);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+      setStoredCustomTemplates(templates);
     } catch (e) {
       console.warn('Could not save custom templates', e);
     }
@@ -260,7 +259,7 @@ const AddProductsPage = () => {
         t.id === templateId ? { ...t, quantity: newQuantity } : t
       );
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        setStoredCustomTemplates(next);
       } catch (e) {
         console.warn('Could not save custom templates', e);
       }
@@ -427,12 +426,50 @@ const AddProductsPage = () => {
     });
   }, [graphTemplates]);
 
+  const templateSearchNorm = templateSearch.trim().toLowerCase();
+
+  const templateMatchesSearch = useCallback(
+    (name, ingredients = [], processes = []) => {
+      if (!templateSearchNorm) return true;
+      if ((name || '').toLowerCase().includes(templateSearchNorm)) return true;
+      for (const item of Array.isArray(ingredients) ? ingredients : []) {
+        const s =
+          typeof item === 'object' && item && 'ingredient' in item
+            ? String(item.ingredient || '')
+            : String(item || '');
+        if (s.toLowerCase().includes(templateSearchNorm)) return true;
+      }
+      for (const item of Array.isArray(processes) ? processes : []) {
+        const s =
+          typeof item === 'object' && item && 'process' in item
+            ? String(item.process || '')
+            : String(item || '');
+        const typ = typeof item === 'object' && item && item.type ? String(item.type) : '';
+        if (s.toLowerCase().includes(templateSearchNorm) || typ.toLowerCase().includes(templateSearchNorm)) {
+          return true;
+        }
+      }
+      return false;
+    },
+    [templateSearchNorm]
+  );
+
+  const filteredGraphTemplates = useMemo(
+    () => graphTemplates.filter((t) => templateMatchesSearch(t.name, t.ingredients, t.processes)),
+    [graphTemplates, templateMatchesSearch]
+  );
+
+  const filteredCustomTemplatesForSearch = useMemo(
+    () => customTemplates.filter((t) => templateMatchesSearch(t.name, t.ingredients, t.processes)),
+    [customTemplates, templateMatchesSearch]
+  );
+
   const toggleAccordion = (groupId) => {
     setAccordionOpen((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   };
 
   return (
-    <div className="container">
+    <div className="container add-products-page">
       <InstructionalCarousel pageId="add-products" slides={ADD_PRODUCTS_CAROUSEL_SLIDES} newUserOnly />
       <Navbar />
       <div className="content-section-main">
@@ -458,9 +495,13 @@ const AddProductsPage = () => {
                 <div className="customize-placeholder">
                   <p>Edit any template or click on the + to add your own.</p>
                 </div>
+              ) : filteredCustomTemplatesForSearch.length === 0 ? (
+                <div className="customize-placeholder">
+                  <p>No custom templates match your search.</p>
+                </div>
               ) : (
                 <div className="customize-cards">
-                  {[...customTemplates]
+                  {[...filteredCustomTemplatesForSearch]
                     .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
                     .map((t) => (
                     <TemplateCard
@@ -486,6 +527,24 @@ const AddProductsPage = () => {
               <h2 className="descriptor-medium">CarbonX Product Templates</h2>
             </div>
 
+            <div className="templates-search-row">
+              <Search size={18} className="templates-search-icon" aria-hidden />
+              <input
+                type="search"
+                className="input-base templates-search-input"
+                placeholder="Filter CarbonX & custom templates (name, ingredient, process)…"
+                value={templateSearch}
+                onChange={(e) => setTemplateSearch(e.target.value)}
+                aria-label="Filter template cards only; processes and raw materials stay fully listed below"
+              />
+            </div>
+            {templateSearchNorm ? (
+              <p className="templates-search-hint medium-regular">
+                Showing filtered template cards above.{' '}
+                <strong>Processes</strong> and <strong>Raw materials</strong> lists below are not filtered—use them to add any item.
+              </p>
+            ) : null}
+
             <div className="template-accordion">
               {/* CarbonX Templates – only products that have inputs (elements) from the graph */}
               <div className="template-accordion-item">
@@ -497,7 +556,13 @@ const AddProductsPage = () => {
                 >
                   {accordionOpen['graph-cards'] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                   <span className="template-accordion-label">CarbonX Templates</span>
-                  <span className="raw-materials-count">({graphTemplates.length})</span>
+                  <span className="raw-materials-count">
+                    ({filteredGraphTemplates.length}
+                    {templateSearchNorm && graphTemplates.length !== filteredGraphTemplates.length
+                      ? ` / ${graphTemplates.length}`
+                      : ''}
+                    )
+                  </span>
                 </button>
                 {accordionOpen['graph-cards'] && (
                   <div className="template-cards-grid">
@@ -507,8 +572,10 @@ const AddProductsPage = () => {
                       <p className="graph-table-message graph-table-error">{graphError}</p>
                     ) : graphTemplates.length === 0 ? (
                       <p className="graph-table-message">No product chains with inputs in the graph yet. Add products, processes, and input/output links in the backend.</p>
+                    ) : filteredGraphTemplates.length === 0 ? (
+                      <p className="graph-table-message">No templates match your search.</p>
                     ) : (
-                      graphTemplates.map((t) => (
+                      filteredGraphTemplates.map((t) => (
                         <TemplateCard
                           key={t.id}
                           name={t.name}
