@@ -5,8 +5,10 @@
  * Models:
  * - Main SproutAI interface (chat, report summary): Gemini 2.5 Pro.
  * - Popup chatbot (Dashboard/Analytics): Perplexity Sonar Pro – web-backed, in-context Q&A.
- * - Report writing (structured JSON): Gemini 2.0 Flash – fast structured JSON, no thinking overhead.
+ * - Report writing (structured JSON): Claude 3.5 Sonnet – strong long-form structured writing.
  */
+
+import { parseJsonFromLlmOutput } from '../utils/parseLlmJson.js';
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 /** Main SproutAI page: general chat + report summary in chat. */
@@ -14,7 +16,7 @@ const DEFAULT_MODEL = 'google/gemini-2.5-pro';
 /** Popup chatbot on Dashboard/Analytics. */
 export const POPUP_MODEL = 'perplexity/sonar-pro';
 /** Full structured report JSON generation. */
-const REPORT_MODEL = 'google/gemini-2.0-flash-001';
+const REPORT_MODEL = 'anthropic/claude-sonnet-4.6';
 
 /**
  * @param {Array<{ role: 'user' | 'assistant' | 'system', content: string }>} messages
@@ -240,6 +242,78 @@ export async function generateSuggestedPrompts(context) {
   }
 }
 
+const LCA_ESTIMATE_SYSTEM = `You are a lifecycle assessment (LCA) research assistant for CarbonX.
+
+Use web-backed knowledge to estimate cradle-to-gate greenhouse gas emissions for ONE product.
+
+Return ONLY a compact JSON object (no markdown, no code fence, no extra text):
+{
+  "scope1": number,
+  "scope2": number,
+  "scope3": number,
+  "confidence": "low" | "medium" | "high",
+  "rationale": string
+}
+
+Rules:
+- Values must be in kgCO2e and represent a plausible baseline per single unit of product.
+- Scope 3 should usually dominate for most manufactured goods unless strong evidence suggests otherwise.
+- If highly uncertain, return conservative non-negative estimates and set confidence to "low".
+- Never return null, NaN, negative, or non-numeric values for scope1/scope2/scope3.
+- Keep rationale short (1 sentence).`;
+
+/**
+ * Web-backed fallback estimate for product Scope 1/2/3.
+ * Used when backend LCA cannot be calculated for self-created products.
+ * @param {{ productName: string, quantity?: number, unit?: string, components?: string[] }} context
+ * @returns {Promise<{ scope1: number, scope2: number, scope3: number, total: number, confidence: 'low'|'medium'|'high', rationale: string } | null>}
+ */
+export async function estimateProductLcaFromWeb(context) {
+  const productName = String(context?.productName || '').trim();
+  if (!productName) return null;
+
+  const lines = [
+    `Product: ${productName}`,
+    `Quantity: ${context?.quantity != null ? context.quantity : 1} ${context?.unit || 'unit'}`,
+    Array.isArray(context?.components) && context.components.length
+      ? `Known components: ${context.components.slice(0, 20).join(', ')}`
+      : 'Known components: (not provided)',
+  ];
+
+  try {
+    const raw = await chatCompletion(
+      [
+        { role: 'system', content: LCA_ESTIMATE_SYSTEM },
+        { role: 'user', content: lines.join('\n') },
+      ],
+      { model: POPUP_MODEL, max_tokens: 350, temperature: 0.2 }
+    );
+    let text = raw.trim();
+    const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeMatch) text = codeMatch[1].trim();
+    const data = JSON.parse(text);
+    if (!data || typeof data !== 'object') return null;
+
+    const scope1 = Number(data.scope1);
+    const scope2 = Number(data.scope2);
+    const scope3 = Number(data.scope3);
+    if (![scope1, scope2, scope3].every((n) => Number.isFinite(n) && n >= 0)) return null;
+    const confidence = ['low', 'medium', 'high'].includes(data.confidence) ? data.confidence : 'low';
+    const rationale = typeof data.rationale === 'string' ? data.rationale.trim() : '';
+
+    return {
+      scope1,
+      scope2,
+      scope3,
+      total: scope1 + scope2 + scope3,
+      confidence,
+      rationale,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 /**
  * Generate full structured report JSON for the Report page.
  * @param {string} userRequest
@@ -270,18 +344,37 @@ ${userRequest}
 When writing the report, ground any specific company descriptions or sustainability claims in the factual context above. If data is missing or uncertain, prefer qualitative descriptions over made-up numbers.`
     : userRequest;
 
-  const raw = await chatCompletion(
-    [
-      { role: 'system', content: REPORT_WRITER_SYSTEM },
-      { role: 'user', content: enrichedRequest },
-    ],
-    { model: REPORT_MODEL, max_tokens: 4096, temperature: 0.6 }
-  );
-  let text = raw.trim();
-  const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeMatch) text = codeMatch[1].trim();
-  const data = JSON.parse(text);
-  if (!data || typeof data !== 'object') throw new Error('Invalid report structure');
-  return data;
+  const messagesFor = (userContent) => [
+    { role: 'system', content: REPORT_WRITER_SYSTEM },
+    { role: 'user', content: userContent },
+  ];
+
+  const requestReportJson = async (userContent, temperature) => {
+    const raw = await chatCompletion(messagesFor(userContent), {
+      model: REPORT_MODEL,
+      max_tokens: 16384,
+      temperature,
+    });
+    const data = parseJsonFromLlmOutput(raw);
+    if (!data || typeof data !== 'object') throw new Error('Invalid report structure');
+    return data;
+  };
+
+  try {
+    return await requestReportJson(enrichedRequest, 0.45);
+  } catch (firstErr) {
+    const reason = String(firstErr?.message || firstErr || 'parse error').slice(0, 200);
+    const contextCap = 12_000;
+    const contextSlice = enrichedRequest.length > contextCap ? `${enrichedRequest.slice(0, contextCap)}\n[context truncated]` : enrichedRequest;
+    const repairPrompt = `The previous full-report JSON output failed to parse in software (${reason}).
+
+Output ONE complete JSON object only — no markdown fences, no commentary before or after. Every key required in the system message must be present. Keep paragraphs shorter if needed so the full object fits.
+
+Ground the report in this context (preserve GHG numbers and vessel/MMSI facts exactly where given):
+${contextSlice}`;
+
+    console.warn('[generateStructuredReport] Retrying after parse/API failure:', reason);
+    return await requestReportJson(repairPrompt, 0.25);
+  }
 }
 

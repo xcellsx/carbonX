@@ -17,6 +17,30 @@
       "prompt": "How do companies report carbon footprint?",
       "expectKeywords": ["report", "carbon", "footprint", "GHG", "standard"],
       "description": "Must mention reporting or standards"
+    },
+    {
+      "id": "lca-values-interpretation",
+      "prompt": "Our product inventory lists components with carbon values in kg CO2e. How should I interpret those LCA numbers when prioritizing reductions?",
+      "expectKeywords": ["LCA", "CO2", "component", "impact", "reduction", "hotspot"],
+      "description": "Must tie LCA quantities (e.g. kg CO2e) to interpretation and action"
+    },
+    {
+      "id": "lca-functional-unit",
+      "prompt": "What is a functional unit in life cycle assessment, and why does it matter when comparing two products' carbon footprints?",
+      "expectKeywords": ["functional unit", "LCA", "compare", "carbon", "product"],
+      "description": "Must explain functional unit and comparability of LCA results"
+    },
+    {
+      "id": "transport-scope3-reporting",
+      "prompt": "We ship finished goods to retailers by road and sometimes air. How should transport and logistics emissions appear in Scope 3 reporting?",
+      "expectKeywords": ["Scope 3", "transport", "logistics", "emission", "upstream", "downstream"],
+      "description": "Must connect freight/logistics to Scope 3 categories or reporting"
+    },
+    {
+      "id": "transport-modes-intensity",
+      "prompt": "For supply chain reporting, how do typical carbon intensities of road, rail, sea, and air freight compare at a high level?",
+      "expectKeywords": ["road", "rail", "sea", "air", "freight", "carbon"],
+      "description": "Must mention multiple transport modes and carbon context"
     }
   ],
   "report": [
@@ -29,6 +53,16 @@
       "id": "report-carbon",
       "prompt": "Write a carbon report for a retail company focusing on Scope 3.",
       "description": "Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets"
+    },
+    {
+      "id": "report-transport-logistics",
+      "prompt": "Generate a sustainability report for a fictional consumer goods distributor called NorthRelay for FY2025. Emphasize Scope 3 transport: inbound freight from suppliers, warehousing energy at a low level, and outbound distribution to customers by road and intermodal rail. Include targets to shift tonne-kilometres from road to rail where feasible.",
+      "description": "Must return valid JSON; content should reflect transport, logistics, and distribution themes"
+    },
+    {
+      "id": "report-lca-product-footprint",
+      "prompt": "Write a sustainability and carbon report for a fictional office-furniture maker called DeskForm for FY2025. Ground the narrative in product-level thinking: material sourcing (steel, wood, textiles), manufacturing energy, packaging, and transport to the end customer. Mention LCA or product carbon footprint concepts in the environmental analysis sections.",
+      "description": "Must return valid JSON; environmental pillars should engage LCA / PCF-style themes"
     }
   ]
 }

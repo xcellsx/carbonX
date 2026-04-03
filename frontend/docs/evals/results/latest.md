@@ -1,0 +1,904 @@
+# Sprout AI Eval Report
+
+- Timestamp: 2026-04-03T12:43:10.539Z
+- Golden prompts file: `frontend/docs/evals/golden-prompts.json`
+- Chat model: Gemini 2.5 Pro (`google/gemini-2.5-pro`)
+- Report model: Claude Sonnet 4.6 (`anthropic/claude-sonnet-4.6`)
+
+## Summary
+
+- Chat pass rate: 7/7 (100.0%)
+- Report pass rate: 4/4 (100.0%)
+- Avg chat latency: 16478 ms
+- Avg report latency: 184502 ms
+
+## Chat tests (prompt + output)
+
+### Chat test: `scope-definition`
+- **Pass:** YES
+- **Latency:** 19069 ms
+- **Rubric:** Must explain GHG scopes correctly
+- **Expected keyword hints:** scope 1, scope 2, scope 3, direct, indirect, emission
+- **Keywords matched:** scope 1, scope 2, scope 3, direct, indirect, emission
+**User prompt (from golden set):**
+```
+What are Scope 1, Scope 2, and Scope 3 emissions?
+```
+**Model response (full):**
+```
+Scope 1, 2, and 3 are categories for classifying a company's greenhouse gas (GHG) emissions, established by the GHG Protocol.
+
+*   **Scope 1: Direct Emissions**
+    These are emissions from sources that an organization owns or controls directly. For example, emissions from company vehicles or fuel burned in on-site boilers.
+
+*   **Scope 2: Indirect Emissions from Purchased Energy**
+    These are emissions from the generation of purchased energy, such as electricity, steam, heating, and cooling consumed by the company.
+
+*   **Scope 3: All Other Indirect Emissions**
+    These emissions occur in a company's value chain but are from sources not owned or controlled by the company. This includes emissions from business travel, employee commuting, purchased goods and services, and the use of sold products.
+```
+
+---
+
+### Chat test: `lca-brief`
+- **Pass:** YES
+- **Latency:** 11497 ms
+- **Rubric:** Must describe LCA in sustainability context
+- **Expected keyword hints:** life cycle, LCA, product, impact, carbon
+- **Keywords matched:** life cycle, LCA, product, impact
+**User prompt (from golden set):**
+```
+What is life cycle assessment (LCA)?
+```
+**Model response (full):**
+```
+A Life Cycle Assessment (LCA) is a method for evaluating the environmental impact of a product or service throughout its entire life—from "cradle-to-grave."
+
+It analyzes every stage, including:
+
+*   Raw material extraction
+*   Manufacturing
+*   Transportation
+*   Consumer use
+*   End-of-life (disposal or recycling)
+
+The goal is to understand the full environmental footprint, identify "hotspots" for improvement, and make more sustainable choices.
+```
+
+---
+
+### Chat test: `carbon-reporting`
+- **Pass:** YES
+- **Latency:** 12328 ms
+- **Rubric:** Must mention reporting or standards
+- **Expected keyword hints:** report, carbon, footprint, GHG, standard
+- **Keywords matched:** report, carbon, footprint, GHG, standard
+**User prompt (from golden set):**
+```
+How do companies report carbon footprint?
+```
+**Model response (full):**
+```
+Companies report their carbon footprint using established standards, primarily the **Greenhouse Gas (GHG) Protocol**.
+
+This framework categorizes emissions into three "scopes":
+
+*   **Scope 1:** Direct emissions from company-owned facilities and vehicles.
+*   **Scope 2:** Indirect emissions from purchased electricity, heat, and steam.
+*   **Scope 3:** All other indirect emissions from the value chain, such as supply chain activities, business travel, and product use.
+
+Companies then disclose this data through platforms like **CDP**, in sustainability reports, or as part of their annual financial filings.
+```
+
+---
+
+### Chat test: `lca-values-interpretation`
+- **Pass:** YES
+- **Latency:** 16825 ms
+- **Rubric:** Must tie LCA quantities (e.g. kg CO2e) to interpretation and action
+- **Expected keyword hints:** LCA, CO2, component, impact, reduction, hotspot
+- **Keywords matched:** LCA, CO2, component, impact, reduction, hotspot
+**User prompt (from golden set):**
+```
+Our product inventory lists components with carbon values in kg CO2e. How should I interpret those LCA numbers when prioritizing reductions?
+```
+**Model response (full):**
+```
+To prioritize reductions, identify the components with the largest **total carbon impact**.
+
+Each LCA number (kg CO2e) represents the emissions for a single component. To find your true priorities, follow these steps:
+
+1.  **Calculate Total Impact:** Multiply the component's kg CO2e value by its annual purchase volume. A low-carbon part used millions of times may be a bigger priority than a high-carbon part used rarely.
+    `Total Impact = Component kg CO2e × Annual Volume`
+
+2.  **Identify Hotspots:** Rank components by their total impact. The top of this list represents your biggest opportunities for reduction.
+
+3.  **Assess Feasibility:** For your top hotspots, evaluate the availability and cost of lower-carbon alternatives. Prioritize the changes that are most achievable.
+```
+
+---
+
+### Chat test: `lca-functional-unit`
+- **Pass:** YES
+- **Latency:** 20440 ms
+- **Rubric:** Must explain functional unit and comparability of LCA results
+- **Expected keyword hints:** functional unit, LCA, compare, carbon, product
+- **Keywords matched:** functional unit, LCA, compare, carbon, product
+**User prompt (from golden set):**
+```
+What is a functional unit in life cycle assessment, and why does it matter when comparing two products' carbon footprints?
+```
+**Model response (full):**
+```
+A **functional unit** is the specific service or function a product provides, which is used as a reference point in a Life Cycle Assessment (LCA). It answers the question: "What job is the product doing, and how much of it?"
+
+It matters because it ensures an **"apples-to-apples" comparison**. You can't fairly compare the carbon footprint of one paper towel to one electric hand dryer. The comparison is misleading.
+
+Instead, you must use a functional unit, such as **"drying 1,000 pairs of hands."**
+
+*   **For the hand dryer:** This includes manufacturing, plus the electricity for 1,000 uses.
+*   **For the paper towels:** This includes manufacturing, transport, and disposal of all the towels needed for 1,000 uses.
+
+The functional unit is the foundation for a credible comparison, preventing skewed results by focusing on the service delivered, not just the physical product.
+```
+
+---
+
+### Chat test: `transport-scope3-reporting`
+- **Pass:** YES
+- **Latency:** 12064 ms
+- **Rubric:** Must connect freight/logistics to Scope 3 categories or reporting
+- **Expected keyword hints:** Scope 3, transport, logistics, emission, upstream, downstream
+- **Keywords matched:** Scope 3, transport, logistics, emission, downstream
+**User prompt (from golden set):**
+```
+We ship finished goods to retailers by road and sometimes air. How should transport and logistics emissions appear in Scope 3 reporting?
+```
+**Model response (full):**
+```
+Emissions from shipping finished goods to retailers fall under **Scope 3, Category 9: Downstream Transportation and Distribution**.
+
+This category covers the transport of your sold products in vehicles not owned or controlled by your company. To calculate this in CarbonX, you'll need data from your logistics partners on the distance, weight, and mode of transport for your shipments.
+```
+
+---
+
+### Chat test: `transport-modes-intensity`
+- **Pass:** YES
+- **Latency:** 23122 ms
+- **Rubric:** Must mention multiple transport modes and carbon context
+- **Expected keyword hints:** road, rail, sea, air, freight, carbon
+- **Keywords matched:** road, rail, sea, air, freight, carbon
+**User prompt (from golden set):**
+```
+For supply chain reporting, how do typical carbon intensities of road, rail, sea, and air freight compare at a high level?
+```
+**Model response (full):**
+```
+Here is a high-level comparison of typical carbon intensities for freight, from most to least efficient:
+
+*   **Sea Freight:** The most carbon-efficient mode. Ideal for heavy, non-urgent, long-distance shipping.
+*   **Rail Freight:** Significantly more efficient than road. Excellent for long-haul, land-based transport of bulk goods.
+*   **Road Freight:** Less efficient than rail or sea due to lower capacity and higher fuel use per tonne-kilometer. Offers crucial last-mile flexibility.
+*   **Air Freight:** By far the most carbon-intensive mode, often over 40 times more than sea freight. Reserved for urgent, high-value shipments.
+
+In short, shifting freight from air to sea, or from road to rail, provides the largest opportunities for reducing supply chain emissions.
+```
+
+## Report tests (prompt + output)
+
+### Report test: `report-sustainability`
+
+- **Pass:** YES
+- **Latency:** 195784 ms
+- **Rubric:** Must return valid JSON with all required keys and substantive content
+- **Raw response length:** 41119 chars
+
+**User prompt (from golden set):**
+```
+Generate a sustainability report for a fictional F&B company called GreenBite for FY2025.
+```
+
+**Raw model output (full):**
+```json
+{
+  "reportTitle": "GreenBite Sustainability Report FY2025: Nourishing People, Protecting the Planet",
+  "reportSummary": "GreenBite's FY2025 Sustainability Report presents our progress across environmental stewardship, social responsibility, and governance integrity as we advance toward our 2030 sustainability commitments. This year marked a pivotal shift in our operations: we reduced absolute Scope 1 and 2 carbon emissions by 34% against our 2019 baseline, diverted 91% of food manufacturing waste from landfill, and transitioned 68% of our packaging portfolio to recyclable or compostable materials. Our supply chain traceability programme now covers 87% of Tier 1 ingredient suppliers, up from 61% in FY2024. Across our workforce of 4,200 employees spanning 11 markets in Asia-Pacific, we achieved a gender pay equity ratio of 0.97 and launched GreenBite Academy, our internal sustainability upskilling platform, which logged over 38,000 learning hours in its first year. We acknowledge that meaningful challenges remain — particularly in Scope 3 emissions reduction, regenerative agriculture adoption, and plastic elimination across cold-chain logistics. This report has been prepared in accordance with the GRI Standards 2021 and aligned with the TCFD framework, reflecting our commitment to transparent, accountable disclosure.",
+  "productName": "GreenBite Food & Beverage Portfolio (FY2025)",
+  "companyName": "GreenBite Pte. Ltd.",
+  "boardStatement": "To our stakeholders, FY2025 was a year that tested the resolve of every business operating in the food and beverage sector. Volatile commodity markets, intensifying climate-related disruptions to agricultural supply chains, and rapidly evolving regulatory landscapes across Asia-Pacific demanded that we act not merely with ambition, but with precision and accountability. The GreenBite Board of Directors is proud to affirm that our sustainability strategy is not a peripheral initiative — it is embedded at the core of how we create long-term value. This year, we formally integrated sustainability KPIs into the executive remuneration framework, ensuring that our leadership team is directly accountable for delivering on our environmental and social commitments. We established a dedicated Board Sustainability Committee, which convened six times during FY2025 to review material risks, validate progress data, and stress-test our 2030 roadmap against emerging climate scenarios. We are particularly encouraged by the progress of our Farm-to-Fork Integrity Programme, which is reshaping how we source ingredients, partner with smallholder farmers, and measure the true cost of our food systems. We recognise that trust is earned through consistent action, not declarations. We therefore invite our investors, customers, communities, and employees to hold us to the targets set out in this report. The planet and the people we serve deserve nothing less.",
+  "companyProfile": "GreenBite Pte. Ltd. is a Singapore-headquartered food and beverage company founded in 2009 with a mission to make sustainably produced, nutritionally balanced food accessible across Asia-Pacific. Operating across 11 markets including Singapore, Malaysia, Indonesia, Thailand, Vietnam, the Philippines, Australia, Japan, South Korea, India, and Hong Kong, GreenBite manages a diversified portfolio spanning plant-based ready meals, cold-pressed beverages, functional snack bars, fermented dairy alternatives, and foodservice ingredients. The company operates six manufacturing facilities — two in Singapore, two in Malaysia, and one each in Indonesia and Australia — and employs 4,200 full-time equivalent staff globally. GreenBite products are distributed through over 12,000 retail touchpoints, including major supermarket chains, specialty health food retailers, e-commerce platforms, and approximately 800 foodservice partners. In FY2025, GreenBite reported total revenue of SGD 1.14 billion, reflecting 9.2% year-on-year growth. The company sources over 340 distinct raw ingredients from 28 countries, with key agricultural inputs including oats, soy, coconut, cassava, and a range of tropical fruits. GreenBite is a signatory to the UN Global Compact and a founding member of the Asia Sustainable Food Alliance. The company's shares are listed on the Singapore Exchange (SGX) under the ticker GNBT.",
+  "sustainabilityApproach": "GreenBite's sustainability strategy is anchored in our 2030 Sustainability Roadmap, structured around three interconnected pillars: Planet First, People Always, and Principled Growth. Under Planet First, we are committed to achieving net-zero Scope 1 and 2 emissions by 2028, halving Scope 3 emissions by 2030 against a 2019 baseline, eliminating single-use virgin plastic from all consumer-facing packaging by 2027, and sourcing 100% of key agricultural commodities from verified sustainable or regenerative sources by 2030. Under People Always, our focus is on ensuring living wages across our direct workforce and Tier 1 supply chain by 2026, achieving gender parity at all leadership levels by 2027, and delivering nutrition education programmes to one million consumers annually by 2028. Under Principled Growth, we are embedding science-based targets, third-party assurance, and robust governance structures to ensure that commercial growth does not come at the expense of ecological or social integrity. Our materiality assessment, refreshed in FY2025 through engagement with over 600 stakeholders including investors, NGOs, regulators, suppliers, and consumers, identified climate transition risk, packaging and plastic waste, supply chain human rights, water stewardship in high-stress regions, and employee wellbeing as our five most material sustainability topics. These topics form the backbone of our reporting and capital allocation decisions.",
+  "stakeholderEngagement": "GreenBite conducted its most comprehensive stakeholder engagement exercise to date in FY2025, reaching over 600 unique stakeholders across seven categories: institutional investors, retail consumers, Tier 1 and Tier 2 suppliers, employees, government and regulatory bodies, civil society organisations, and academic research partners. Engagement methods included an annual investor ESG briefing attended by 43 fund managers representing SGD 28 billion in assets under management, four regional consumer focus groups held in Singapore, Jakarta, Melbourne, and Manila, a Supplier Sustainability Summit convening 120 Tier 1 partners in Kuala Lumpur, and an employee sustainability survey achieving an 81% response rate across all markets. Key themes raised by investors centred on the robustness of our Scope 3 measurement methodology and the credibility of our net-zero pathway. Consumers in Southeast Asian markets expressed strong preference for transparent on-pack sustainability labelling and locally sourced ingredients. Suppliers highlighted the need for longer-term purchasing commitments and capacity-building support to meet GreenBite's evolving sustainability standards. Employees prioritised mental health support, career development, and a stronger voice in sustainability decision-making. In response, GreenBite launched the Supplier Sustainability Accelerator — a 12-month capacity-building programme for 40 smallholder and SME suppliers — and introduced a Consumer Sustainability Scorecard on all primary packaging, providing QR-linked access to product-level carbon footprint and sourcing data. Stakeholder feedback directly informed the refresh of our materiality matrix and the recalibration of three FY2026 performance targets.",
+  "frameworks": [
+    "GRI Standards 2021 (Global Reporting Initiative)",
+    "Task Force on Climate-related Financial Disclosures (TCFD)",
+    "UN Sustainable Development Goals (SDGs) — SDG 2, 3, 5, 8, 12, 13, 15, 17",
+    "Science Based Targets initiative (SBTi) — 1.5°C aligned pathway",
+    "UN Global Compact — Ten Principles",
+    "Singapore Exchange (SGX) Sustainability Reporting Guidelines",
+    "ISO 14001:2015 Environmental Management System",
+    "ISO 45001:2018 Occupational Health and Safety Management System",
+    "CDP Climate Change and Water Security Disclosure",
+    "Taskforce on Nature-related Financial Disclosures (TNFD) — Pilot Adopter"
+  ],
+  "environmentalAnalysis": [
+    {
+      "title": "Greenhouse Gas Emissions & Climate Transition",
+      "keyData": "Scope 1 emissions: 18,400 tCO2e (down 22% YoY). Scope 2 emissions (market-based): 9,100 tCO2e (down 41% YoY). Combined Scope 1+2: 27,500 tCO2e, representing a 34% reduction against the FY2019 baseline of 41,700 tCO2e. Scope 3 emissions (15 categories measured): 312,000 tCO2e, down 8% YoY, with Category 1 (purchased goods and services) accounting for 61% of total Scope 3 footprint. Emissions intensity per tonne of product: 0.89 tCO2e, down from 1.04 in FY2024.",
+      "strategy": "GreenBite's climate strategy follows a Science Based Targets initiative (SBTi)-validated pathway targeting net-zero Scope 1 and 2 emissions by 2028 and a 50% absolute reduction in Scope 3 by 2030. Key decarbonisation levers include transitioning all six manufacturing facilities to 100% renewable electricity through a combination of on-site solar installations and Power Purchase Agreements (PPAs), electrifying the Singapore and Malaysia distribution fleet, reformulating high-carbon product lines to reduce ingredient-level emissions, and implementing a Supplier Emissions Reduction Programme requiring Tier 1 partners to disclose and reduce their own Scope 1 and 2 footprints. A climate scenario analysis conducted under TCFD guidance assessed physical and transition risks under 1.5°C, 2°C, and 3°C warming pathways through 2040.",
+      "performance": "In FY2025, GreenBite completed the installation of rooftop solar across all three Singapore and Malaysia facilities, generating 4.2 GWh of renewable electricity and offsetting 28% of total facility energy consumption. Two PPAs were signed with certified renewable energy providers in Australia and Indonesia, bringing the total renewable electricity share to 74% of Scope 2 consumption, up from 49% in FY2024. The Singapore cold-chain distribution fleet was 40% electrified, with 18 electric refrigerated vans deployed. Scope 3 reduction was driven primarily by reformulation of our oat-based beverage range, switching from conventional to certified regenerative oat suppliers in Australia, and a 12% reduction in air freight for ingredient imports through improved demand forecasting.",
+      "outlook": "GreenBite is on track to achieve its 2028 net-zero Scope 1 and 2 target. The remaining gap of 27,500 tCO2e will be addressed through full fleet electrification by FY2027, completion of PPAs for Indonesia and Vietnam operations by FY2026, and residual emissions offset through high-integrity carbon removal projects — primarily mangrove restoration in Indonesia and biochar application in agricultural supply chains. Scope 3 reduction remains the most complex challenge; we will invest SGD 8 million in supplier decarbonisation capacity over FY2026–2027 and expand ingredient-level lifecycle assessment coverage from 42% to 75% of SKUs by end of FY2026."
+    },
+    {
+      "title": "Packaging & Plastic Waste Reduction",
+      "keyData": "Total packaging material used: 8,940 tonnes. Recyclable or compostable packaging share: 68% (up from 51% in FY2024). Virgin plastic content: 1,820 tonnes, down 31% YoY. Post-consumer recycled (PCR) content across plastic packaging: 29% average. Packaging weight reduction achieved through lightweighting initiatives: 340 tonnes saved. Packaging waste sent to landfill from manufacturing operations: 112 tonnes, down 44% YoY.",
+      "strategy": "GreenBite's Packaging Transformation Roadmap targets the elimination of all virgin single-use plastic from consumer-facing packaging by 2027 and a 50% reduction in total packaging weight per unit by 2030 against a 2022 baseline. The strategy is built on four pillars: redesign (eliminating unnecessary packaging layers and switching to mono-material formats for recyclability), recycled content scaling (increasing PCR content to 50% across all plastic formats by 2026), material innovation (piloting compostable and bio-based alternatives for flexible packaging), and consumer education (on-pack recycling guidance and QR-linked disposal instructions in all 11 markets).",
+      "performance": "FY2025 saw the successful transition of our entire cold-pressed beverage range from multi-layer plastic pouches to 100% recyclable PET bottles with 35% PCR content, eliminating 280 tonnes of non-recyclable packaging annually. Our snack bar range was relaunched in compostable cellulose-based wrappers across Singapore, Australia, and Malaysia, covering 2.1 million units. A packaging lightweighting programme across our ready meal trays reduced average tray weight by 18%, saving 190 tonnes of plastic. We piloted a closed-loop packaging return scheme at 15 retail partners in Singapore, recovering 4.2 tonnes of packaging for recycling in its first six months.",
+      "outlook": "Achieving full elimination of virgin single-use plastic by 2027 will require accelerated supplier qualification for compostable flexible films in tropical climates, where heat and humidity present performance challenges. GreenBite has engaged two material science research partners at Nanyang Technological University and the University of Melbourne to co-develop heat-stable compostable laminates. We anticipate completing qualification trials by Q3 FY2026. Extended Producer Responsibility (EPR) regulations taking effect in Singapore and Indonesia in 2026 will further accelerate our transition and are already factored into our packaging capital expenditure plan of SGD 12 million over FY2026–2027."
+    },
+    {
+      "title": "Water Stewardship",
+      "keyData": "Total water withdrawal: 1.24 million m³ (down 9% YoY). Water intensity per tonne of product: 4.02 m³/tonne (down from 4.71 in FY2024). Water recycled and reused within facilities: 31% of total withdrawal. Facilities in high water-stress areas (WRI Aqueduct): 2 (Indonesia and India operations). Wastewater discharge meeting or exceeding local quality standards: 100% of discharge events.",
+      "strategy": "GreenBite's Water Stewardship Strategy is aligned with the Alliance for Water Stewardship (AWS) Standard and focuses on three priorities: reducing absolute water consumption across all manufacturing facilities, achieving water neutrality at our two high-stress site locations by 2027, and engaging with watershed communities and agricultural suppliers to promote responsible water use across our value chain. Site-specific Water Management Plans have been developed for all six facilities, incorporating water balance mapping, leak detection systems, and closed-loop water recycling for cleaning-in-place (CIP) processes.",
+      "performance": "Our Indonesia facility, located in a high water-stress catchment in West Java, reduced water withdrawal by 19% in FY2025 through the installation of a greywater recycling system and the optimisation of CIP processes, saving approximately 87,000 m³ annually. Across all facilities, an investment of SGD 2.1 million in water-efficient processing equipment contributed to the 9% group-wide reduction in absolute withdrawal. GreenBite also completed a watershed risk assessment for its top five agricultural sourcing regions, identifying sugarcane cultivation in Thailand and coconut farming in the Philippines as areas requiring targeted water stewardship engagement with supplier communities.",
+      "outlook": "GreenBite will pursue AWS certification for its Indonesia facility by Q2 FY2026 and its India facility by Q4 FY2026. A community water access programme will be launched in partnership with local NGOs in West Java, investing SGD 500,000 to improve watershed health and provide clean water access to three farming communities that supply GreenBite with cassava and tempeh ingredients. Water recycling rates are targeted to reach 45% group-wide by FY2027, supported by a SGD 3.8 million capital investment in closed-loop water treatment infrastructure at the Malaysian facilities."
+    },
+    {
+      "title": "Food Waste & Circular Economy",
+      "keyData": "Total food manufacturing waste generated: 6,820 tonnes. Waste diverted from landfill: 91% (up from 84% in FY2024). Food waste repurposed as animal feed or organic compost: 3,940 tonnes. Anaerobic digestion for biogas energy recovery: 1,240 tonnes processed, generating 2.1 GWh of energy. Waste sent to landfill: 614 tonnes. Food loss rate across manufacturing (as % of raw material input): 3.8%, down from 4.6% in FY2024.",
+      "strategy": "GreenBite's circular economy approach to food waste is guided by the Food Waste Hierarchy — prioritising prevention, then redistribution, then valorisation, with landfill as a last resort. Our Zero Waste to Landfill by 2028 target is supported by investments in precision manufacturing to reduce process losses, AI-driven demand forecasting to minimise overproduction, partnerships with food rescue organisations for near-expiry product redistribution, and valorisation infrastructure including on-site anaerobic digestion at our largest Malaysia facility.",
+      "performance": "In FY2025, GreenBite partnered with three regional food rescue NGOs — Food Bank Singapore, Yayasan Pangan Lestari in Indonesia, and OzHarvest in Australia — to redistribute 218 tonnes of surplus finished goods to vulnerable communities, equivalent to approximately 490,000 meals. The anaerobic digestion plant at our Selangor, Malaysia facility processed 1,240 tonnes of organic waste, generating biogas that offset 8% of the facility's total energy consumption. AI-powered production scheduling, rolled out across four facilities, reduced raw material process losses by 0.8 percentage points, saving an estimated SGD 1.4 million in ingredient costs.",
+      "outlook": "Reaching our Zero Waste to Landfill target by 2028 will require addressing the remaining 614 tonnes of landfill waste, primarily comprising contaminated multi-material packaging and certain hazardous cleaning chemical residues. GreenBite is investing in enhanced waste segregation infrastructure and exploring co-processing partnerships with cement manufacturers for non-recyclable waste streams. We will also expand the anaerobic digestion capacity at our Selangor facility by 60% in FY2026, enabling processing of organic waste from our Indonesian facility via a regional waste consolidation arrangement."
+    }
+  ],
+  "socialAnalysis": [
+    {
+      "title": "Employee Wellbeing & Workforce Development",
+      "keyData": "Total workforce: 4,200 FTE across 11 markets. Employee engagement score: 78% (up from 72% in FY2024). Voluntary turnover rate: 11.4% (down from 14.8% in FY2024). Training hours per employee: 42 hours average. GreenBite Academy enrolments: 3,800 employees, logging 38,000+ learning hours. Lost Time Injury Frequency Rate (LTIFR): 1.2 per million hours worked (down from 1.9 in FY2024). Absenteeism rate: 2.1%.",
+      "strategy": "GreenBite's People Strategy is built on four commitments: providing safe and healthy workplaces, investing in continuous learning and career development, ensuring fair and equitable compensation, and fostering an inclusive culture where every employee can contribute fully. Our Total Wellbeing Framework, launched in FY2024 and fully operationalised in FY2025, addresses physical, mental, financial, and social dimensions of employee wellbeing. GreenBite Academy, our digital learning platform, delivers sustainability literacy, technical skills, and leadership development content in six languages across all markets.",
+      "performance": "The reduction in LTIFR from 1.9 to 1.2 reflects the impact of our Behaviour-Based Safety programme, rolled out across all manufacturing facilities in H1 FY2025, which trained 1,800 frontline workers in hazard identification and near-miss reporting. Mental health support was significantly enhanced through the introduction of an Employee Assistance Programme (EAP) providing free, confidential counselling in all 11 markets, accessed by 340 employees in FY2025. A living wage audit conducted by an independent third party confirmed that 98% of GreenBite's direct workforce receives compensation at or above the living wage benchmark for their respective market, with remediation plans in place for the remaining 2% concentrated in our Vietnam and India operations.",
+      "outlook": "GreenBite will achieve 100% living wage compliance across its direct workforce by Q2 FY2026 and will extend living wage requirements to Tier 1 contract manufacturers and labour providers by end of FY2026. We are targeting an LTIFR of below 1.0 by FY2027 and will invest SGD 2.5 million in ergonomic upgrades and automated material handling equipment at our two highest-risk manufacturing sites. GreenBite Academy will expand its curriculum in FY2026 to include a dedicated Regenerative Agriculture and Supply Chain Sustainability module, targeting 500 procurement and supply chain employees."
+    },
+    {
+      "title": "Diversity, Equity & Inclusion",
+      "keyData": "Women in total workforce: 47%. Women in senior leadership (Director level and above): 38% (up from 31% in FY2024). Gender pay equity ratio (women's median pay as % of men's): 0.97. Nationalities represented in workforce: 24. Employees from underrepresented communities in management roles: 22%. Parental leave uptake (all genders): 89% of eligible employees.",
+      "strategy": "GreenBite's DEI Strategy sets a target of gender parity at all leadership levels by 2027 and is underpinned by structured interventions including blind recruitment processes, a Women in Leadership Mentorship Programme, pay equity audits conducted annually by an independent remuneration consultant, inclusive leadership training mandatory for all people managers, and flexible work arrangements available to all non-production employees. GreenBite's DEI Council, comprising 12 employee representatives from across markets and functions, advises the People & Culture Committee of the Board on policy development and progress.",
+      "performance": "The increase in women in senior leadership from 31% to 38% was driven by the Women in Leadership Mentorship Programme, which supported 64 women through structured mentorship, sponsorship, and stretch assignment opportunities in FY2025. Three women were appointed to country Managing Director roles during the year. The gender pay equity ratio of 0.97 reflects the outcome of our third consecutive annual pay equity audit, which identified and remediated 47 individual pay gaps totalling SGD 218,000 in annualised salary adjustments. GreenBite also launched a Neurodiversity at Work initiative in Singapore and Australia, implementing workplace adjustments and awareness training that supported 28 employees with neurodivergent conditions.",
+      "outlook": "GreenBite is on track to achieve gender parity in senior leadership by 2027, with a pipeline analysis indicating that 44% of employees in the succession pool for Director-level roles are women. We will launch a comprehensive ethnicity and disability data self-identification campaign in FY2026 to improve the granularity of our DEI baseline data, enabling more targeted interventions. A revised DEI scorecard with market-level targets will be published in our FY2026 report."
+    },
+    {
+      "title": "Supply Chain Human Rights & Responsible Sourcing",
+      "keyData": "Tier 1 suppliers covered by sustainability assessment: 87% (up from 61% in FY2024). Tier 1 suppliers with verified living wage compliance: 64%. Supplier audits conducted (social and environmental): 214 audits across 19 countries. Critical non-conformances identified: 18. Critical non-conformances resolved within 90 days: 14 (78%). Child labour or forced labour incidents confirmed: 0. Smallholder farmers supported through GreenBite's Supplier Sustainability Accelerator: 1,240.",
+      "strategy": "GreenBite's Responsible Sourcing Policy, updated in FY2025, requires all Tier 1 suppliers to adhere to our Supplier Code of Conduct covering labour rights, health and safety, environmental management, anti-corruption, and land rights. We conduct risk-based social audits using the SMETA (Sedex Members Ethical Trade Audit) methodology, prioritising suppliers in high-risk geographies including Indonesia, India, Vietnam, and the Philippines. Our Farm-to-Fork Integrity Programme extends traceability and sustainability capacity building to smallholder farmers, who represent a critical but often vulnerable segment of our agricultural supply chain.",
+      "performance": "The Supplier Sustainability Accelerator, launched in Q1 FY2025, enrolled 40 smallholder and SME suppliers across Indonesia, the Philippines, and India in a 12-month programme delivering training in sustainable agriculture practices, financial literacy, digital record-keeping, and environmental compliance. Participating suppliers achieved an average 14% reduction in their own Scope 1 emissions and a 22% improvement in social audit scores. Of the 18 critical non-conformances identified during audits — primarily relating to excessive working hours and inadequate personal protective equipment — 14 were fully remediated within the required 90-day window, with the remaining 4 under active corrective action plans.",
+      "outlook": "GreenBite will extend mandatory sustainability assessments to 100% of Tier 1 suppliers by end of FY2026 and will begin a phased Tier 2 mapping and risk assessment programme covering our top 50 highest-risk Tier 2 suppliers by Q3 FY2026. The Supplier Sustainability Accelerator will be expanded to support 200 suppliers annually from FY2027, with a dedicated fund of SGD 4 million allocated over three years. We will also introduce a Supplier Sustainability Performance Scorecard that will be integrated into procurement decision-making from FY2026 onwards."
+    },
+    {
+      "title": "Community Impact & Nutrition Access",
+      "keyData": "Community investment (cash and in-kind): SGD 4.2 million in FY2025. Beneficiaries reached through nutrition programmes: 680,000 individuals across 8 markets. Meals donated through food rescue partnerships: approximately 490,000. School nutrition education workshops delivered: 340 workshops across 120 schools. GreenBite Foundation grants disbursed: SGD 1.8 million to 22 community organisations.",
+      "strategy": "GreenBite believes that a food company's social licence to operate is inseparable from its contribution to food security, nutrition equity, and community resilience. Our Community Impact Strategy focuses on three areas: expanding access to nutritious food for underserved populations, delivering nutrition literacy education to children and families, and supporting the livelihoods of farming communities in our sourcing regions. The GreenBite Foundation, established in FY2022, serves as the vehicle for structured philanthropic investment and community partnership.",
+      "performance": "In FY2025, GreenBite's Nourish Forward programme — which provides subsidised or donated nutritious meal products to low-income households — reached 420,000 beneficiaries across Singapore, Indonesia, the Philippines, and Vietnam, exceeding our target of 350,000. The school nutrition education programme, delivered in partnership with local health authorities, reached 28,000 primary school children across 120 schools in six markets, with pre- and post-programme assessments showing a 31% improvement in nutrition knowledge scores. The GreenBite Foundation funded 22 community projects including urban farming initiatives, women's agricultural cooperative development, and clean cooking fuel access programmes.",
+      "outlook": "GreenBite is targeting one million annual beneficiaries through its nutrition access and education programmes by FY2028. In FY2026, we will launch the GreenBite Nutrition Innovation Fund, a SGD 3 million initiative co-investing with social enterprises and research institutions to develop affordable, nutrient-dense food products specifically formulated for low-income consumers in Southeast Asia. We will also formalise a community impact measurement framework aligned with the Social Value International SROI methodology to better quantify the social return on our community investments."
+    }
+  ],
+  "governanceAnalysis": [
+    {
+      "title": "Board Oversight & Sustainability Governance",
+      "keyData": "Board composition: 9 directors (5 independent, 4 non-independent). Women on the Board: 4 (44%). Directors with sustainability expertise: 3. Board Sustainability Committee meetings held: 6. ESG-linked executive remuneration: 20% of short-term incentive for CEO and C-suite linked to sustainability KPIs. Third-party assurance of sustainability data: Limited assurance by Deloitte Singapore.",
+      "strategy": "GreenBite's sustainability governance structure ensures that environmental and social risks and opportunities are managed at the highest level of the organisation. The Board Sustainability Committee, established in FY2025, holds oversight responsibility for the company's sustainability strategy, material risk management, target-setting, and disclosure. The Committee is chaired by an independent director with 18 years of experience in environmental policy and reports directly to the full Board. At the management level, a Sustainability Steering Committee comprising the CEO, CFO, Chief People Officer, Chief Supply Chain Officer, and Head of Sustainability meets monthly to drive operational execution.",
+      "performance": "The integration of sustainability KPIs into executive remuneration in FY2025 represented a significant governance milestone. The CEO's short-term incentive includes specific targets for Scope 1+2 emissions reduction, packaging recyclability improvement, supply chain audit coverage, and employee engagement — each independently verified before remuneration outcomes are determined. The Board conducted its first dedicated sustainability strategy deep-dive session in Q2 FY2025, engaging external climate scientists and human rights experts to stress-test GreenBite's approach. Limited assurance over 14 key sustainability metrics was provided by Deloitte Singapore, covering emissions data, water withdrawal, waste diversion, and workforce statistics.",
+      "outlook": "GreenBite will progress from limited to reasonable assurance over its core sustainability metrics by FY2027, in line with anticipated regulatory requirements under Singapore's mandatory climate reporting framework. The Board will commission an independent review of GreenBite's TCFD disclosure and climate scenario analysis in FY2026. We also intend to increase the sustainability-linked proportion of executive remuneration from 20% to 30% of short-term incentive by FY2027, reflecting the growing materiality of sustainability performance to long-term enterprise value."
+    },
+    {
+      "title": "Ethics, Anti-Corruption & Compliance",
+      "keyData": "Employees completing Code of Conduct training: 98.6%. Whistleblower reports received via Ethics Hotline: 31. Reports substantiated following investigation: 8. Disciplinary actions taken: 8 (including 3 terminations). Confirmed incidents of bribery or corruption: 0. Regulatory fines or sanctions related to environmental or social non-compliance: 0. Supplier Code of Conduct acceptance rate (Tier 1): 100%.",
+      "strategy": "GreenBite's Ethics and Compliance Programme is built on a foundation of a comprehensive Code of Conduct, an independently managed whistleblower hotline available in 8 languages, mandatory annual ethics training for all employees, a zero-tolerance policy on bribery and corruption enforced through our Anti-Bribery and Corruption (ABC) Policy, and a Conflict of Interest disclosure process for all employees at Manager level and above. Our compliance function conducts annual risk assessments across all operating markets, with particular focus on high-risk jurisdictions identified through Transparency International's Corruption Perceptions Index.",
+      "performance": "All 31 whistleblower reports received in FY2025 were investigated within the required 30-day timeframe. Of the 8 substantiated cases, the most common issues involved undisclosed conflicts of interest (4 cases) and unauthorised acceptance of gifts from suppliers (3 cases), with one case involving falsification of quality control records. All substantiated cases resulted in appropriate disciplinary action, and process controls were strengthened in response to identified systemic gaps. GreenBite achieved 100% Supplier Code of Conduct acceptance across its Tier 1 supplier base for the first time in FY2025, following a structured engagement campaign.",
+      "outlook": "GreenBite will implement an enhanced third-party due diligence platform in FY2026, enabling automated screening of new and existing suppliers and business partners against sanctions lists, adverse media, and ESG risk databases. We will also launch a refreshed Code of Conduct in Q1 FY2026, incorporating updated guidance on responsible AI use, data privacy, and environmental compliance obligations, supported by an interactive e-learning module replacing the current static training format."
+    },
+    {
+      "title": "Climate Risk Management & TCFD Disclosure",
+      "keyData": "Physical climate risks assessed: 12 risk scenarios across 6 facility locations and 8 key sourcing regions. Transition risks assessed: 9 policy, technology, and market scenarios. Financial exposure of high-likelihood physical risks by 2035 (under 2°C scenario): estimated SGD 38–62 million. Climate-related opportunities identified with quantified value: 4 (renewable energy cost savings, green product premiums, sustainable supply chain efficiency, carbon market participation). Climate risk integrated into enterprise risk register: Yes.",
+      "strategy": "GreenBite's climate risk management framework is fully aligned with TCFD recommendations across the four pillars of governance, strategy, risk management, and metrics and targets. In FY2025, we commissioned an independent climate scenario analysis covering physical risks (acute and chronic) and transition risks under 1.5°C, 2°C, and 3°C warming pathways through 2040. The analysis was conducted by a specialist climate risk consultancy using IPCC AR6 data and regional climate models, with results integrated into our enterprise risk management process and long-term strategic planning.",
+      "performance": "The scenario analysis identified the most material physical risks to GreenBite as: increased frequency of extreme precipitation events affecting our Indonesia and Vietnam facilities (acute risk, high likelihood by 2030 under 2°C scenario); chronic temperature increases reducing oat and wheat yields in key Australian and Indian sourcing regions (chronic risk, moderate-high impact by 2035); and intensified drought conditions affecting coconut and cassava production in the Philippines and Indonesia. In response, GreenBite has initiated a Climate Adaptation Investment Plan, allocating SGD 6 million over FY2026–2028 to facility flood resilience upgrades, agricultural diversification in high-risk sourcing regions, and strategic inventory buffering for climate-vulnerable ingredients.",
+      "outlook": "GreenBite will publish a standalone TCFD Report in FY2026, providing enhanced disclosure on the quantitative financial impacts of identified climate risks and the progress of our Climate Adaptation Investment Plan. We will also begin disclosure under the TNFD framework as a pilot adopter, assessing nature-related dependencies and impacts across our agricultural supply chain, with initial findings to be published in Q3 FY2026. Integration of climate risk into capital allocation decisions will be formalised through a revised Investment Approval Policy requiring climate risk assessment for all capital projects above SGD 2 million from FY2026 onwards."
+    }
+  ],
+  "futureTargets": [
+    {
+      "area": "Climate — Scope 1 & 2 Emissions",
+      "goal": "Achieve net-zero Scope 1 and 2 greenhouse gas emissions by FY2028, representing a 100% reduction from the FY2019 baseline of 41,700 tCO2e, with residual emissions offset through high-integrity carbon removal projects.",
+      "status": "On Track — 34% reduction achieved to date against FY2019 baseline; renewable electricity at 74% of Scope 2 consumption."
+    },
+    {
+      "area": "Climate — Scope 3 Emissions",
+      "goal": "Reduce absolute Scope 3 emissions by 50% by FY2030 against FY2019 baseline of 339,000 tCO2e, validated by the Science Based Targets initiative under a 1.5°C-aligned pathway.",
+      "status": "In Progress — 8% reduction achieved to date; Scope 3 remains the most complex challenge requiring deep supplier engagement and ingredient reformulation."
+    },
+    {
+      "area": "Renewable Energy",
+      "goal": "Source 100% of electricity across all six manufacturing facilities from renewable sources by FY2026 through on-site solar generation and Power Purchase Agreements.",
+      "status": "On Track — 74% renewable electricity achieved in FY2025; PPAs for Indonesia and Vietnam facilities to be signed by Q2 FY2026."
+    },
+    {
+      "area": "Packaging — Virgin Plastic Elimination",
+      "goal": "Eliminate all virgin single-use plastic from consumer-facing packaging by FY2027, transitioning to recyclable, compostable, or high-PCR-content alternatives across all 340+ SKUs.",
+      "status": "In Progress — 68% of packaging portfolio now recyclable or compostable; compostable flexible film qualification trials ongoing with NTU and University of Melbourne."
+    },
+    {
+      "area": "Food Waste",
+      "goal": "Achieve Zero Waste to Landfill across all manufacturing operations by FY2028, diverting 100% of food and packaging waste through reuse, recycling, composting, or energy recovery pathways.",
+      "status": "On Track — 91% waste diversion achieved in FY2025; remaining 614 tonnes of landfill waste being addressed through enhanced segregation and co-processing partnerships."
+    },
+    {
+      "area": "Water Stewardship",
+      "goal": "Achieve water neutrality at both high water-stress facilities (Indonesia and India) by FY2027 and increase group-wide water recycling rate to 45% by FY2027.",
+      "status": "In Progress — Indonesia facility reduced water withdrawal by 19% in FY2025; AWS certification process initiated; water recycling currently at 31%."
+    },
+    {
+      "area": "Supply Chain Traceability",
+      "goal": "Achieve 100% traceability and sustainability assessment coverage across all Tier 1 suppliers by end of FY2026, and extend Tier 2 risk mapping to the top 50 highest-risk suppliers by Q3 FY2026.",
+      "status": "On Track — 87% of Tier 1 suppliers covered by sustainability assessment in FY2025, up from 61% in FY2024."
+    },
+    {
+      "area": "Living Wage",
+      "goal": "Ensure 100% of direct employees receive a living wage by Q2 FY2026 and extend living wage requirements to all Tier 1 contract manufacturers and labour providers by end of FY2026.",
+      "status": "Near Complete — 98% of direct workforce at or above living wage benchmark; remediation plans active for Vietnam and India operations."
+    },
+    {
+      "area": "Gender Parity in Leadership",
+      "goal": "Achieve gender parity (defined as 45–55% representation of any gender) at all leadership levels from Team Leader to Board Director by FY2027.",
+      "status": "On Track — Women in senior leadership at 38% in FY2025, up from 31%; 44% of Director-level succession pipeline are women."
+    },
+    {
+      "area": "Community Nutrition Impact",
+      "goal": "Reach one million individuals annually through nutrition access and education programmes by FY2028, with measurable improvements in nutrition knowledge and food security outcomes.",
+      "status": "In Progress — 680,000 beneficiaries reached in FY2025; GreenBite Nutrition Innovation Fund of SGD 3 million to be launched in FY2026 to accelerate reach."
+    },
+    {
+      "area": "Sustainable Sourcing",
+      "goal": "Source 100% of key agricultural commodities (oats, soy, coconut, cassava, palm oil derivatives) from verified sustainable or certified regenerative sources by FY2030.",
+      "status": "In Progress — 54% of key commodities from verified sustainable sources in FY2025; regenerative sourcing pilots underway in Australia (oats) and Indonesia (coconut)."
+    },
+    {
+      "area": "Assurance & Transparency",
+      "goal": "Progress from limited to reasonable assurance over all core sustainability metrics by FY2027, and publish a standalone TCFD Report and initial TNFD disclosure by FY2026.",
+      "status": "In Progress — Limited assurance by Deloitte Singapore achieved in FY2025; reasonable assurance roadmap and TCFD standalone report in development."
+    }
+  ]
+}
+```
+
+**Parsed summary (for quick reading):**
+- `reportTitle`: GreenBite Sustainability Report FY2025: Nourishing People, Protecting the Planet
+- `reportSummary`: GreenBite's FY2025 Sustainability Report presents our progress across environmental stewardship, social responsibility, and governance integrity as we advance toward our 2030 sustainability commitments. This year marked a pivotal shift in our operations: we reduced absolute Scope 1 and 2 carbon emissions by 34% against our 2019 baseline, diverted 91% of food manufacturing waste from landfill, and transitioned 68% of our packaging portfolio to recyclable or compostable materials. Our supply chain traceability programme now covers 87% of Tier 1 ingredient suppliers, up from 61% in FY2024. Across our workforce of 4,200 employees spanning 11 markets in Asia-Pacific, we achieved a gender pay equity ratio of 0.97 and launched GreenBite Academy, our internal sustainability upskilling platform, which logged over 38,000 learning hours in its first year. We acknowledge that meaningful challenges remain — particularly in Scope 3 emissions reduction, regenerative agriculture adoption, and plastic elimination across cold-chain logistics. This report has been prepared in accordance with the GRI Standards 2021 and aligned with the TCFD framework, reflecting our commitment to transparent, accountable disclosure.
+
+---
+
+### Report test: `report-carbon`
+
+- **Pass:** YES
+- **Latency:** 140572 ms
+- **Rubric:** Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets
+- **Raw response length:** 29800 chars
+
+**User prompt (from golden set):**
+```
+Write a carbon report for a retail company focusing on Scope 3.
+```
+
+**Raw model output (full):**
+````json
+```json
+{
+  "reportTitle": "CarbonX Scope 3 Emissions Report 2024: Navigating the Full Value Chain",
+  "reportSummary": "This report presents a comprehensive assessment of CarbonX Retail Group's Scope 3 greenhouse gas emissions across its full value chain for the fiscal year 2024. As a leading multi-format retailer operating over 340 stores across Southeast Asia and an expanding e-commerce platform, CarbonX Retail Group recognizes that more than 91% of its total carbon footprint originates outside its direct operational boundaries — embedded in supplier manufacturing, logistics networks, customer travel, product use, and end-of-life disposal. This report quantifies all 15 Scope 3 categories as defined by the GHG Protocol Corporate Value Chain Standard, identifies the highest-impact emission hotspots, and outlines the strategic interventions underway to achieve a 50% absolute reduction in Scope 3 emissions by 2035 against a 2021 baseline. Key findings indicate that purchased goods and services (Category 1) account for 58% of total Scope 3 emissions, followed by upstream transportation and distribution (Category 4) at 14%, and customer travel to stores (Category 11) at 9%. The report also details supplier engagement programs, science-based target alignment, and circular economy initiatives that are reshaping how CarbonX Retail Group manages carbon risk across its ecosystem.",
+  "productName": "Scope 3 Value Chain Carbon Report",
+  "companyName": "CarbonX Retail Group",
+  "boardStatement": "As the Board of Directors of CarbonX Retail Group, we affirm our collective responsibility for the climate impacts that extend beyond our stores and distribution centres. The science is unambiguous: limiting global warming to 1.5°C requires transformational action across entire value chains, not merely within the walls of our own operations. In 2024, we deepened our understanding of the emissions embedded in the products we sell, the suppliers we partner with, and the journeys our customers make to reach us. What we found reinforced both the scale of the challenge and the magnitude of the opportunity. Our Scope 3 inventory now covers 97% of estimated emission sources by spend, a significant improvement from 74% in 2022. We have formally committed to Science Based Targets initiative (SBTi) validation for our near-term and long-term targets, with submission completed in Q3 2024. We have restructured our supplier code of conduct to include mandatory GHG disclosure requirements for our top 200 suppliers by spend, effective January 2025. We recognise that decarbonising our value chain requires us to use our commercial influence responsibly — favouring suppliers who invest in low-carbon manufacturing, redesigning private-label products to reduce embodied carbon, and making it easier for customers to choose lower-impact options. This report is our public accountability mechanism. We invite our shareholders, suppliers, customers, and communities to hold us to the commitments documented here.",
+  "companyProfile": "CarbonX Retail Group is a diversified retail conglomerate headquartered in Singapore, operating across four retail formats: CarbonX Hypermarkets (87 locations), CarbonX Express convenience stores (198 locations), CarbonX Home & Living (42 specialty stores), and CarbonX Digital, its integrated e-commerce and same-day delivery platform serving six countries. The company employs approximately 28,400 people and generated SGD 4.7 billion in revenue in FY2024. Its product portfolio spans fresh food and grocery, consumer electronics, apparel, household goods, and private-label products across 1,200 SKUs. CarbonX Retail Group sources from over 3,800 direct suppliers across 34 countries, with primary sourcing hubs in China, Vietnam, Bangladesh, India, and Thailand. The company's logistics network includes 6 regional distribution centres, a fleet of 420 owned and contracted delivery vehicles, and partnerships with 14 third-party logistics providers. In 2024, CarbonX Retail Group served an estimated 210 million customer transactions across its physical and digital channels. The company is listed on the Singapore Exchange (SGX) and is a constituent of the FTSE4Good Index.",
+  "sustainabilityApproach": "CarbonX Retail Group's sustainability strategy, branded 'RetailResponsible 2035', is structured around three pillars: Decarbonise the Chain, Circularise the Product, and Empower the Customer. Under Decarbonise the Chain, the company focuses on achieving verified emissions reductions across all 15 Scope 3 categories, with particular intensity on Categories 1, 4, 11, and 12 — which together represent 84% of total value chain emissions. The company employs a tiered supplier engagement model: Tier 1 suppliers (top 200 by spend) are required to submit annual GHG inventories audited by an accredited third party; Tier 2 suppliers (next 600 by spend) participate in CarbonX's Supplier Climate Academy, a capacity-building programme delivering training on emissions measurement and reduction planning. Under Circularise the Product, CarbonX has committed to ensuring 100% of its private-label packaging is reusable, recyclable, or compostable by 2026, and is piloting a product-as-a-service model for consumer electronics in its Home & Living division. Under Empower the Customer, the company has introduced a CarbonScore label on 340 private-label products, providing customers with a product-level carbon footprint rating, and has partnered with public transport authorities in three cities to offer transit incentives for customers who travel to stores without private vehicles. The company's sustainability governance is overseen by a Board-level Sustainability Committee that meets quarterly, supported by a cross-functional internal Sustainability Council chaired by the Chief Sustainability Officer.",
+  "stakeholderEngagement": "CarbonX Retail Group conducted its most extensive stakeholder engagement exercise to date in 2024, using a combination of structured materiality assessment interviews, supplier forums, customer surveys, and investor dialogue sessions. A total of 1,847 stakeholders participated across six engagement channels. Supplier engagement centred on the annual CarbonX Supplier Climate Summit, held in March 2024 in Ho Chi Minh City, attended by representatives from 312 supplier organisations. Key themes raised by suppliers included the need for technical assistance in conducting product-level lifecycle assessments, clearer guidance on CarbonX's preferred emission calculation methodologies, and concerns about the cost burden of third-party GHG audits for smaller suppliers. In response, CarbonX committed SGD 3.2 million to a Supplier Decarbonisation Fund to subsidise audit costs for suppliers with annual revenue below USD 10 million. Customer research involving 12,400 survey respondents across Singapore, Malaysia, Thailand, and the Philippines revealed that 67% of customers want clearer information about the carbon footprint of products they purchase, while 43% indicated they would actively choose lower-carbon alternatives if the price premium were within 10%. Investor engagement through CarbonX's annual ESG Investor Day highlighted growing demand for Scope 3 data quality assurance, with 78% of institutional investors surveyed indicating that Scope 3 disclosure quality materially influences their ESG scoring of the company. Employee engagement through internal sustainability ambassador networks resulted in 4,200 staff participating in value chain carbon literacy training programmes in 2024.",
+  "frameworks": [
+    "GHG Protocol Corporate Value Chain (Scope 3) Accounting and Reporting Standard",
+    "Science Based Targets initiative (SBTi) — Corporate Net-Zero Standard",
+    "Task Force on Climate-related Financial Disclosures (TCFD)",
+    "Global Reporting Initiative (GRI) Standards — GRI 305: Emissions",
+    "ISO 14064-1:2018 Greenhouse Gas Quantification and Reporting",
+    "UN Sustainable Development Goals (SDGs) — particularly SDG 12, 13, and 17",
+    "Singapore Exchange (SGX) Sustainability Reporting Guidelines",
+    "CDP Supply Chain Program",
+    "Greenhouse Gas Protocol Product Life Cycle Accounting Standard",
+    "Ellen MacArthur Foundation Circular Economy Framework"
+  ],
+  "environmentalAnalysis": [
+    {
+      "title": "Category 1: Purchased Goods and Services",
+      "keyData": "Total emissions: 1,842,000 tCO2e (FY2024). Represents 58% of total Scope 3 inventory. Coverage: 97% of procurement spend. Top emitting categories: electronics manufacturing (28%), apparel and textiles (22%), packaged food processing (19%), household chemicals (11%). Year-on-year change: -3.2% absolute reduction vs FY2023 despite 6.1% revenue growth.",
+      "strategy": "CarbonX has implemented a Preferred Supplier Scorecard that weights GHG performance at 20% of overall supplier evaluation. Suppliers in the top quartile of emissions intensity receive preferential shelf placement and longer contract terms. The company has co-invested with 14 strategic suppliers in renewable energy procurement, facilitating 180 GWh of clean energy adoption at supplier facilities in Vietnam and Bangladesh in 2024. Private-label product reformulation has eliminated high-carbon ingredients in 68 SKUs, reducing embodied carbon in the private-label portfolio by an average of 12% per product.",
+      "performance": "Category 1 emissions declined by 3.2% in absolute terms in FY2024, the first absolute reduction recorded since baseline year 2021. Emissions intensity per SGD of procurement spend improved by 8.9%. Forty-three Tier 1 suppliers submitted independently verified GHG reduction plans aligned with a 1.5°C trajectory. Renewable energy adoption facilitated through CarbonX's supply chain programmes avoided an estimated 94,000 tCO2e of supplier emissions.",
+      "outlook": "CarbonX projects a further 6–8% absolute reduction in Category 1 emissions in FY2025, driven by the full-year effect of supplier renewable energy projects commissioned in late 2024, continued private-label reformulation across the food and household goods categories, and the onboarding of 40 additional Tier 1 suppliers into the verified GHG disclosure programme. The company is piloting a digital supplier carbon data exchange platform with 22 suppliers to enable near-real-time Category 1 emission tracking by 2026."
+    },
+    {
+      "title": "Category 4: Upstream Transportation and Distribution",
+      "keyData": "Total emissions: 444,000 tCO2e (FY2024). Represents 14% of total Scope 3 inventory. Breakdown: ocean freight 51%, road freight (contracted third-party) 31%, air freight 12%, rail 6%. Air freight emissions intensity: 47x higher per tonne-kilometre than ocean freight. Year-on-year change: +1.8% absolute increase driven by e-commerce fulfilment growth.",
+      "strategy": "CarbonX has adopted a modal shift strategy targeting a 40% reduction in air freight volume by 2026 through improved demand forecasting and extended supplier lead times for non-perishable goods. The company joined the Clean Cargo initiative and requires all contracted ocean freight carriers to report verified emissions using the IMO's Carbon Intensity Indicator (CII). For domestic road freight, CarbonX has committed to transitioning 60% of its contracted last-mile delivery fleet to electric vehicles by 2027, with 85 EV delivery vehicles already deployed across Singapore and Kuala Lumpur operations.",
+      "performance": "Despite a 9.3% increase in total freight volume driven by e-commerce growth, Category 4 emissions grew by only 1.8%, reflecting improved load optimisation that increased average truck fill rates from 71% to 79%. Air freight volume was reduced by 18% year-on-year through the implementation of a mandatory air freight pre-approval process for non-perishable goods. The 85 EV delivery vehicles deployed avoided an estimated 1,200 tCO2e compared to equivalent diesel operations.",
+      "outlook": "Category 4 emissions are projected to plateau in FY2025 and begin declining in FY2026 as EV fleet expansion accelerates and the air freight reduction programme reaches its 40% volume reduction target. CarbonX is evaluating the use of sustainable aviation fuel (SAF) credits for residual air freight emissions and is in early discussions with two shipping carriers regarding green methanol-powered vessel allocation on key trade lanes."
+    },
+    {
+      "title": "Category 11: Use of Sold Products",
+      "keyData": "Total emissions: 286,000 tCO2e (FY2024). Represents 9% of total Scope 3 inventory. Primary drivers: consumer electronics energy consumption during use phase (61%), home appliances (24%), lighting products (15%). Calculation methodology: activity-based using product sales volumes, average product lifespans, and regional grid emission factors. Year-on-year change: -5.7% driven by portfolio shift toward energy-efficient products.",
+      "strategy": "CarbonX has committed to phasing out the sale of products below a minimum energy efficiency rating across all appliance and electronics categories by 2026. The company has introduced an Energy Efficiency Bonus programme that provides checkout discounts on products rated A++ or above under the applicable national energy labelling scheme. Private-label electronics and lighting products are designed to meet or exceed the top 15% of energy efficiency in their respective categories. CarbonX's CarbonScore labelling programme prominently features use-phase emissions to guide customer purchasing decisions.",
+      "performance": "Category 11 emissions fell by 5.7% in absolute terms in FY2024, the largest single-category reduction achieved. The share of consumer electronics sold with an A or A+ energy rating increased from 54% to 71% of units sold. LED lighting now represents 94% of all lighting product sales, up from 87% in FY2023. The Energy Efficiency Bonus programme drove a 34% increase in sales of top-rated appliances.",
+      "outlook": "The planned phase-out of sub-minimum efficiency products across all appliance categories by end-2026 is expected to drive a further 8–11% reduction in Category 11 emissions. CarbonX is exploring integration of smart energy management features into its private-label home appliance range to further reduce in-home energy consumption during the product use phase."
+    },
+    {
+      "title": "Category 12: End-of-Life Treatment of Sold Products",
+      "keyData": "Total emissions: 177,000 tCO2e (FY2024). Represents 5.6% of total Scope 3 inventory. Breakdown: landfill disposal of packaging 44%, landfill disposal of product waste 31%, incineration without energy recovery 18%, wastewater treatment 7%. Calculation based on product sales volumes, estimated packaging weights, and regional waste treatment infrastructure data.",
+      "strategy": "CarbonX's circular economy strategy targets a 70% reduction in end-of-life emissions by 2030 through three mechanisms: packaging redesign to eliminate non-recyclable materials, in-store take-back programmes for electronics and packaging, and supplier partnerships to increase recycled content. The company operates 187 in-store recycling collection points and has partnered with certified e-waste recyclers to process returned electronics. A deposit-return scheme for reusable packaging is being piloted across 12 hypermarket locations.",
+      "performance": "Category 12 emissions decreased by 7.1% in FY2024. In-store take-back programmes collected 2,840 tonnes of consumer electronics for certified recycling, diverting an estimated 1,100 tCO2e from landfill. Private-label packaging redesign eliminated 890 tonnes of non-recyclable plastic from the product portfolio. The deposit-return pilot achieved a 68% return rate on participating packaging formats.",
+      "outlook": "Successful completion of the deposit-return pilot is expected to inform a network-wide rollout across all hypermarket locations by end-2025. CarbonX has committed to achieving 100% recyclable or compostable private-label packaging by 2026, which is projected to reduce Category 12 emissions attributable to packaging by approximately 35,000 tCO2e annually once fully implemented."
+    },
+    {
+      "title": "Category 11 Subset: Customer Travel to Stores",
+      "keyData": "Total emissions: 285,000 tCO2e (FY2024). Represents 9% of total Scope 3 inventory. Calculated using customer transaction data, travel mode surveys conducted across 14 store locations, and national transport emission factors. Private vehicle travel accounts for 73% of customer journey emissions. Average customer journey emission: 1.36 kgCO2e per store visit.",
+      "strategy": "CarbonX's store location strategy now incorporates a public transport accessibility score as a mandatory criterion in new site selection. The company has partnered with transit authorities in Singapore and Kuala Lumpur to offer a 5% discount voucher to customers who arrive via public transport, verified through transit card integration at point of sale. E-commerce channel growth is actively promoted as a lower-emission alternative to car-based store visits, with consolidated delivery optimisation reducing per-order delivery emissions.",
+      "performance": "Customer travel emissions per transaction declined by 4.2% in FY2024. Public transport modal share among surveyed customers increased from 31% to 36% across participating store locations. The transit discount programme enrolled 890,000 unique customers in its first year of operation. E-commerce channel growth of 22% year-on-year contributed to an estimated 41,000 tCO2e avoidance compared to equivalent in-store visit scenarios, based on consolidated delivery modelling.",
+      "outlook": "CarbonX plans to expand the transit discount partnership to Thailand and the Philippines in FY2025. New store openings in FY2025 and FY2026 are all located within 400 metres of a major public transport node, consistent with the updated site selection policy. The company is evaluating a carbon-labelled delivery slot selection tool for e-commerce customers to encourage selection of consolidated, lower-emission delivery windows."
+    }
+  ],
+  "socialAnalysis": [
+    {
+      "title": "Supplier Workforce and Social Standards in the Value Chain",
+      "keyData": "3,847 active direct suppliers across 34 countries. 312 Tier 1 suppliers subject to mandatory social audit requirements. 1,204 social audits conducted in FY2024 (third-party verified: 68%). Non-conformance rate: 14.2% (down from 19.7% in FY2022). Critical non-conformances identified: 23 cases, all subject to corrective action plans within 30 days.",
+      "strategy": "CarbonX's Supplier Code of Conduct mandates compliance with ILO core labour standards, living wage benchmarks, and safe working conditions across all direct suppliers. The company uses the Sedex platform for social audit data management and participates in the amfori BSCI programme for shared audit recognition. Suppliers identified with critical non-conformances are placed on a remediation programme with 90-day corrective action deadlines; repeat critical non-conformances result in contract termination.",
+      "performance": "Social audit coverage of Tier 1 suppliers reached 100% in FY2024 for the first time. The overall non-conformance rate declined to 14.2%, reflecting the effectiveness of the Supplier Climate Academy's expanded social compliance module. Twenty-three critical non-conformances were identified, all related to working hours violations and inadequate health and safety provisions; corrective action plans were implemented in all cases within the required timeframe.",
+      "outlook": "CarbonX will extend mandatory social audit requirements to Tier 2 suppliers (next 600 by spend) from January 2026. The company is piloting a worker voice technology platform with three apparel suppliers in Bangladesh that enables direct, anonymous feedback from factory workers on working conditions, with results shared with CarbonX's sourcing teams in real time."
+    },
+    {
+      "title": "Community Impact of Value Chain Decarbonisation",
+      "keyData": "SGD 3.2 million committed to Supplier Decarbonisation Fund in FY2024. 4,200 CarbonX employees trained in value chain carbon literacy. 312 supplier organisations participated in Supplier Climate Summit. Estimated 94,000 tCO2e of supplier emissions avoided through CarbonX-facilitated renewable energy programmes. 890,000 customers enrolled in transit incentive programme.",
+      "strategy": "CarbonX recognises that value chain decarbonisation must be a just transition that does not disproportionately burden smaller suppliers or low-income communities. The Supplier Decarbonisation Fund prioritises financial support for suppliers in lower-income countries and those with annual revenues below USD 10 million. Community benefit clauses are embedded in renewable energy co-investment agreements, requiring that projects provide local employment and skills development opportunities.",
+      "performance": "The Supplier Decarbonisation Fund disbursed SGD 1.8 million in its first year of operation, supporting 47 smaller suppliers in accessing third-party GHG audits and energy efficiency assessments. Renewable energy projects co-facilitated by CarbonX created an estimated 340 local construction and operations jobs at supplier facilities. The Supplier Climate Academy delivered training to 2,100 supplier employees across 18 countries.",
+      "outlook": "CarbonX will increase the Supplier Decarbonisation Fund to SGD 5 million in FY2025 and expand eligibility to include Tier 2 suppliers. The company is developing a community resilience assessment tool to evaluate the social co-benefits of its supplier decarbonisation investments, with results to be published in the FY2025 sustainability report."
+    }
+  ],
+  "governanceAnalysis": [
+    {
+      "title": "Scope 3 Data Governance and Assurance",
+      "keyData": "Scope 3 inventory coverage: 97% of estimated emission sources by spend (up from 74% in FY2022). Third-party limited assurance obtained for Categories 1, 4, 11, and 12 (representing 87% of total Scope 3 emissions). Data quality score (GHG Protocol methodology): 3.8 out of 5.0 (up from 2.9 in FY2022). Primary data from suppliers: 31% of Category 1 emissions (up from 8% in FY2021).",
+      "strategy": "CarbonX has invested in a dedicated Scope 3 data management platform integrated with its ERP and procurement systems, enabling automated spend-based emission factor application and flagging of suppliers with available primary activity data. The company's internal audit function conducts an annual review of Scope 3 calculation methodologies and data quality controls. External limited assurance is provided by an accredited third-party assurance provider under ISAE 3000 standards.",
+      "performance": "Scope 3 inventory coverage improved to 97% in FY2024, with all 15 GHG Protocol categories now quantified. The share of Category 1 emissions calculated using supplier-provided primary activity data increased from 8% in FY2021 to 31% in FY2024, significantly improving data quality. Third-party limited assurance was obtained for the four largest Scope 3 categories. The company's SBTi near-term and long-term targets were submitted for validation in Q3 2024.",
+      "outlook": "CarbonX is targeting reasonable assurance (up from limited assurance) for its four largest Scope 3 categories by FY2026. The company aims to increase the share of Category 1 emissions calculated from supplier primary data to 55% by FY2026 through the digital supplier carbon data exchange platform currently in pilot. SBTi target validation is expected to be confirmed in Q1 2025."
+    },
+    {
+      "title": "Climate Risk Integration and Executive Accountability",
+      "keyData": "Scope 3 emissions reduction linked to executive remuneration: 15% of short-term incentive (STI) for CEO and CFO tied to Scope 3 KPIs since FY2023. Board Sustainability Committee: 4 members, meets quarterly, includes two independent directors with climate expertise. TCFD disclosure: full alignment achieved in FY2024 report. Climate scenario analysis conducted using 1.5°C, 2°C, and 3°C pathways.",
+      "strategy": "CarbonX's Board Sustainability Committee has oversight responsibility for climate-related risks and opportunities, including Scope 3 emission performance. Executive remuneration is formally linked to Scope 3 outcomes: the CEO and CFO have 15% of their annual STI tied to Scope 3 emission intensity reduction and supplier engagement KPIs. The company conducts annual climate scenario analysis to assess physical and transition risks across its value chain, with findings integrated into the enterprise risk register.",
+      "performance": "In FY2024, the Scope 3-linked STI component was partially achieved: the emission intensity reduction target was met (8.9% improvement vs 7% target), while the supplier engagement KPI was partially met (88% of Tier 1 suppliers with verified GHG plans vs 100% target). The Board Sustainability Committee reviewed climate risk findings quarterly and approved two additional investments in supplier decarbonisation programmes based on scenario analysis outputs. Full TCFD alignment was achieved for the first time in the FY2024 report.",
+      "outlook": "CarbonX will expand the Scope 3 remuneration linkage to include the Chief Procurement Officer and Chief Supply Chain Officer from FY2025, reinforcing accountability at the operational level most directly responsible for value chain emissions. The company will conduct a more granular physical climate risk assessment of its top 50 supplier facilities in FY2025, focusing on water stress and extreme weather exposure in key sourcing geographies."
+    }
+  ],
+  "futureTargets": [
+    {
+      "area": "Scope 3 Absolute Emissions Reduction",
+      "goal": "Achieve a 50% absolute reduction in total Scope 3 emissions by 2035 against a 2021 baseline of 3,580,000 tCO2e, aligned with a 1.5°C science-based trajectory and validated by the SBTi.",
+      "status": "On Track — 8.1% cumulative absolute reduction achieved by end-FY2024 against 2021 baseline. SBTi target submission completed Q3 2024; validation expected Q1 2025."
+    },
+    {
+      "area": "Category 1: Supplier Decarbonisation",
+      "goal": "Require 100% of Tier 1 suppliers (top 200 by spend) to have independently verified GHG reduction plans aligned with a 1.5°C pathway by end-2025, and extend the requirement to Tier 2 suppliers (next 600 by spend) by end-2027.",
+      "status": "In Progress — 43 of 200 Tier 1 suppliers have verified plans as of FY2024 year-end. Accelerated engagement programme launched Q4 2024 targeting 120 additional suppliers by mid-2025."
+    },
+    {
+      "area": "Category 4: Upstream Logistics Decarbonisation",
+      "goal": "Reduce air freight volume by 40% against a 2022 baseline by end-2026 and transition 60% of contracted last-mile delivery fleet to zero-emission vehicles by end-2027.",
+      "status": "On Track — Air freight volume reduced 18% by FY2024 (vs 40% target by 2026). EV fleet: 85 vehicles deployed of 252 target vehicles by 2027."
+    },
+    {
+      "area": "Private-Label Packaging Circularity",
+      "goal": "Ensure 100% of private-label packaging is reusable, recyclable, or compostable by end-2026, eliminating all single-use non-recyclable packaging formats from the private-label portfolio.",
+      "status": "In Progress — 71% of private-label packaging by weight meets the target criteria as of FY2024. Remaining 29% involves complex multi-material formats currently in redesign pipeline."
+    },
+    {
+      "area": "Supplier Primary Data Coverage",
+      "goal": "Increase the share of Category 1 Scope 3 emissions calculated using supplier-provided primary activity data (rather than spend-based estimates) from 31% in FY2024 to 55% by FY2026, improving inventory accuracy and enabling more targeted reduction interventions.",
+      "status": "On Track — Digital supplier carbon data exchange platform pilot launched with 22 suppliers in Q3 2024. Full platform rollout to Tier 1 suppliers planned for H1 2025."
+    },
+    {
+      "area": "Customer Travel Emissions",
+      "goal": "Increase public transport modal share among store customers from 36% (FY2024) to 50% by 2030 across all markets, supported by transit partnerships, store location policy, and e-commerce channel development.",
+      "status": "In Progress — Transit incentive programme expanded to 3 markets. New site selection policy requiring proximity to major public transport nodes implemented for all new stores from FY2024."
+    },
+    {
+      "area": "Scope 3 Assurance Quality",
+      "goal": "Achieve reasonable assurance (ISAE 3000) for the four largest Scope 3 categories (Categories 1, 4, 11, and 12) by FY2026, up from limited assurance currently, and publish a full Scope 3 data quality improvement roadmap by Q2 2025.",
+      "status": "In Progress — Limited assurance obtained for Categories 1, 4, 11, and 12 in FY2024. Reasonable assurance readiness assessment initiated with external assurance provider in Q4 2024."
+    },
+    {
+      "area": "Net-Zero Value Chain",
+      "goal": "Achieve net-zero greenhouse gas emissions across the full value chain (Scopes 1, 2, and 3) by 2050, consistent with the SBTi Corporate Net-Zero Standard, with no more than 10% of residual emissions addressed through carbon removal rather than abatement.",
+      "status": "Committed — Long-term net-zero target formalised in Board resolution, June 2024. Interim milestones established for 2030 (30% Scope 3 reduction) and 2035 (50% Scope 3 reduction). Carbon removal strategy under development."
+    }
+  ]
+}
+```
+````
+
+**Parsed summary (for quick reading):**
+- `reportTitle`: CarbonX Scope 3 Emissions Report 2024: Navigating the Full Value Chain
+- `reportSummary`: This report presents a comprehensive assessment of CarbonX Retail Group's Scope 3 greenhouse gas emissions across its full value chain for the fiscal year 2024. As a leading multi-format retailer operating over 340 stores across Southeast Asia and an expanding e-commerce platform, CarbonX Retail Group recognizes that more than 91% of its total carbon footprint originates outside its direct operational boundaries — embedded in supplier manufacturing, logistics networks, customer travel, product use, and end-of-life disposal. This report quantifies all 15 Scope 3 categories as defined by the GHG Protocol Corporate Value Chain Standard, identifies the highest-impact emission hotspots, and outlines the strategic interventions underway to achieve a 50% absolute reduction in Scope 3 emissions by 2035 against a 2021 baseline. Key findings indicate that purchased goods and services (Category 1) account for 58% of total Scope 3 emissions, followed by upstream transportation and distribution (Category 4) at 14%, and customer travel to stores (Category 11) at 9%. The report also details supplier engagement programs, science-based target alignment, and circular economy initiatives that are reshaping how CarbonX Retail Group manages carbon risk across its ecosystem.
+
+---
+
+### Report test: `report-transport-logistics`
+
+- **Pass:** YES
+- **Latency:** 195305 ms
+- **Rubric:** Must return valid JSON; content should reflect transport, logistics, and distribution themes
+- **Raw response length:** 38860 chars
+
+**User prompt (from golden set):**
+```
+Generate a sustainability report for a fictional consumer goods distributor called NorthRelay for FY2025. Emphasize Scope 3 transport: inbound freight from suppliers, warehousing energy at a low level, and outbound distribution to customers by road and intermodal rail. Include targets to shift tonne-kilometres from road to rail where feasible.
+```
+
+**Raw model output (full):**
+````json
+```json
+{
+  "reportTitle": "NorthRelay Consumer Goods Distribution — Sustainability Report FY2025",
+  "reportSummary": "This report presents NorthRelay's environmental, social, and governance performance for the financial year ending 31 March 2025. As a specialist consumer goods distributor operating across the northern distribution corridor, NorthRelay's material sustainability impacts are concentrated in the movement of goods — specifically Scope 3 Category 4 (upstream transportation and distribution) and Category 9 (downstream transportation and distribution). FY2025 marks the second year of our Freight Transition Programme, under which we have shifted 18% of eligible outbound tonne-kilometres from road haulage to intermodal rail, reduced inbound freight emissions intensity by 11% through supplier lane consolidation, and maintained warehousing energy intensity at 0.42 kWh per pallet-move — a 7% improvement on FY2024. Total Scope 3 transport-related emissions reached 41,200 tCO₂e, representing 87% of NorthRelay's total carbon footprint. Our FY2030 target is to achieve a 45% absolute reduction in Scope 3 transport emissions against our FY2022 baseline, with rail and intermodal services accounting for at least 40% of total outbound tonne-kilometres by that date.",
+  "productName": "Consumer Goods Distribution Services",
+  "companyName": "NorthRelay",
+  "boardStatement": "FY2025 has been a year of tangible progress and honest reckoning for NorthRelay. The Board is pleased to report that our Freight Transition Programme has delivered measurable modal shift — 18% of eligible outbound tonne-kilometres now move by intermodal rail, up from 9% in FY2024 — and that our supplier engagement programme has begun to reshape the inbound freight lanes that account for nearly half of our total carbon footprint. At the same time, we acknowledge that road transport remains dominant in our network, that rail capacity constraints on the northern corridor limited our ambitions in the second half of the year, and that our absolute Scope 3 emissions fell by only 4.3% despite strong operational efficiency gains, partly because distributed volumes grew by 8%. The Board has approved a capital allocation of £4.2 million for FY2026 to expand intermodal terminal access, invest in telematics-driven route optimisation for our road fleet, and deepen the supplier freight audit programme to all Tier 1 and Tier 2 partners. We are committed to transparent reporting aligned with GHG Protocol, CDP, and the Science Based Targets initiative, and we recognise that the pace of decarbonisation must accelerate if we are to meet our FY2030 commitments. This report is our honest account of where we stand.",
+  "companyProfile": "NorthRelay is a privately held consumer goods distributor headquartered in Leeds, United Kingdom, with regional distribution centres in Manchester, Newcastle, and Edinburgh. Founded in 2003, the company manages the physical movement of ambient, chilled, and general merchandise goods on behalf of 47 retail and wholesale clients, ranging from national supermarket chains to regional independent retailers. In FY2025, NorthRelay handled 1.84 million pallet-equivalents, operating a managed fleet of 312 heavy goods vehicles and contracting a further 180 vehicles through third-party hauliers. The company employs 1,640 people directly, with a further 390 employed through logistics service partners at peak periods. NorthRelay's asset base includes 620,000 square metres of warehousing across six sites, three of which hold intermodal rail-connected sidings or are located within 8 kilometres of an active freight terminal. Total revenue for FY2025 was £387 million. NorthRelay is not publicly listed but voluntarily publishes this sustainability report in line with GRI Standards and submits annual disclosures to CDP.",
+  "sustainabilityApproach": "NorthRelay's sustainability strategy is structured around three pillars — Move Cleaner, Operate Leaner, and Engage Deeper — each of which maps directly to our material topics as identified through a formal double materiality assessment conducted in FY2024 and refreshed in FY2025. Move Cleaner governs all decisions related to freight modal choice, fleet electrification, route optimisation, and supplier transport collaboration. It is the pillar under which our Freight Transition Programme sits and where the largest potential for carbon reduction lies. Operate Leaner addresses warehousing energy, waste, water, and packaging efficiency within our distribution centres. Although warehousing contributes a smaller share of our total footprint — approximately 9% of Scope 1 and 2 emissions — we treat it as a platform for demonstrating operational discipline and for reducing the energy cost base that supports competitive pricing. Engage Deeper covers supplier sustainability requirements, customer carbon reporting services, employee wellbeing, and community investment. The strategy is governed by a Sustainability Steering Committee chaired by the Chief Operating Officer and meeting quarterly, with Board-level oversight provided by the Audit and Risk Committee. Progress against KPIs is reviewed monthly at the executive level and reported externally on an annual basis. In FY2025, we completed our first full Scope 3 inventory across all 15 GHG Protocol categories, confirming that Categories 4 and 9 together account for 87% of our total footprint and validating the strategic focus on freight decarbonisation.",
+  "stakeholderEngagement": "NorthRelay engages with six primary stakeholder groups — retail and wholesale clients, suppliers, employees, logistics infrastructure providers, local communities near our distribution centres, and regulatory bodies — through a structured engagement calendar reviewed annually. In FY2025, we conducted our second annual Client Carbon Partnership Forum, attended by sustainability leads from 31 of our 47 client organisations. The forum focused on shared Scope 3 accounting methodology, joint modal shift opportunities, and the introduction of NorthRelay's Carbon Transparency Dashboard, which provides clients with monthly tonne-kilometre and emissions data broken down by lane and mode. Supplier engagement deepened significantly: we issued our revised Supplier Freight Code of Practice to all 214 active suppliers, requiring Tier 1 partners to disclose transport emissions data by Q2 FY2026 and to participate in lane consolidation planning. We engaged with Network Rail and two intermodal terminal operators to explore capacity expansion on the Leeds–Glasgow and Leeds–Newcastle corridors, resulting in a memorandum of understanding for additional weekly rail paths from Q1 FY2026. Employee engagement included a company-wide sustainability survey (82% participation rate), results of which informed the expansion of our active travel and EV salary sacrifice schemes. We also participated in the Department for Transport's Freight Decarbonisation Taskforce, contributing operational data to inform national modal shift policy. Community liaison meetings were held twice yearly at all six distribution centre locations, with noise and HGV movement identified as the primary local concerns — both of which are directly addressed by our modal shift programme.",
+  "frameworks": [
+    "GHG Protocol Corporate Standard (Scopes 1, 2, and 3)",
+    "GHG Protocol Corporate Value Chain (Scope 3) Standard — Categories 4 and 9 primary focus",
+    "GRI Standards 2021 (Core) — GRI 302, 305, 308, 401, 403, 414",
+    "Science Based Targets initiative (SBTi) — 1.5°C-aligned target submitted for validation FY2025",
+    "CDP Climate Change Disclosure — submitted annually since FY2021",
+    "Task Force on Climate-related Financial Disclosures (TCFD) — aligned reporting",
+    "ISO 14064-1 Greenhouse Gas Inventory Verification — third-party assured by Bureau Veritas",
+    "UK Streamlined Energy and Carbon Reporting (SECR) — mandatory compliance",
+    "SmartFreight / Clean Cargo transport emissions calculation methodology",
+    "UN Sustainable Development Goals — SDGs 8, 11, 12, 13, 17"
+  ],
+  "environmentalAnalysis": [
+    {
+      "title": "Scope 3 — Inbound Freight from Suppliers (Category 4)",
+      "keyData": "Category 4 emissions totalled 19,800 tCO₂e in FY2025, representing 41% of NorthRelay's total carbon footprint. Inbound freight covers 214 active suppliers delivering to six distribution centres via road (78% of tonne-kilometres), rail (14%), and sea freight for imported goods (8%). Average inbound freight emission intensity was 94 gCO₂e per tonne-kilometre, down from 106 gCO₂e in FY2024. Lane consolidation initiatives — combining deliveries from co-located suppliers into shared loads — reduced the number of inbound vehicle movements by 9,400 trips in FY2025, saving an estimated 1,240 tCO₂e. Supplier data quality improved markedly: 68% of Category 4 emissions are now calculated using supplier-specific activity data rather than spend-based proxies, up from 31% in FY2024.",
+      "strategy": "NorthRelay's inbound freight strategy centres on three levers: lane consolidation, supplier modal shift incentives, and data quality improvement. The Supplier Freight Code of Practice, issued in FY2025, requires Tier 1 suppliers to provide actual tonne-kilometre and fuel consumption data by Q2 FY2026 and to engage in joint consolidation planning. We have established four 'consolidation hubs' — third-party cross-dock facilities in Birmingham, Sheffield, Glasgow, and Bristol — where suppliers within a 60-kilometre radius can aggregate loads before onward movement to NorthRelay distribution centres. For suppliers with sufficient volume on the Leeds–London and Leeds–Birmingham corridors, we are actively promoting rail-connected delivery options in partnership with DB Cargo UK, with a target of shifting 12% of eligible inbound tonne-kilometres to rail by FY2027.",
+      "performance": "In FY2025, inbound Category 4 emissions fell by 6.2% in absolute terms despite an 8% increase in distributed volumes, demonstrating genuine decoupling of growth from emissions. The four consolidation hubs processed 34,000 pallet-equivalents in their first full year of operation, exceeding the FY2025 target of 28,000. Supplier data coverage reached 68% by activity data, surpassing the 60% target. However, imported goods — primarily ambient grocery and household products arriving via UK ports — remain a data quality challenge, with 62% of sea freight emissions still estimated using industry average emission factors. A dedicated import freight audit is planned for FY2026.",
+      "outlook": "NorthRelay targets a 20% absolute reduction in Category 4 emissions by FY2027 against the FY2022 baseline of 23,100 tCO₂e. Achieving this will require full Tier 1 supplier data compliance, expansion of consolidation hub throughput to 80,000 pallet-equivalents per year, and the successful launch of rail-connected inbound services on at least two major supplier corridors. We anticipate that the SBTi validation process, expected to conclude in Q3 FY2026, will formalise these targets within a science-aligned framework."
+    },
+    {
+      "title": "Scope 3 — Outbound Distribution by Road (Category 9, Road)",
+      "keyData": "Road-based outbound distribution generated 16,900 tCO₂e in FY2025, accounting for 35% of total company emissions. NorthRelay's managed fleet of 312 HGVs and 180 contracted vehicles collectively travelled 48.2 million kilometres, delivering to approximately 3,200 retail and wholesale locations across the northern distribution corridor and beyond. Fleet average fuel efficiency was 8.9 mpg (diesel), representing a 3.1% improvement on FY2024 driven by telematics-based route optimisation and driver efficiency training. Euro VI vehicles now represent 94% of the managed fleet. Empty running — a key efficiency metric — fell to 11.4% of total kilometres, down from 13.8% in FY2024, following the expansion of our backhauling programme with three major retail clients.",
+      "strategy": "NorthRelay's road decarbonisation strategy operates on two parallel tracks: near-term efficiency optimisation and medium-term fleet electrification. In the near term, we are deploying AI-assisted route planning across the full managed fleet (rollout completed Q3 FY2025), expanding backhauling agreements to reduce empty running below 9% by FY2027, and transitioning contracted hauliers to Euro VI as a minimum standard from FY2026. For electrification, we completed a depot charging infrastructure feasibility study in FY2025 across all six sites; Leeds and Manchester distribution centres have been approved for 22-unit depot charging installation, with commissioning expected Q2 FY2026. We are evaluating a pilot of 15 battery-electric HGVs for urban last-mile delivery routes in FY2026, targeting routes under 200 kilometres where payload and range constraints are manageable. Modal shift to rail — described separately — is the primary structural lever for absolute road emission reduction.",
+      "performance": "Road outbound emissions fell by 3.8% in absolute terms in FY2025, against a volume growth of 8%, representing a carbon intensity improvement of 11% per tonne-kilometre. The telematics rollout saved an estimated 820 tCO₂e. The backhauling programme, now covering 19 client relationships, eliminated approximately 1.1 million empty kilometres. Contracted haulier compliance with Euro VI reached 87%, short of the 95% target due to supply constraints in the HGV market; a revised compliance deadline of Q1 FY2026 has been communicated to all haulage partners.",
+      "outlook": "Road transport will remain a significant component of NorthRelay's outbound network for the foreseeable future, particularly for final-mile delivery to smaller retail locations not served by rail-connected depots. However, the combination of modal shift, electrification, and efficiency measures is expected to reduce road outbound emissions to below 11,000 tCO₂e by FY2028 — a 35% absolute reduction from FY2025 levels. The pace of this reduction is contingent on the commercial availability of long-range battery-electric HGVs and the expansion of public charging infrastructure on key motorway corridors."
+    },
+    {
+      "title": "Scope 3 — Outbound Distribution by Intermodal Rail (Category 9, Rail)",
+      "keyData": "Intermodal rail accounted for 18% of eligible outbound tonne-kilometres in FY2025, up from 9% in FY2024 — a doubling of rail share within a single financial year. Rail-moved volumes totalled 214 million tonne-kilometres, avoiding an estimated 3,100 tCO₂e compared with equivalent road movement. NorthRelay currently operates intermodal services on three corridors: Leeds–Glasgow (5 weekly paths), Leeds–Newcastle (3 weekly paths), and Leeds–Birmingham (2 weekly paths, launched Q3 FY2025). Rail emission intensity on these corridors averaged 28 gCO₂e per tonne-kilometre, compared with 94 gCO₂e for equivalent road movement — a 70% carbon intensity advantage. Total Category 9 rail emissions were 4,500 tCO₂e in FY2025.",
+      "strategy": "NorthRelay's intermodal rail strategy is built on three foundations: securing rail path capacity through long-term agreements with Network Rail and terminal operators, investing in intermodal-compatible handling equipment at distribution centres, and structuring client contracts to incentivise rail-routable consignments. In FY2025, we signed a three-year capacity agreement with Freightliner for the Leeds–Glasgow corridor, providing schedule certainty that enables client delivery commitments to be met by rail rather than road. We are in advanced negotiation for a fourth corridor — Leeds–Southampton — which would open intermodal options for imported goods arriving at the port. Capital investment in reach-stackers and swap-body handling equipment at Leeds and Edinburgh distribution centres totalled £1.8 million in FY2025. Client incentive structures now include a 'Rail Premium Rebate' — a 2.5% discount on distribution fees for consignments routed by rail — which has been adopted by 14 clients representing 38% of eligible volume.",
+      "performance": "The doubling of rail share from 9% to 18% of eligible tonne-kilometres is the single most significant sustainability achievement of FY2025. The Leeds–Glasgow corridor performed above capacity target in all four quarters. The Leeds–Birmingham corridor, launched in Q3, ramped up more slowly than projected due to terminal congestion at the Birmingham Intermodal Freight Terminal; a revised ramp-up plan targets 85% of projected volume by Q2 FY2026. The 3,100 tCO₂e avoided through modal shift is verified against the SmartFreight methodology and has been reported to clients via the Carbon Transparency Dashboard. Fourteen clients have now formally incorporated NorthRelay's rail shift data into their own Scope 3 Category 9 disclosures.",
+      "outlook": "NorthRelay's FY2030 target is for rail and intermodal services to account for 40% of total outbound tonne-kilometres. Achieving this requires the addition of at least two further corridors (Leeds–Southampton and a potential Edinburgh–London service), expansion of existing corridor frequency, and continued client engagement to route larger, less time-sensitive consignments by rail. The memorandum of understanding with Network Rail for additional Leeds–Glasgow and Leeds–Newcastle paths from Q1 FY2026 is a critical enabler. We recognise that rail capacity on the UK freight network is a shared constraint and are actively participating in industry forums to advocate for freight path prioritisation."
+    },
+    {
+      "title": "Warehousing Energy and Scope 1/2 Emissions",
+      "keyData": "Warehousing operations across NorthRelay's six distribution centres consumed 18.4 GWh of electricity and 2.1 GWh of natural gas in FY2025. Total Scope 1 and 2 emissions (market-based) were 3,800 tCO₂e, representing 8% of NorthRelay's total footprint. Energy intensity improved to 0.42 kWh per pallet-move, a 7% reduction from 0.45 kWh in FY2024. 100% of electricity consumed is sourced under renewable energy contracts (REGO-backed power purchase agreements), reducing market-based Scope 2 emissions to zero. Location-based Scope 2 emissions were 3,200 tCO₂e. Scope 1 emissions from natural gas used in dock heating and warehouse space heating totalled 600 tCO₂e.",
+      "strategy": "NorthRelay's warehousing energy strategy deliberately prioritises efficiency over expansion, reflecting the relatively modest scale of this emission source within our overall footprint. Key initiatives include LED lighting upgrades (completed at four of six sites in FY2025), automated dock door management to reduce heating losses, and voltage optimisation across conveyor and sortation systems. Solar PV feasibility assessments were completed at Leeds and Manchester in FY2025; a 1.2 MWp rooftop installation at Leeds has been approved for FY2026, expected to generate 1,050 MWh annually and reduce grid electricity draw by approximately 6%. Natural gas elimination is targeted by FY2028 through electrification of dock heating using air-source heat pumps, with a pilot installation at Newcastle scheduled for Q1 FY2026.",
+      "performance": "The 7% improvement in energy intensity per pallet-move exceeded the FY2025 target of 5%. LED upgrades at the four completed sites reduced lighting energy consumption by 34% at those locations. The REGO-backed power purchase agreement, renewed in April 2024 on a three-year term, ensures continued zero market-based Scope 2 emissions. Natural gas consumption increased marginally (2.3%) due to a colder-than-average winter in Q1 FY2025, partially offsetting efficiency gains elsewhere. Waste generated at distribution centres totalled 1,840 tonnes, of which 94% was diverted from landfill through recycling and energy recovery.",
+      "outlook": "Warehousing energy is not a primary driver of NorthRelay's carbon footprint, but it represents an area where we can demonstrate operational excellence and reduce cost. The FY2028 target of zero Scope 1 emissions from warehousing, combined with continued renewable electricity procurement, would bring Scope 1 and 2 emissions to zero — allowing NorthRelay to focus all remaining decarbonisation effort on the Scope 3 transport categories where impact is greatest."
+    }
+  ],
+  "socialAnalysis": [
+    {
+      "title": "Workforce Safety and Driver Wellbeing",
+      "keyData": "NorthRelay recorded a Lost Time Injury Rate (LTIR) of 1.8 per million hours worked in FY2025, a 14% improvement from 2.1 in FY2024 and below the UK logistics sector average of 2.6. There were zero fatalities and zero major injuries across all directly employed staff. Driver health and fatigue management remains a priority: 100% of managed fleet drivers completed the revised Fatigue Awareness and Safe Driving programme in FY2025, and telematics data is now used proactively to flag drivers at risk of hours-of-service non-compliance before violations occur.",
+      "strategy": "NorthRelay's health and safety strategy is built on a 'zero harm' philosophy, with particular attention to the elevated risk profile of HGV operations. Key programmes include the Driver Wellbeing Hub — a dedicated support service providing mental health resources, financial guidance, and occupational health access — and a structured near-miss reporting culture incentivised through team-based recognition rather than individual blame. The modal shift to rail has a co-benefit for driver wellbeing: every tonne-kilometre shifted to rail reduces driver hours and associated fatigue risk. In FY2025, the rail shift programme is estimated to have eliminated approximately 280,000 HGV driver-hours of road exposure.",
+      "performance": "The LTIR improvement to 1.8 reflects the impact of the enhanced near-miss reporting programme, which recorded 1,240 near-miss events in FY2025 — a 28% increase in reporting, indicating improved safety culture rather than increased incidents. Driver turnover fell to 18.4%, below the industry average of 24%, attributed to the Driver Wellbeing Hub and improved scheduling predictability enabled by AI route planning. Mental health support utilisation through the Employee Assistance Programme increased by 41%, suggesting greater awareness and reduced stigma.",
+      "outlook": "NorthRelay targets an LTIR below 1.5 by FY2027. The planned electrification of urban delivery routes is expected to reduce driver exposure to particulate matter and noise, with co-benefits for long-term respiratory health. A formal driver health monitoring programme, including voluntary cardiovascular screening, is under development for launch in FY2026."
+    },
+    {
+      "title": "Fair Employment and Supply Chain Labour Standards",
+      "keyData": "NorthRelay directly employs 1,640 people, of whom 34% are women — up from 29% in FY2023 — and 18% identify as from ethnic minority backgrounds. The gender pay gap (median) stands at 9.2%, reduced from 12.4% in FY2023, driven by targeted recruitment and promotion initiatives in warehouse management and logistics planning roles. All direct employees are paid at or above the Real Living Wage. Zero incidents of modern slavery or forced labour were identified in FY2025 through the annual supply chain risk assessment.",
+      "strategy": "NorthRelay's fair employment strategy focuses on three areas: closing the gender pay gap through structured career development pathways, ensuring ethical labour standards throughout the logistics supply chain, and maintaining the Real Living Wage commitment across all direct and agency workers. The supply chain labour standards programme covers all Tier 1 haulage contractors and warehousing service partners; FY2025 saw the introduction of mandatory self-assessment questionnaires and risk-based on-site audits for the 20 highest-risk contractor relationships. Two contractors were placed on improvement plans following audit findings related to driver working hours compliance.",
+      "performance": "The gender pay gap reduction to 9.2% is encouraging but remains above NorthRelay's FY2027 target of 6.0%. The proportion of women in management roles (Grade 4 and above) increased from 26% to 31%. The Real Living Wage commitment was maintained across all 1,640 direct employees and extended to 390 peak-season agency workers from Q3 FY2025 — a year ahead of the original commitment. Modern slavery risk assessments were completed for 100% of Tier 1 suppliers and 74% of Tier 2 suppliers.",
+      "outlook": "NorthRelay will publish its first standalone Human Rights and Modern Slavery Statement aligned with the UN Guiding Principles on Business and Human Rights in FY2026. The gender pay gap target of 6.0% by FY2027 will require continued focus on senior-level female representation, which remains the primary driver of the gap. A formal pay equity audit covering all roles and grades is planned for H1 FY2026."
+    },
+    {
+      "title": "Community Impact and Local Freight Externalities",
+      "keyData": "NorthRelay's six distribution centres are located in or adjacent to residential and mixed-use areas, making local freight externalities — noise, air quality, and HGV traffic — material social issues. In FY2025, NorthRelay received 47 formal community complaints related to HGV movements, down from 68 in FY2024. Nitrogen dioxide (NO₂) monitoring at the boundary of the Leeds distribution centre showed average annual concentrations of 28 µg/m³, within the UK legal limit of 40 µg/m³ and below the WHO guideline of 40 µg/m³. The modal shift programme is estimated to have removed approximately 9,400 HGV movements from local road networks in FY2025.",
+      "strategy": "NorthRelay manages community impact through a combination of operational controls — night-time delivery curfews, engine-off idling policies, routing restrictions near schools — and proactive engagement through twice-yearly community liaison meetings at each site. The planned deployment of electric HGVs on urban routes is expected to deliver significant noise and air quality improvements in the communities most affected by distribution activity. NorthRelay also operates a Community Investment Fund with an annual budget of £180,000, supporting local employment initiatives, school STEM programmes focused on logistics and engineering careers, and green space projects near distribution centre sites.",
+      "performance": "The 31% reduction in formal community complaints reflects improved communication, the night-time curfew extension implemented in Q2 FY2025, and the removal of HGV movements through modal shift and backhauling. Community Investment Fund grants supported 14 projects in FY2025, reaching approximately 2,400 beneficiaries. The Leeds distribution centre received a 'Good Neighbour' commendation from Leeds City Council in recognition of its community engagement programme.",
+      "outlook": "The electrification of urban delivery routes, planned for FY2026–FY2027, is expected to be the single most impactful community benefit NorthRelay can deliver — reducing both noise and roadside air pollution in the residential areas most exposed to delivery traffic. NorthRelay will establish measurable air quality improvement targets for its three urban distribution centres as part of the FY2026 sustainability plan."
+    }
+  ],
+  "governanceAnalysis": [
+    {
+      "title": "Climate Governance and Board Oversight",
+      "keyData": "The NorthRelay Board comprises seven directors, of whom three are independent non-executives. Climate and sustainability matters are overseen by the Audit and Risk Committee, which reviewed sustainability performance at all four quarterly meetings in FY2025. Executive accountability for sustainability is held by the Chief Operating Officer, whose annual performance objectives include specific, measurable targets for Scope 3 emission reduction and modal shift progress. In FY2025, 15% of the annual bonus for the COO, CFO, and all four Regional Directors was linked to sustainability KPIs.",
+      "strategy": "NorthRelay's climate governance framework is aligned with TCFD recommendations across the four pillars of governance, strategy, risk management, and metrics and targets. In FY2025, we completed our first formal climate scenario analysis, assessing physical and transition risks under 1.5°C, 2°C, and 3°C warming scenarios to 2040. The analysis identified three material transition risks — carbon pricing on road freight, tightening clean air zone regulations in major cities, and customer Scope 3 reporting requirements — and two material physical risks: increased flood risk at the Manchester distribution centre and heat stress impacts on warehouse operations. Risk responses have been incorporated into the FY2026 capital planning process.",
+      "performance": "The linkage of executive remuneration to sustainability KPIs, introduced in FY2024, has demonstrably increased Board and executive engagement with operational sustainability performance. The TCFD-aligned scenario analysis was completed on schedule and reviewed by the full Board in Q4 FY2025. Third-party assurance of the GHG inventory (limited assurance by Bureau Veritas) was completed for the second consecutive year, covering Scopes 1, 2, and material Scope 3 categories. No material misstatements were identified.",
+      "outlook": "NorthRelay intends to move from limited to reasonable assurance of its GHG inventory by FY2027, in line with anticipated UK mandatory sustainability reporting requirements. The SBTi target validation, submitted in Q4 FY2025, is expected to provide a science-aligned framework that will strengthen Board accountability and external credibility. We will also explore the adoption of the International Sustainability Standards Board (ISSB) IFRS S2 framework for climate-related disclosures from FY2027."
+    },
+    {
+      "title": "Ethical Business Conduct and Anti-Corruption",
+      "keyData": "NorthRelay operates a zero-tolerance policy on bribery, corruption, and anti-competitive behaviour. In FY2025, 100% of employees completed the mandatory Ethics and Compliance e-learning module, up from 91% in FY2024. The confidential whistleblowing hotline received 12 reports in FY2025; all were investigated within the 30-day target, with three resulting in disciplinary action (none related to fraud or corruption) and nine closed as unsubstantiated or policy clarification requests. No regulatory investigations, fines, or enforcement actions were recorded.",
+      "strategy": "NorthRelay's ethics and compliance programme is overseen by the General Counsel and reviewed annually by the Audit and Risk Committee. The programme covers the UK Bribery Act, Modern Slavery Act, GDPR, and competition law, with targeted training for roles with elevated risk exposure — procurement, sales, and haulier relationship management. In FY2025, we introduced a Supplier Code of Conduct requiring all Tier 1 suppliers and contractors to confirm compliance with anti-corruption standards as a condition of contract renewal.",
+      "performance": "Full completion of the Ethics and Compliance training represents a meaningful improvement in compliance culture. The three disciplinary actions arising from whistleblowing investigations — related to expense policy violations and a scheduling irregularity — were handled transparently and proportionately. GDPR compliance was audited internally in Q2 FY2025; two minor data handling process improvements were identified and remediated within 60 days.",
+      "outlook": "NorthRelay will introduce a supplier ethics audit programme in FY2026, covering the 30 highest-spend Tier 1 relationships. We will also review the whistleblowing platform provider to ensure accessibility for non-English-speaking agency workers and contractor staff, addressing a gap identified in the FY2025 employee survey."
+    },
+    {
+      "title": "Data Transparency and Scope 3 Reporting Integrity",
+      "keyData": "NorthRelay's Scope 3 inventory covers all 15 GHG Protocol categories, with Categories 4 and 9 subject to third-party limited assurance. Total Scope 3 emissions in FY2025 were 47,600 tCO₂e. Data quality has improved significantly: 68% of Category 4 emissions and 91% of Category 9 emissions are now calculated using activity-based data (tonne-kilometres and fuel consumption) rather than spend-based proxies. The Carbon Transparency Dashboard, launched in Q1 FY2025, provides 31 client organisations with monthly lane-level emissions data, enabling them to incorporate NorthRelay's transport services into their own Scope 3 Category 9 disclosures.",
+      "strategy": "NorthRelay treats Scope 3 data quality as a governance imperative, not merely a reporting exercise. Our data governance framework for transport emissions requires that all managed fleet vehicles report fuel consumption via telematics integration, that contracted hauliers provide monthly fuel and distance data as a contractual obligation, and that intermodal rail emissions are calculated using Network Rail and operator-provided electricity consumption data adjusted for traction energy. We are working towards full activity-data coverage for all Scope 3 categories by FY2027, eliminating spend-based proxies entirely.",
+      "performance": "The Carbon Transparency Dashboard has been well received by clients, with 14 organisations formally incorporating NorthRelay data into their own CDP or sustainability disclosures. The improvement in Category 4 data quality — from 31% to 68% activity-based — is the result of the Supplier Freight Code of Practice and dedicated supplier data onboarding support. Contracted haulier data compliance reached 87%, with the remaining 13% still providing spend-based estimates; a data improvement plan is in place for all non-compliant partners.",
+      "outlook": "NorthRelay will submit its Scope 3 inventory for reasonable assurance by FY2027, contingent on achieving full activity-data coverage. We anticipate that mandatory Scope 3 reporting requirements under UK sustainability disclosure regulations will create additional client demand for the Carbon Transparency Dashboard, and we are investing in platform development to expand its functionality to include scenario modelling and modal shift simulation tools."
+    }
+  ],
+  "futureTargets": [
+    {
+      "area": "Scope 3 Outbound Rail Modal Share",
+      "goal": "Increase intermodal rail share of total outbound tonne-kilometres from 18% (FY2025) to 30% by FY2027 and 40% by FY2030, through new corridor launches (Leeds–Southampton, Edinburgh–London), increased frequency on existing corridors, and client incentive expansion.",
+      "status": "On Track — FY2025 target of 15% exceeded at 18%; FY2026 target of 24% set."
+    },
+    {
+      "area": "Scope 3 Absolute Transport Emissions Reduction",
+      "goal": "Achieve a 45% absolute reduction in combined Category 4 and Category 9 transport emissions by FY2030 against the FY2022 baseline of 49,800 tCO₂e, aligned with a 1.5°C science-based pathway as validated by SBTi.",
+      "status": "In Progress — FY2025 emissions of 41,200 tCO₂e represent a 17% reduction from baseline; pace of reduction must accelerate to meet FY2030 target."
+    },
+    {
+      "area": "Inbound Freight Lane Consolidation",
+      "goal": "Expand consolidation hub throughput to 80,000 pallet-equivalents per year by FY2027, reducing inbound Category 4 emission intensity to below 80 gCO₂e per tonne-kilometre and achieving 20% absolute Category 4 emission reduction against FY2022 baseline.",
+      "status": "On Track — FY2025 hub throughput of 34,000 pallet-equivalents against target of 28,000; emission intensity at 94 gCO₂e/tkm, trajectory consistent with target."
+    },
+    {
+      "area": "Supplier Scope 3 Data Coverage",
+      "goal": "Achieve 100% activity-based data coverage for Category 4 inbound freight emissions by FY2027, eliminating spend-based proxies through mandatory Tier 1 and Tier 2 supplier data disclosure requirements.",
+      "status": "In Progress — 68% activity-based coverage achieved in FY2025 against 60% target; Tier 1 mandatory disclosure deadline set for Q2 FY2026."
+    },
+    {
+      "area": "Fleet Electrification — Urban Last Mile",
+      "goal": "Deploy 15 battery-electric HGVs on urban delivery routes under 200 kilometres by end of FY2026, reducing road outbound emissions on urban lanes by 40% and eliminating diesel combustion from all city-centre delivery routes by FY2028.",
+      "status": "Planned — Vehicle procurement tender issued Q4 FY2025; depot charging infrastructure at Leeds and Manchester approved for Q2 FY2026 commissioning."
+    },
+    {
+      "area": "Contracted Haulier Euro VI Compliance",
+      "goal": "Achieve 100% Euro VI compliance across all 180 contracted haulier vehicles by Q1 FY2026, and transition contracted fleet to zero-emission vehicles for urban routes by FY2029.",
+      "status": "Behind Schedule — 87% compliance achieved in FY2025 against 95% target; revised deadline communicated; 13 non-compliant vehicles on replacement plans."
+    },
+    {
+      "area": "Warehousing Scope 1 Elimination",
+      "goal": "Eliminate all Scope 1 natural gas emissions from warehousing operations by FY2028 through electrification of dock and space heating using air-source heat pump technology across all six distribution centres.",
+      "status": "Planned — Newcastle pilot installation scheduled Q1 FY2026; full site rollout plan approved in principle pending detailed engineering assessments."
+    },
+    {
+      "area": "Onsite Renewable Energy Generation",
+      "goal": "Install rooftop solar PV at a minimum of four distribution centres by FY2028, generating at least 4,000 MWh annually and reducing grid electricity draw by 22%.",
+      "status": "In Progress — Leeds 1.2 MWp installation approved for FY2026; feasibility studies completed at Manchester and Edinburgh showing positive business cases."
+    },
+    {
+      "area": "Gender Pay Gap Reduction",
+      "goal": "Reduce the median gender pay gap from 9.2% (FY2025) to 6.0% by FY2027 through targeted recruitment, structured promotion pathways, and pay equity audits across all grades.",
+      "status": "In Progress — Improvement from 12.4% (FY2023) to 9.2% (FY2025) demonstrates positive trajectory; pay equity audit planned for H1 FY2026."
+    },
+    {
+      "area": "Driver Lost Time Injury Rate",
+      "goal": "Reduce the Lost Time Injury Rate from 1.8 (FY2025) to below 1.5 per million hours worked by FY2027, with zero fatalities maintained across all operations.",
+      "status": "On Track — Consistent improvement trajectory; near-miss reporting culture and telematics-based fatigue management are primary levers."
+    }
+  ]
+}
+```
+````
+
+**Parsed summary (for quick reading):**
+- `reportTitle`: NorthRelay Consumer Goods Distribution — Sustainability Report FY2025
+- `reportSummary`: This report presents NorthRelay's environmental, social, and governance performance for the financial year ending 31 March 2025. As a specialist consumer goods distributor operating across the northern distribution corridor, NorthRelay's material sustainability impacts are concentrated in the movement of goods — specifically Scope 3 Category 4 (upstream transportation and distribution) and Category 9 (downstream transportation and distribution). FY2025 marks the second year of our Freight Transition Programme, under which we have shifted 18% of eligible outbound tonne-kilometres from road haulage to intermodal rail, reduced inbound freight emissions intensity by 11% through supplier lane consolidation, and maintained warehousing energy intensity at 0.42 kWh per pallet-move — a 7% improvement on FY2024. Total Scope 3 transport-related emissions reached 41,200 tCO₂e, representing 87% of NorthRelay's total carbon footprint. Our FY2030 target is to achieve a 45% absolute reduction in Scope 3 transport emissions against our FY2022 baseline, with rail and intermodal services accounting for at least 40% of total outbound tonne-kilometres by that date.
+
+---
+
+### Report test: `report-lca-product-footprint`
+
+- **Pass:** YES
+- **Latency:** 206348 ms
+- **Rubric:** Must return valid JSON; environmental pillars should engage LCA / PCF-style themes
+- **Raw response length:** 39444 chars
+
+**User prompt (from golden set):**
+```
+Write a sustainability and carbon report for a fictional office-furniture maker called DeskForm for FY2025. Ground the narrative in product-level thinking: material sourcing (steel, wood, textiles), manufacturing energy, packaging, and transport to the end customer. Mention LCA or product carbon footprint concepts in the environmental analysis sections.
+```
+
+**Raw model output (full):**
+````json
+```json
+{
+  "reportTitle": "DeskForm Sustainability & Carbon Report FY2025",
+  "reportSummary": "This report presents DeskForm's environmental, social, and governance performance for the financial year ending 31 March 2025. Our analysis is anchored at the product level: every desk, chair, storage unit, and accessory we manufacture carries an embedded carbon cost shaped by the steel we forge, the timber we mill, the textiles we weave, the energy we consume on the factory floor, the packaging we ship in, and the final-mile logistics that deliver our products to offices across the country. In FY2025, DeskForm conducted full Life Cycle Assessments (LCAs) across our four core product lines for the first time, revealing that raw material extraction and processing accounts for 54% of our average product carbon footprint, manufacturing energy a further 22%, outbound logistics 13%, and end-of-life treatment 11%. Total Scope 1, 2, and 3 emissions for FY2025 were 47,200 tCO₂e, a 9% reduction from FY2024's restated baseline of 51,900 tCO₂e. We are on track against our Science Based Target to halve absolute emissions by 2030 against a 2022 base year, and we remain committed to reaching net zero across the full value chain by 2045.",
+  "productName": "DeskForm Office Furniture Portfolio (FY2025)",
+  "companyName": "DeskForm",
+  "boardStatement": "FY2025 has been a year of honest reckoning for DeskForm. For the first time, we have looked at every product we make — every welded steel frame, every FSC-certified oak panel, every metre of recycled-polyester upholstery — and asked a single, non-negotiable question: what is the true carbon cost of this object reaching a customer's office? The answer, revealed through rigorous Life Cycle Assessment work conducted with independent verifiers, is both sobering and instructive. Our products carry real carbon burdens, and the Board accepts full accountability for reducing them. We are encouraged that our total footprint fell 9% year-on-year, but we are under no illusion that incremental progress is sufficient. The climate science is unambiguous, and our SBTi-validated targets demand structural change — in the mills and foundries that supply us, in our own manufacturing halls, in the cardboard and foam that protects our goods in transit, and in the vans and trucks that complete the final kilometre. The Board has approved a capital allocation of £18 million over the next three years specifically for decarbonisation investment: renewable energy procurement, low-carbon steel sourcing, bio-based packaging conversion, and electric last-mile logistics partnerships. We publish this report in the spirit of transparency, inviting scrutiny from our customers, our people, our investors, and the communities in which we operate. Sustainability at DeskForm is not a communications exercise — it is the lens through which we evaluate every business decision.",
+  "companyProfile": "DeskForm was founded in 1998 in Sheffield, UK, originally as a contract steel fabricator serving the automotive sector. In 2004, the company pivoted entirely to commercial office furniture, leveraging its precision metalworking heritage to produce height-adjustable desks, ergonomic task chairs, modular storage systems, and collaborative soft-seating ranges. Today DeskForm employs 1,240 people across two manufacturing sites — a primary facility in Sheffield (steel fabrication, powder-coating, and final assembly) and a secondary site in Wrexham (upholstery, foam cutting, and textile finishing) — plus a national distribution hub in Coventry. Annual production exceeds 320,000 individual furniture units, supplying corporate clients, co-working operators, public-sector bodies, and independent office fit-out contractors across the UK and Ireland. Revenue in FY2025 was £214 million. DeskForm's product portfolio is organised into four lines: Apex (height-adjustable desks), Contour (ergonomic seating), Lattice (modular storage and screens), and Haven (soft-seating and breakout furniture). Each line draws on a distinct combination of primary materials — cold-rolled steel, engineered hardwood and MDF, moulded recycled plastics, high-resilience polyurethane foam, and woven or knitted upholstery textiles — making the supply chain both complex and carbon-intensive at the upstream end.",
+  "sustainabilityApproach": "DeskForm's sustainability strategy, refreshed in 2023 and operationalised fully in FY2025, is built on the principle of product stewardship: the conviction that the most meaningful environmental lever a furniture manufacturer holds is the design and composition of the objects it makes. We organise our approach around four pillars. First, Material Integrity: sourcing steel, wood, and textiles that carry the lowest feasible embedded carbon while meeting our durability and quality standards. Second, Clean Manufacturing: eliminating fossil fuel use from our own operations through energy efficiency investment and renewable electricity procurement. Third, Responsible Logistics: reducing the carbon intensity of inbound freight, inter-site transfers, and outbound customer deliveries. Fourth, Circular End-of-Life: designing products for disassembly, operating a take-back scheme, and diverting furniture from landfill into remanufacture or material recovery streams. Underpinning all four pillars is a commitment to measurement: we use ISO 14044-compliant LCA methodology to calculate product carbon footprints (PCFs) for every SKU, enabling us to make data-driven decisions about material substitution, process change, and supplier selection. Our sustainability governance sits with the Chief Operating Officer, supported by a cross-functional Sustainability Committee that meets monthly and reports quarterly to the Board's Audit and Risk Committee.",
+  "stakeholderEngagement": "In FY2025, DeskForm conducted its most extensive stakeholder engagement programme to date, shaped by a double materiality assessment aligned with the European Sustainability Reporting Standards (ESRS) framework. We identified 14 material topics spanning climate change, material sourcing, worker welfare, circular economy, and supply chain labour rights. Key engagement activities included: a survey of 3,400 corporate customers examining their own Scope 3 reporting needs and appetite for product-level carbon data; bilateral workshops with our top 20 material suppliers focused on Scope 3 Category 1 (purchased goods) emissions transparency; a dedicated employee listening programme at both manufacturing sites covering health and safety, pay equity, and the just transition implications of our decarbonisation roadmap; engagement with the British Furniture Confederation on industry-wide LCA methodology standards; and a community forum in Sheffield addressing the environmental impact of our powder-coating operations on local air quality. Customer feedback was unequivocal: 78% of respondents stated that product-level carbon footprint data would directly influence their procurement decisions, up from 51% in our 2023 survey. This finding has accelerated our PCF labelling programme, which will attach verified carbon data to all Apex and Contour products from Q2 FY2026. We also engaged the Carbon Disclosure Project (CDP) supply chain programme, formally requesting primary emissions data from 47 key suppliers, receiving responses from 31 — a 66% response rate that we intend to raise to 85% by FY2027.",
+  "frameworks": [
+    "GHG Protocol Corporate Accounting and Reporting Standard (Scopes 1, 2, and 3)",
+    "Science Based Targets initiative (SBTi) — 1.5°C-aligned target, validated 2023",
+    "ISO 14044:2006 Life Cycle Assessment — Principles and Framework",
+    "ISO 14067:2018 Carbon Footprint of Products",
+    "Global Reporting Initiative (GRI) Standards 2021 — Core option",
+    "European Sustainability Reporting Standards (ESRS) — voluntary early adoption",
+    "Carbon Disclosure Project (CDP) Climate Change questionnaire — B rating FY2025",
+    "UN Sustainable Development Goals (SDGs) — aligned to SDGs 8, 12, 13, and 15",
+    "FSC Chain of Custody Certification (timber and wood-based panels)",
+    "OEKO-TEX STANDARD 100 (upholstery textiles)",
+    "WRAP Furniture Sustainability Action Plan"
+  ],
+  "environmentalAnalysis": [
+    {
+      "title": "Scope 1 & 2 Emissions — Manufacturing Energy",
+      "keyData": "Scope 1 emissions (direct combustion of natural gas for space heating and powder-coat curing ovens): 4,810 tCO₂e. Scope 2 emissions (market-based, purchased electricity): 1,240 tCO₂e. Combined Scope 1+2: 6,050 tCO₂e, representing a 14% reduction versus FY2024 (7,040 tCO₂e). Electricity intensity per unit produced: 18.4 kWh/unit, down from 21.1 kWh/unit in FY2024.",
+      "strategy": "DeskForm's Sheffield site completed installation of a 1.8 MW rooftop solar array in August 2024, generating 1,620 MWh in the eight months of FY2025 operation and displacing approximately 340 tCO₂e of grid electricity. The remaining grid electricity at both sites is procured under a REGO-backed renewable tariff with an additionality clause requiring the generator to be commissioned within five years. On Scope 1, we have begun replacing natural gas curing ovens with electric infrared alternatives; two of six ovens were converted in FY2025, reducing gas consumption by 18%. A heat-pump-based space heating system is under design for the Wrexham site, expected to eliminate 420 tCO₂e of Scope 1 annually from FY2027. We apply an internal carbon price of £85/tCO₂e to all capital expenditure proposals, ensuring that low-carbon options are systematically preferred in investment appraisals.",
+      "performance": "The 14% combined Scope 1+2 reduction exceeded our annual target of 10%. The solar installation performed above the modelled P50 yield due to an unusually sunny summer. Oven conversion delivered gas savings at the upper end of the projected range. Energy intensity improvements were partly driven by a 4% increase in production volume, which spread fixed energy loads across more units, but genuine efficiency gains — better scheduling, LED lighting upgrades, and compressed-air leak remediation — contributed an estimated 6 percentage points of the intensity improvement.",
+      "outlook": "By FY2027, DeskForm targets Scope 2 market-based emissions of zero through full renewable procurement and on-site generation. Scope 1 is the harder challenge: complete electrification of the Sheffield site's thermal processes requires capital investment of approximately £4.2 million and is scheduled for completion by end of FY2028. Our SBTi near-term target requires a 42% absolute reduction in Scope 1+2 by 2030 versus 2022; we are currently tracking 11 percentage points ahead of the linear glide path."
+    },
+    {
+      "title": "Scope 3 — Upstream Material Sourcing (Steel, Wood, Textiles)",
+      "keyData": "Scope 3 Category 1 (purchased goods and services): 25,500 tCO₂e, representing 54% of DeskForm's total footprint. Steel (cold-rolled coil and tube): 14,200 tCO₂e (56% of Category 1). Engineered wood and MDF: 5,800 tCO₂e (23%). Upholstery textiles and foam: 4,100 tCO₂e (16%). Plastics and hardware: 1,400 tCO₂e (5%). Average product carbon footprint by line — Apex desk: 68 kg CO₂e; Contour chair: 41 kg CO₂e; Lattice storage unit: 54 kg CO₂e; Haven soft-seating: 37 kg CO₂e.",
+      "strategy": "Steel is our single largest carbon hotspot. In FY2025 we increased our share of Electric Arc Furnace (EAF) steel — produced from scrap, carrying roughly 0.4 tCO₂e/t versus 1.8 tCO₂e/t for blast-furnace primary steel — from 61% to 74% of total steel volume. We have signed a letter of intent with a Swedish green hydrogen-reduced steel producer (SSAB-equivalent) for a pilot supply of 200 tonnes of near-zero-carbon steel in FY2026, which will be used exclusively in the Apex Evo desk redesign. For wood, 100% of our solid hardwood and MDF is FSC-certified; we are conducting hotspot LCAs on our MDF supply chain to understand the relative carbon burden of different binder chemistries and fibre sources. In textiles, we have increased the recycled-polyester content of our standard upholstery fabric from 40% to 68% recycled post-consumer PET, reducing the textile PCF by an estimated 29% per metre. We are piloting a bio-based wool-blend fabric for the Contour premium tier, which preliminary LCA data suggests carries a 45% lower cradle-to-gate footprint than virgin synthetic alternatives.",
+      "performance": "The shift to higher EAF steel share delivered an estimated 1,100 tCO₂e reduction in Category 1 emissions versus the FY2024 steel mix. The recycled-polyester textile transition reduced textile-related emissions by approximately 310 tCO₂e. Total Category 1 emissions fell 7% year-on-year despite a 4% increase in production volume, implying a 10.6% reduction in material carbon intensity per unit — our strongest year of upstream decarbonisation to date. LCA work confirmed that the Apex standing desk's steel column assembly accounts for 61% of the product's total PCF, validating our strategic focus on steel decarbonisation.",
+      "outlook": "DeskForm's 2030 material sourcing targets include: 90% EAF or equivalent low-carbon steel; 100% FSC or PEFC certified wood across all product lines; 80% recycled or bio-based content in upholstery textiles; and supplier-verified primary emissions data covering 90% of Category 1 spend. We are exploring membership of the First Movers Coalition's steel commitment to send a demand signal to the market for green steel at scale. If near-zero-carbon steel becomes commercially available at the volumes we require by 2028, our modelling suggests Category 1 emissions could fall by a further 35% from the FY2025 baseline."
+    },
+    {
+      "title": "Scope 3 — Packaging",
+      "keyData": "Packaging-related Scope 3 emissions (Category 1 packaging materials plus Category 12 end-of-life treatment of sold products' packaging): 1,850 tCO₂e in FY2025. Average packaging weight per unit shipped: 2.3 kg. Proportion of packaging materials that are recyclable or compostable: 71%. Expanded polystyrene (EPS) foam still in use for 38% of product lines by SKU count.",
+      "strategy": "DeskForm's packaging LCA, completed in Q3 FY2025, revealed that EPS corner protectors and void fill — despite representing only 12% of packaging weight — account for 31% of packaging-related carbon emissions due to the energy intensity of polystyrene production and its negligible recyclability in kerbside streams. We have initiated a full EPS elimination programme, trialling moulded pulp fibre corners (from recycled cardboard) and corrugated honeycomb void fill across the Lattice storage range. Moulded pulp corners carry a PCF approximately 68% lower than EPS equivalents on a per-kilogram basis. For the Apex desk range, we redesigned the primary corrugated shipper in FY2025, reducing board weight by 15% through structural optimisation while maintaining the same drop-test performance — saving 87 tonnes of corrugated board annually. All corrugated packaging now contains a minimum 80% recycled fibre content. We are also piloting reusable transit packaging (RTP) for direct delivery routes within a 150-mile radius of our Coventry hub, using returnable plastic pallet collars and foam-free protective wraps.",
+      "performance": "Packaging emissions fell 11% year-on-year (from 2,080 tCO₂e in FY2024), driven primarily by the corrugated board lightweighting and an increase in recycled-content board sourcing. The EPS elimination programme is in pilot phase and has not yet delivered material emission reductions at scale, but moulded pulp trials on the Lattice range have been technically successful and full rollout is planned for Q1 FY2026. The RTP pilot covered 1,200 deliveries in FY2025, eliminating an estimated 4.8 tonnes of single-use packaging waste from those routes.",
+      "outlook": "DeskForm targets complete elimination of EPS from all product packaging by end of FY2027, which our LCA modelling projects will reduce packaging-related emissions by approximately 570 tCO₂e annually. The RTP programme will be expanded to cover all routes within 200 miles of the Coventry hub by FY2027, targeting a 25% reduction in single-use packaging volume on those routes. Our FY2030 packaging target is 100% plastic-free, 100% recyclable or compostable packaging, with an average packaging PCF 55% below the FY2022 baseline."
+    },
+    {
+      "title": "Scope 3 — Outbound Logistics and Last-Mile Delivery",
+      "keyData": "Scope 3 Category 9 (downstream transportation and distribution): 6,150 tCO₂e in FY2025. This represents 13% of DeskForm's total footprint. Total outbound freight volume: 48,200 tonne-kilometres (road) plus 3,100 tonne-kilometres (rail). Average carbon intensity of outbound road freight: 118 gCO₂e/tonne-km. Proportion of deliveries made by electric or low-emission vehicles: 9%.",
+      "strategy": "DeskForm uses a mix of owned fleet (22 vehicles, primarily 7.5-tonne rigids for urban last-mile) and contracted 3PL hauliers for trunking and large-project deliveries. Our owned fleet decarbonisation plan, approved by the Board in FY2025, commits to 100% electric or hydrogen-fuelled owned vehicles by FY2029. In FY2025, we took delivery of four Volta Zero 16-tonne electric trucks for the Coventry hub's urban delivery routes, replacing equivalent diesel vehicles and avoiding an estimated 38 tCO₂e annually. For contracted haulage, we have introduced a carrier sustainability scorecard requiring 3PLs to disclose fleet emission intensity and commit to year-on-year improvement targets as a condition of contract renewal. We are also working to reduce delivery kilometres through smarter route consolidation: a new Transport Management System deployed in January 2025 has improved load fill rates from 71% to 79%, reducing the number of part-loaded trips. Rail freight is used for bulk transfers between our Sheffield and Wrexham sites; we are exploring expanding rail use to trunk routes serving Scottish and South West England customers.",
+      "performance": "Category 9 emissions fell 6% year-on-year (from 6,540 tCO₂e in FY2024). The load-fill improvement from the new TMS was the single largest contributor, avoiding an estimated 210 tCO₂e. The four electric trucks avoided 38 tCO₂e. Carrier scorecard implementation identified two 3PL partners with above-average emission intensity; one has committed to a fleet renewal plan, and the other's contract is under review. The 9% electric vehicle share of deliveries by trip count is below our FY2025 target of 12%, delayed by charging infrastructure constraints at two customer delivery points.",
+      "outlook": "DeskForm's logistics decarbonisation roadmap targets a 40% reduction in Category 9 emissions by FY2028 versus FY2022. Key milestones include: 30% of owned fleet electric by FY2026; 100% renewable-electricity-charged owned fleet by FY2027; carrier contracts requiring sub-80 gCO₂e/tonne-km intensity by FY2028; and investigation of consolidated 'furniture express' rail services for trunk routes by FY2027. We are also exploring whether product redesign — specifically, flat-pack optimisation of the Apex desk to reduce volumetric weight — could meaningfully reduce tonne-kilometres per unit shipped."
+    },
+    {
+      "title": "Circular Economy and End-of-Life",
+      "keyData": "Scope 3 Category 12 (end-of-life treatment of sold products): 7,650 tCO₂e in FY2025. DeskForm take-back scheme (FormCycle): 4,200 units collected in FY2025. Of collected units: 61% remanufactured and resold, 27% disassembled for material recovery, 12% sent to energy recovery. Landfill diversion rate for take-back units: 100%. Percentage of new product revenue accompanied by a take-back offer: 68%.",
+      "strategy": "Category 12 emissions reflect the carbon cost of DeskForm products reaching end-of-life in customer waste streams — predominantly landfill or incineration without energy recovery, based on industry average disposal assumptions used in our LCA modelling. The most powerful lever to reduce these emissions is design for disassembly (DfD): ensuring that steel, wood, foam, and textile components can be separated cleanly at end-of-life for high-value material recovery rather than mixed-waste disposal. In FY2025, DeskForm introduced DfD principles as a mandatory design criterion for all new product development, requiring that any new SKU achieves a minimum disassembly score of 7/10 on our internal DfD rubric (covering tool-free separation, material labelling, and absence of composite laminates that prevent recycling). The Apex Evo desk, launching in FY2026, is the first product designed entirely under these principles: its steel frame uses mechanical fasteners throughout (no welding at disassembly joints), its worktop is solid hardwood with no MDF lamination, and its cable management tray snaps off without tools. FormCycle, our take-back programme, was extended in FY2025 to cover all product categories (previously limited to seating) and is now offered as a standard contract term on all orders above £5,000.",
+      "performance": "FormCycle collection volumes grew 74% year-on-year (from 2,410 units in FY2024), reflecting both the programme's expansion to all categories and increased customer awareness. Remanufactured units sold through our FormCycle Certified Refurbished channel generated £1.8 million in revenue, up from £0.9 million in FY2024. The remanufacturing process itself carries a carbon footprint approximately 73% lower than producing an equivalent new unit, based on our LCA comparison. Category 12 emissions fell 4% year-on-year, a modest reduction reflecting the still-small proportion of the total installed product base that passes through our take-back channel.",
+      "outlook": "DeskForm's long-term ambition is to recover 30% of all units sold in a given year through FormCycle by FY2030. Achieving this will require deepening partnerships with office fit-out contractors and facilities managers who control furniture disposal decisions. We are also exploring an Extended Producer Responsibility (EPR) scheme with three peer manufacturers to create a shared collection and sorting infrastructure, which would reduce the per-unit cost of take-back and make the economics viable at a much larger scale. Our LCA modelling suggests that a 30% recovery rate, combined with the DfD improvements in our product portfolio, could reduce Category 12 emissions by 45% from the FY2025 baseline by FY2030."
+    }
+  ],
+  "socialAnalysis": [
+    {
+      "title": "Workforce Health, Safety, and Wellbeing",
+      "keyData": "Total Recordable Incident Rate (TRIR): 2.1 per 200,000 hours worked, down from 3.4 in FY2024. Lost Time Injury Frequency Rate (LTIFR): 0.8, down from 1.6 in FY2024. Absenteeism rate: 3.9% (industry benchmark: 4.7%). Employee engagement score: 74% (up from 68% in FY2024). Workforce: 1,240 employees; 34% female; 18% from ethnic minority backgrounds.",
+      "strategy": "Manufacturing office furniture involves significant manual handling, exposure to powder-coat chemicals, and operation of press-brakes, welding equipment, and upholstery machinery — all of which carry inherent injury risks. DeskForm's safety strategy in FY2025 focused on three priorities: ergonomic risk reduction in the Sheffield assembly hall (where musculoskeletal injuries have historically been the primary incident category), chemical exposure management in the powder-coat finishing line, and mental health support across the workforce. We introduced collaborative robot (cobot) assistance on four high-repetition assembly tasks, reducing manual handling frequency for the affected operators by an estimated 60%. A new chemical substitution programme replaced two solvent-based primers with water-based equivalents, reducing volatile organic compound (VOC) exposure for coating operatives. A mental health first-aider network was established, with 42 trained first-aiders now active across both sites and the Coventry hub.",
+      "performance": "The 38% reduction in TRIR is the strongest single-year safety improvement in DeskForm's history. The cobot deployments contributed directly to a 52% reduction in musculoskeletal-related incidents in the Sheffield assembly hall. The mental health first-aider programme supported 87 individual conversations in its first year of operation. Employee engagement improvement is attributed to a combination of the safety improvements, a pay review that brought all roles to at least 10% above the Real Living Wage, and greater transparency about the company's sustainability direction.",
+      "outlook": "DeskForm's FY2026 safety target is a TRIR below 1.5 and zero lost-time injuries. We are investing in a further four cobot deployments in the Wrexham upholstery facility, where repetitive cutting and sewing tasks carry the highest ergonomic risk. A comprehensive wellbeing programme — covering financial wellbeing, menopause support, and neurodiversity awareness — will launch in Q1 FY2026 following a pilot in the Sheffield site's engineering team."
+    },
+    {
+      "title": "Supply Chain Labour Rights and Responsible Sourcing",
+      "keyData": "Tier 1 suppliers audited against DeskForm's Supplier Code of Conduct in FY2025: 89% (up from 72% in FY2024). Suppliers with confirmed living wage payment for all workers: 61%. Suppliers with verified freedom of association policies: 74%. Number of critical non-conformances identified in audits: 7. Number resolved within agreed remediation timeframe: 5. Proportion of UK-based Tier 1 suppliers by spend: 58%.",
+      "strategy": "DeskForm's supply chain spans steel mills, timber processors, foam manufacturers, textile mills, and hardware suppliers across the UK, EU, Turkey, and South and East Asia. Labour rights risks are concentrated in textile and foam supply chains, where subcontracting and homeworking are prevalent. Our responsible sourcing programme requires all Tier 1 suppliers to sign our Supplier Code of Conduct (covering ILO core conventions, living wage, safe working conditions, and environmental management), undergo third-party audits at least every two years, and participate in our capacity-building programme for smaller suppliers who lack the internal resources to meet our standards independently. In FY2025, we commissioned an independent human rights due diligence (HRDD) assessment of our South Asian textile supply chain, identifying risks related to excessive overtime and restricted freedom of association at two mills. We have engaged directly with both mills and their local industry associations to develop time-bound remediation plans.",
+      "performance": "Audit coverage reached 89% of Tier 1 suppliers by spend, ahead of our 85% target. Of the seven critical non-conformances identified, five were resolved within the agreed 90-day remediation window; the remaining two relate to the South Asian textile mills and are subject to ongoing engagement. We increased our UK-sourced steel share from 52% to 58% of total steel spend, partly motivated by supply chain resilience but also reflecting the lower logistics carbon footprint and stronger labour standards assurance of domestic supply. No suppliers were terminated for labour rights violations in FY2025; our preference is remediation over disengagement where genuine commitment to improvement is demonstrated.",
+      "outlook": "DeskForm will extend its HRDD programme to Tier 2 suppliers in the textile and foam categories in FY2026, recognising that the highest labour rights risks often sit one step removed from our direct contracts. We are targeting 100% Tier 1 audit coverage and 75% living wage confirmation by FY2027. We are also exploring participation in the Fair Wear Foundation to access peer benchmarking and shared audit infrastructure for our textile supply chain."
+    },
+    {
+      "title": "Community Impact and the Just Transition",
+      "keyData": "Community investment in FY2025: £340,000 (0.16% of revenue). Apprentices employed: 38 (3.1% of workforce). Partnerships with Sheffield and Wrexham further education colleges: 2 active programmes. Carbon literacy training completed by employees: 81% of workforce. Local supplier spend (within 50 miles of manufacturing sites): £12.4 million.",
+      "strategy": "DeskForm's manufacturing presence in Sheffield and Wrexham places us in communities with deep industrial heritage and, in both cases, histories of significant manufacturing job losses. We take seriously our responsibility to be an anchor employer — providing stable, fairly paid, skilled work — and to ensure that our transition to lower-carbon manufacturing creates rather than destroys local employment. Our apprenticeship programme, run in partnership with Sheffield Hallam University's engineering faculty and Wrexham Glyndŵr University, provides four-year earn-while-you-learn pathways in precision engineering, electrical systems, and sustainable manufacturing. We have committed to maintaining our apprentice intake at a minimum of 35 per year through to FY2030. Carbon literacy training — a half-day accredited programme delivered to all employees — ensures that our decarbonisation strategy is understood and owned at every level of the organisation, not just in the sustainability team.",
+      "performance": "Community investment grew 21% year-on-year. The carbon literacy programme reached 81% of the workforce by year-end, with the remaining 19% scheduled for completion in Q1 FY2026. Local supplier spend increased by £1.1 million, reflecting a deliberate effort to source consumables, maintenance services, and packaging materials from businesses within our immediate geography. Apprentice retention at 24-month milestone: 89%, above the UK manufacturing sector average of 67%.",
+      "outlook": "DeskForm will publish a Just Transition Plan in FY2026, setting out explicitly how our decarbonisation investments will affect job profiles and skills requirements across the business, and committing to retraining pathways for any roles materially affected by automation or process change. We are also exploring a community energy partnership with Sheffield City Council to co-invest in renewable energy infrastructure that benefits both DeskForm and local residents."
+    }
+  ],
+  "governanceAnalysis": [
+    {
+      "title": "Board Oversight and Climate Governance",
+      "keyData": "Board members with formal sustainability or climate qualifications: 2 of 8. Sustainability KPIs linked to executive remuneration: 15% of annual bonus for CEO and COO. Number of Board-level sustainability agenda items in FY2025: 11. Sustainability Committee meetings held: 12. External assurance of Scope 1, 2, and material Scope 3 data: limited assurance, Bureau Veritas.",
+      "strategy": "DeskForm's climate governance structure was strengthened in FY2025 with the appointment of a Non-Executive Director with a background in industrial decarbonisation and LCA methodology, bringing specialist expertise directly into Board-level deliberations. Climate risk is formally integrated into the company's Enterprise Risk Register, with physical climate risks (supply chain disruption from extreme weather, raw material price volatility) and transition risks (carbon pricing, low-carbon material premiums, customer procurement requirements) both assessed annually using a 1.5°C and 3°C scenario analysis framework aligned with TCFD recommendations. The internal carbon price of £85/tCO₂e is applied consistently across capital allocation, product development, and supplier selection decisions, creating a financial incentive for decarbonisation that operates independently of external regulatory pressure.",
+      "performance": "The linkage of 15% of executive annual bonus to sustainability KPIs — specifically, Scope 1+2 absolute reduction, Category 1 supplier audit coverage, and FormCycle collection volume — was introduced in FY2025 and has demonstrably sharpened executive focus on operational delivery. All three KPI targets were met, resulting in full payment of the sustainability element of the bonus. External limited assurance of our emissions data, conducted by Bureau Veritas, resulted in one material finding (an understatement of Scope 3 Category 4 upstream transport emissions), which has been corrected in the figures reported here. We view external assurance as a non-negotiable component of credible reporting.",
+      "outlook": "DeskForm will move to reasonable assurance (from limited assurance) for Scope 1 and 2 emissions from FY2026, and will seek limited assurance over our full Scope 3 inventory by FY2028. We are evaluating alignment with the IFRS S2 Climate-related Disclosures standard, which we anticipate will become mandatory for companies of our size within the next three reporting cycles. The Board has committed to annual TCFD-aligned disclosures and will publish its first standalone TCFD report alongside this sustainability report."
+    },
+    {
+      "title": "Product Integrity, LCA Transparency, and Green Claims",
+      "keyData": "Product lines with completed ISO 14044-compliant LCAs: 4 of 4 (100%). SKUs with published Product Carbon Footprint (PCF) data: 18 of 214 (8.4%). Green marketing claims reviewed against UK CMA Green Claims Code in FY2025: 100% of active claims. Claims withdrawn or amended following review: 3.",
+      "strategy": "As DeskForm increasingly communicates environmental credentials to customers — through product labelling, tender responses, and marketing materials — the governance of those claims becomes a material reputational and legal risk. In FY2025, we conducted a comprehensive audit of all environmental claims in our product catalogue, website, and sales collateral against the UK Competition and Markets Authority's Green Claims Code. Three claims were found to be insufficiently substantiated: a 'carbon neutral' claim on the Apex 2022 model (which had been based on a voluntary offset rather than genuine emission reduction), a 'sustainable steel' claim without defined criteria, and a 'recyclable packaging' claim on a composite film that lacked kerbside recyclability. All three were withdrawn and replaced with more precise, evidence-based language. Our PCF labelling programme, which will attach verified carbon data to products, is the most robust response to greenwashing risk: it replaces qualitative claims with quantified, third-party-verified data that customers can use in their own Scope 3 accounting.",
+      "performance": "The Green Claims Code audit and subsequent claim withdrawals, while reputationally uncomfortable in the short term, have materially strengthened the credibility of DeskForm's environmental communications. Customer trust scores in our annual survey improved by 8 percentage points year-on-year, with 'honest and transparent about environmental impact' cited as a top-three reason for choosing DeskForm by 41% of respondents. The four completed LCAs provide a rigorous, ISO-compliant foundation for all future product-level environmental claims.",
+      "outlook": "DeskForm will publish PCF data for all Apex and Contour SKUs by end of FY2026, and for the full portfolio by FY2028. We are engaging with the British Standards Institution on the development of a sector-specific Product Environmental Footprint (PEF) category rule for office furniture, which would enable like-for-like PCF comparisons across competing products — a development we actively support as a company confident in the relative performance of our product portfolio."
+    }
+  ],
+  "futureTargets": [
+    {
+      "area": "Scope 1 & 2 Absolute Emissions",
+      "goal": "Reduce combined Scope 1 and 2 emissions by 42% versus 2022 baseline by FY2030, reaching approximately 3,800 tCO₂e. Achieve Scope 2 market-based zero by FY2027 through full renewable electricity procurement and on-site generation.",
+      "status": "On Track — 11 percentage points ahead of linear glide path as of FY2025"
+    },
+    {
+      "area": "Scope 3 — Steel Decarbonisation",
+      "goal": "Source 90% of steel volume from Electric Arc Furnace or equivalent low-carbon processes by FY2030. Pilot near-zero-carbon green hydrogen-reduced steel in Apex Evo product line from FY2026.",
+      "status": "On Track — 74% EAF share achieved in FY2025 versus 70% FY2026 milestone"
+    },
+    {
+      "area": "Scope 3 — Supplier Emissions Transparency",
+      "goal": "Obtain primary emissions data from suppliers representing 90% of Category 1 spend by FY2027, up from 66% CDP response rate in FY2025.",
+      "status": "In Progress — 66% supplier response rate, target 85% by FY2027"
+    },
+    {
+      "area": "Packaging",
+      "goal": "Eliminate all expanded polystyrene (EPS) packaging by end of FY2027. Achieve 100% plastic-free, recyclable or compostable packaging by FY2030. Reduce average packaging PCF 55% versus FY2022 baseline.",
+      "status": "In Progress — EPS elimination pilot successful on Lattice range; full rollout Q1 FY2026"
+    },
+    {
+      "area": "Outbound Logistics",
+      "goal": "Reduce Scope 3 Category 9 emissions 40% versus FY2022 by FY2028. Transition 100% of owned delivery fleet to electric or hydrogen by FY2029. Require all contracted 3PL hauliers to meet sub-80 gCO₂e/tonne-km intensity by FY2028.",
+      "status": "In Progress — 9% EV fleet share; 3PL scorecard implemented FY2025"
+    },
+    {
+      "area": "Circular Economy — FormCycle Take-Back",
+      "goal": "Recover 30% of units sold in a given year through FormCycle by FY2030. Achieve 100% landfill diversion for all collected units. Expand remanufactured product revenue to £5 million annually by FY2028.",
+      "status": "In Progress — 4,200 units collected in FY2025; 74% year-on-year growth"
+    },
+    {
+      "area": "Product Carbon Footprint Labelling",
+      "goal": "Publish verified PCF data for all Apex and Contour SKUs by end of FY2026, and for the full 214-SKU portfolio by FY2028. Engage with BSI on development of office furniture PEF category rules.",
+      "status": "In Progress — 18 SKUs labelled in FY2025; full Apex/Contour rollout planned FY2026"
+    },
+    {
+      "area": "Net Zero",
+      "goal": "Achieve net zero across Scope 1, 2, and 3 emissions by 2045, aligned with SBTi Corporate Net-Zero Standard. Residual emissions at net zero to be addressed only by high-quality, permanent carbon removals — not offsets used to mask ongoing emissions.",
+      "status": "On Track — SBTi near-term and long-term targets validated; FY2025 total footprint 9% below FY2024"
+    },
+    {
+      "area": "Workforce and Social",
+      "goal": "Maintain TRIR below 1.5 by FY2026 and achieve zero lost-time injuries by FY2028. Reach 100% Tier 1 supplier living wage confirmation by FY2027. Maintain apprentice intake of minimum 35 per year through FY2030.",
+      "status": "On Track — TRIR 2.1 in FY2025, 38% improvement year-on-year; 38 apprentices in FY2025"
+    },
+    {
+      "area": "Governance and Assurance",
+      "goal": "Move to reasonable assurance for Scope 1 and 2 emissions from FY2026. Achieve limited assurance over full Scope 3 inventory by FY2028. Publish annual TCFD-aligned disclosure from FY2025 onwards.",
+      "status": "On Track — Limited assurance completed FY2025; reasonable assurance engagement underway"
+    }
+  ]
+}
+```
+````
+
+**Parsed summary (for quick reading):**
+- `reportTitle`: DeskForm Sustainability & Carbon Report FY2025
+- `reportSummary`: This report presents DeskForm's environmental, social, and governance performance for the financial year ending 31 March 2025. Our analysis is anchored at the product level: every desk, chair, storage unit, and accessory we manufacture carries an embedded carbon cost shaped by the steel we forge, the timber we mill, the textiles we weave, the energy we consume on the factory floor, the packaging we ship in, and the final-mile logistics that deliver our products to offices across the country. In FY2025, DeskForm conducted full Life Cycle Assessments (LCAs) across our four core product lines for the first time, revealing that raw material extraction and processing accounts for 54% of our average product carbon footprint, manufacturing energy a further 22%, outbound logistics 13%, and end-of-life treatment 11%. Total Scope 1, 2, and 3 emissions for FY2025 were 47,200 tCO₂e, a 9% reduction from FY2024's restated baseline of 51,900 tCO₂e. We are on track against our Science Based Target to halve absolute emissions by 2030 against a 2022 base year, and we remain committed to reaching net zero across the full value chain by 2045.
+
+## Quick tables
+
+### Chat
+
+| Test ID | Pass | Latency (ms) | Keyword matches |
+|---|---:|---:|---|
+| scope-definition | YES | 19069 | scope 1, scope 2, scope 3, direct, indirect, emission |
+| lca-brief | YES | 11497 | life cycle, LCA, product, impact |
+| carbon-reporting | YES | 12328 | report, carbon, footprint, GHG, standard |
+| lca-values-interpretation | YES | 16825 | LCA, CO2, component, impact, reduction, hotspot |
+| lca-functional-unit | YES | 20440 | functional unit, LCA, compare, carbon, product |
+| transport-scope3-reporting | YES | 12064 | Scope 3, transport, logistics, emission, downstream |
+| transport-modes-intensity | YES | 23122 | road, rail, sea, air, freight, carbon |
+
+### Report
+
+| Test ID | Pass | Latency (ms) | Notes |
+|---|---:|---:|---|
+| report-sustainability | YES | 195784 | OK |
+| report-carbon | YES | 140572 | OK |
+| report-transport-logistics | YES | 195305 | OK |
+| report-lca-product-footprint | YES | 206348 | OK |

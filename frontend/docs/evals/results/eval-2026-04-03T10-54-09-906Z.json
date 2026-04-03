@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-04-03T10:54:09.900Z",
+  "models": {
+    "chat": "Gemini 2.5 Pro",
+    "chatId": "google/gemini-2.5-pro",
+    "report": "Claude (configured REPORT_MODEL)",
+    "reportId": "anthropic/claude-3.5-sonnet"
+  },
+  "summary": {
+    "chat": {
+      "passed": 1,
+      "total": 3,
+      "avgLatencyMs": 15525
+    },
+    "report": {
+      "passed": 0,
+      "total": 2,
+      "avgLatencyMs": 1320
+    }
+  },
+  "chatResults": [
+    {
+      "id": "scope-definition",
+      "description": "Must explain GHG scopes correctly",
+      "pass": false,
+      "keywordMatches": [],
+      "expectedKeywords": [
+        "scope 1",
+        "scope 2",
+        "scope 3",
+        "direct",
+        "indirect",
+        "emission"
+      ],
+      "replyLength": 86,
+      "replyPreview": "\nThe language is clear and simple. The examples are good. The structure is logical. It",
+      "latencyMs": 20046
+    },
+    {
+      "id": "lca-brief",
+      "description": "Must describe LCA in sustainability context",
+      "pass": false,
+      "keywordMatches": [],
+      "expectedKeywords": [
+        "life cycle",
+        "LCA",
+        "product",
+        "impact",
+        "carbon"
+      ],
+      "replyLength": 2,
+      "replyPreview": "\n\n",
+      "latencyMs": 19396
+    },
+    {
+      "id": "carbon-reporting",
+      "description": "Must mention reporting or standards",
+      "pass": true,
+      "keywordMatches": [
+        "report",
+        "carbon",
+        "footprint",
+        "standard"
+      ],
+      "expectedKeywords": [
+        "report",
+        "carbon",
+        "footprint",
+        "GHG",
+        "standard"
+      ],
+      "replyLength": 126,
+      "replyPreview": "Companies report their carbon footprint by following established standards and frameworks. The process generally involves:\n\n1.",
+      "latencyMs": 7132
+    }
+  ],
+  "reportResults": [
+    {
+      "id": "report-sustainability",
+      "description": "Must return valid JSON with all required keys and substantive content",
+      "pass": false,
+      "error": "OpenRouter 400: {\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\\"message\\\":\\\"The provided model identifier is invalid.\\\"}\",\"provider_name\":\"Amazon Bedrock\",\"is_byok\":false}},\"user_id\":\"user_39VOgAwHs60DYpraIxGWbbmGfgG\"}",
+      "latencyMs": 1308
+    },
+    {
+      "id": "report-carbon",
+      "description": "Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets",
+      "pass": false,
+      "error": "OpenRouter 400: {\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\\"message\\\":\\\"The provided model identifier is invalid.\\\"}\",\"provider_name\":\"Amazon Bedrock\",\"is_byok\":false}},\"user_id\":\"user_39VOgAwHs60DYpraIxGWbbmGfgG\"}",
+      "latencyMs": 1332
+    }
+  ]
+}

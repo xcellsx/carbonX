@@ -66,6 +66,15 @@ const AIChatPopup = ({ isOpen, onClose, pageContext = '', contextSummary = '' })
   }, [isOpen]);
 
   useEffect(() => {
+    const onSession = () => {
+      setMessages([]);
+      sessionIdRef.current = null;
+    };
+    window.addEventListener('carbonx-session-updated', onSession);
+    return () => window.removeEventListener('carbonx-session-updated', onSession);
+  }, []);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 

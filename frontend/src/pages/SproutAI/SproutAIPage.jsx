@@ -9,7 +9,7 @@ import InstructionalCarousel from '../../components/InstructionalCarousel/Instru
 import { chatCompletion, reportSummaryForChat, generateStructuredReport, generateSuggestedPrompts } from '../../services/openRouter';
 import { useProSubscription } from '../../hooks/useProSubscription';
 import { validateReportSchema } from '../../utils/reportSchema';
-import { productAPI } from '../../services/api';
+import { productAPI, maritimeAPI } from '../../services/api';
 import { getScopeTotalsFromProduct } from '../../utils/emission';
 import { buildSasbIndexRows, loadSasbInputs } from '../../utils/sasb';
 import {
@@ -65,6 +65,92 @@ function getLocalCompanyContext() {
   }
 }
 
+/** Same maritime profile as Inventory "Voyage Emissions" — Sprout must use vessel data, not generic product LCA cache. */
+function isMaritimeInventoryCompany() {
+  try {
+    const c = getLocalCompanyContext();
+    const sector = String(c?.sector || '').toLowerCase().trim();
+    const industry = String(c?.industry || '').toLowerCase().trim();
+    return (
+      sector.includes('maritime') ||
+      industry.includes('maritime') ||
+      sector.includes('marine transport') ||
+      industry.includes('marine transport')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function scope1KgFromMaritimeLcaResponse(lcaRes) {
+  const raw = lcaRes?.data?.scope1;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (raw && typeof raw === 'object' && raw.kgCO2e != null) {
+    const n = Number(raw.kgCO2e);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
+async function fetchMaritimeVoyageInventoryRows() {
+  const logsRes = await maritimeAPI.getShipLogs();
+  const rawLogs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+  const mmsiList = [];
+  const seen = new Set();
+  rawLogs.forEach((log) => {
+    const m = String(log?.mmsi || log?.MMSI || '').trim();
+    if (m && !seen.has(m)) {
+      seen.add(m);
+      mmsiList.push(m);
+    }
+  });
+  mmsiList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  const rows = await Promise.all(
+    mmsiList.map(async (mmsi) => {
+      try {
+        const lcaRes = await maritimeAPI.getLca(mmsi);
+        const kg = scope1KgFromMaritimeLcaResponse(lcaRes);
+        return { mmsi, name: `Vessel ${mmsi}`, kg };
+      } catch {
+        return { mmsi, name: `Vessel ${mmsi}`, kg: 0 };
+      }
+    })
+  );
+  rows.sort((a, b) => b.kg - a.kg);
+  const totalKg = rows.reduce((s, r) => s + r.kg, 0);
+  return { rows, totalKg };
+}
+
+async function buildMaritimeChatInventoryContext() {
+  const lines = [];
+  try {
+    const company = getLocalCompanyContext();
+    if (company?.companyName) {
+      lines.push(`Company: ${company.companyName}${company.sector ? ` | Sector: ${company.sector}` : ''}${company.industry ? ` | Industry: ${company.industry}` : ''}${company.reportingYear ? ` | Year: ${company.reportingYear}` : ''}`);
+    }
+  } catch (_) {}
+
+  try {
+    const { rows, totalKg } = await fetchMaritimeVoyageInventoryRows();
+    if (rows.length === 0) {
+      lines.push('\nMaritime inventory: no vessel MMSIs found in ship logs — open Voyage Emissions after logs exist, or seed maritime data.');
+    } else {
+      lines.push(`\nUser's inventory is voyage-based (${rows.length} vessel(s) from AIS ship logs; values are approximate voyage LCA, kgCO2e):`);
+      rows.slice(0, 15).forEach((v) => {
+        lines.push(`  - ${v.name} (MMSI ${v.mmsi}): ${v.kg.toFixed(2)} kgCO2e`);
+      });
+      if (rows.length > 15) lines.push(`  … and ${rows.length - 15} more vessel(s)`);
+      lines.push(`  Fleet voyage total (approx.): ${totalKg.toFixed(2)} kgCO2e`);
+      lines.push('When the user asks about inventory, "products", footprints, or what to improve first, use ONLY the vessels listed above — ignore any food SKUs or unrelated items not shown here.');
+    }
+  } catch (e) {
+    lines.push(`\nMaritime inventory: could not load ship logs or voyage LCA (${e?.message || 'error'}).`);
+  }
+
+  const block = lines.join('\n');
+  return block.length > 1500 ? block.slice(0, 1500) + '\n[context truncated]' : block;
+}
+
 function buildSectorIndustryGuidance(company) {
   const sector = String(company?.sector || '').trim();
   const industry = String(company?.industry || '').trim();
@@ -104,20 +190,25 @@ function buildDynamicSystemPrompt() {
     : 'Company context: unavailable';
 
   let inventoryLine = 'Inventory context: unavailable';
-  try {
-    const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
-    const entries = Object.entries(lcaByName)
-      .map(([name, v]) => ({
-        name,
-        total: Number(v?.total) || (Number(v?.scope1 || 0) + Number(v?.scope2 || 0) + Number(v?.scope3 || 0)),
-      }))
-      .filter((e) => e.total > 0)
-      .sort((a, b) => b.total - a.total);
-    if (entries.length > 0) {
-      const top = entries.slice(0, 3).map((e) => `${e.name} (${e.total.toFixed(2)} kgCO2e)`).join(', ');
-      inventoryLine = `Inventory context: ${entries.length} product(s) with LCA data. Top emitters: ${top}`;
-    }
-  } catch {}
+  if (isMaritimeInventoryCompany()) {
+    inventoryLine =
+      'Inventory context: maritime voyage emissions — per-vessel data from ship logs + voyage LCA is attached to each chat request; do not assume food/product SKUs unless listed there.';
+  } else {
+    try {
+      const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
+      const entries = Object.entries(lcaByName)
+        .map(([name, v]) => ({
+          name,
+          total: Number(v?.total) || (Number(v?.scope1 || 0) + Number(v?.scope2 || 0) + Number(v?.scope3 || 0)),
+        }))
+        .filter((e) => e.total > 0)
+        .sort((a, b) => b.total - a.total);
+      if (entries.length > 0) {
+        const top = entries.slice(0, 3).map((e) => `${e.name} (${e.total.toFixed(2)} kgCO2e)`).join(', ');
+        inventoryLine = `Inventory context: ${entries.length} product(s) with LCA data. Top emitters: ${top}`;
+      }
+    } catch {}
+  }
 
   const sectorGuidance = buildSectorIndustryGuidance(company);
   return `${SYSTEM_PROMPT}
@@ -137,6 +228,7 @@ ${sectorGuidance}`;
  */
 function buildChatInventoryContext() {
   const lines = [];
+  if (isMaritimeInventoryCompany()) return '';
 
   try {
     const allCompanyData = JSON.parse(localStorage.getItem('companyData') || '{}');
@@ -288,6 +380,27 @@ const SproutAiPage = () => {
     }
   }, [messages]);
 
+  // Reload persisted chat when login/logout (or userId changes in another tab) so sessions never bleed across accounts.
+  useEffect(() => {
+    const reloadFromStorage = () => {
+      setSessions(loadSproutSessions());
+      setMessages(loadSproutCurrentMessages());
+      setFeedbackMap(loadSproutFeedbackMap());
+      currentChatIdRef.current = `cur_${Date.now()}`;
+      viewingSessionIdRef.current = null;
+      openedSessionIdRef.current = null;
+    };
+    const onStorage = (e) => {
+      if (e.key === 'userId') reloadFromStorage();
+    };
+    window.addEventListener('carbonx-session-updated', reloadFromStorage);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('carbonx-session-updated', reloadFromStorage);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
   // Generate context-aware starter prompts based on user's inventory + dashboard scope totals.
   // Falls back to static prompts (with real product names if available) if OpenRouter key is missing.
   useEffect(() => {
@@ -310,35 +423,57 @@ const SproutAiPage = () => {
       setSuggestedPromptsLoading(true);
       try {
         const company = safeCompany();
+        const maritime = isMaritimeInventoryCompany();
+
         let list = [];
-        try {
-          const res = await productAPI.getAllProducts();
-          list = Array.isArray(res?.data) ? res.data : [];
-        } catch (_) {
-          list = [];
+        let totals = { scope1: 0, scope2: 0, scope3: 0, total: 0 };
+        let topProducts = [];
+        let maritimeVesselCount = 0;
+
+        if (maritime) {
+          try {
+            const { rows, totalKg } = await fetchMaritimeVoyageInventoryRows();
+            maritimeVesselCount = rows.length;
+            totals = { scope1: totalKg, scope2: 0, scope3: totalKg, total: totalKg };
+            topProducts = rows
+              .filter((r) => r.name)
+              .slice(0, 3)
+              .map((r) => ({ name: r.name, totalKgCO2e: r.kg }));
+          } catch (_) {
+            maritimeVesselCount = 0;
+            totals = { scope1: 0, scope2: 0, scope3: 0, total: 0 };
+            topProducts = [];
+          }
+        } else {
+          try {
+            const res = await productAPI.getAllProducts();
+            list = Array.isArray(res?.data) ? res.data : [];
+          } catch (_) {
+            list = [];
+          }
+
+          totals = list.reduce(
+            (acc, p) => {
+              const t = getScopeTotalsFromProduct({ DPP: p?.DPP ?? p?.dpp, emissionInformation: p?.emissionInformation ?? p?.emission_information });
+              acc.scope1 += t.scope1 || 0;
+              acc.scope2 += t.scope2 || 0;
+              acc.scope3 += t.scope3 || 0;
+              return acc;
+            },
+            { scope1: 0, scope2: 0, scope3: 0 }
+          );
+          totals.total = totals.scope1 + totals.scope2 + totals.scope3;
+
+          topProducts = list
+            .map((p) => {
+              const name = (p?.name ?? p?.productName ?? p?.dpp?.name ?? '').toString().trim();
+              const t = getScopeTotalsFromProduct({ DPP: p?.DPP ?? p?.dpp, emissionInformation: p?.emissionInformation ?? p?.emission_information });
+              return { name, totalKgCO2e: t.total || 0 };
+            })
+            .filter((p) => p.name)
+            .sort((a, b) => (b.totalKgCO2e || 0) - (a.totalKgCO2e || 0))
+            .slice(0, 3);
         }
-
-        const totals = list.reduce(
-          (acc, p) => {
-            const t = getScopeTotalsFromProduct({ DPP: p?.DPP ?? p?.dpp, emissionInformation: p?.emissionInformation ?? p?.emission_information });
-            acc.scope1 += t.scope1 || 0;
-            acc.scope2 += t.scope2 || 0;
-            acc.scope3 += t.scope3 || 0;
-            return acc;
-          },
-          { scope1: 0, scope2: 0, scope3: 0 }
-        );
-        totals.total = totals.scope1 + totals.scope2 + totals.scope3;
-
-        const topProducts = list
-          .map((p) => {
-            const name = (p?.name ?? p?.productName ?? p?.dpp?.name ?? '').toString().trim();
-            const t = getScopeTotalsFromProduct({ DPP: p?.DPP ?? p?.dpp, emissionInformation: p?.emissionInformation ?? p?.emission_information });
-            return { name, totalKgCO2e: t.total || 0 };
-          })
-          .filter((p) => p.name)
-          .sort((a, b) => (b.totalKgCO2e || 0) - (a.totalKgCO2e || 0))
-          .slice(0, 3);
 
         const ai = await generateSuggestedPrompts({
           company: {
@@ -347,17 +482,23 @@ const SproutAiPage = () => {
             industry: company?.industry,
             reportingYear: company?.reportingYear,
           },
-          inventory: { productCount: list.length, topProducts },
+          inventory: { productCount: maritime ? maritimeVesselCount : list.length, topProducts },
           dashboard: totals,
         });
 
-        const fallbackProduct = topProducts[0]?.name || 'my product';
+        const fallbackProduct = topProducts[0]?.name || (maritime ? 'my fleet' : 'my product');
         const reportPrompt = 'Generate a sustainability report for my company based on my current data.';
-        const fallback = [
-          `Summarize my current Scope 1, 2, and 3 emissions and what they mean.`,
-          `Which of my products has the highest carbon footprint, and what should I improve first?`,
-          reportPrompt,
-        ];
+        const fallback = maritime
+          ? [
+              `Summarize my fleet voyage emissions (approx.) and what drives them.`,
+              `Which of my vessels has the highest voyage emissions, and what should I improve first?`,
+              reportPrompt,
+            ]
+          : [
+              `Summarize my current Scope 1, 2, and 3 emissions and what they mean.`,
+              `Which of my products has the highest carbon footprint, and what should I improve first?`,
+              reportPrompt,
+            ];
 
         if (isCancelled) return;
         if (Array.isArray(ai) && ai.length >= 3) {
@@ -519,7 +660,7 @@ const SproutAiPage = () => {
     return false;
   };
 
-  function buildReportRequestWithContext(currentText) {
+  async function buildReportRequestWithContext(currentText) {
     const recent = messages.slice(-6);
     const lines = [];
     if (recent.length > 0) {
@@ -552,46 +693,58 @@ const SproutAiPage = () => {
       }
     } catch (_) {}
 
-    // --- Real GHG emissions from inventory (localStorage LCA cache) ---
+    // --- Real GHG emissions: maritime = voyage LCA per vessel; else product LCA cache ---
     try {
-      const userId = localStorage.getItem('userId') || '';
-      const storageKey = userId.includes('/') ? userId.split('/').pop() : userId;
-
-      // Read by-name cache for full scope breakdown
-      const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
-      const nameEntries = Object.entries(lcaByName);
-
-      // Aggregate totals across all products
-      let totalScope1 = 0, totalScope2 = 0, totalScope3 = 0;
-      const productLines = [];
-      nameEntries.forEach(([name, entry]) => {
-        if (entry && typeof entry === 'object') {
-          totalScope1 += Number(entry.scope1) || 0;
-          totalScope2 += Number(entry.scope2) || 0;
-          totalScope3 += Number(entry.scope3) || 0;
-          const total = Number(entry.total) || ((Number(entry.scope1) || 0) + (Number(entry.scope2) || 0) + (Number(entry.scope3) || 0));
-          if (total > 0) {
-            productLines.push(`  - ${name}: ${total.toFixed(2)} kgCO2e total (Scope 1: ${(Number(entry.scope1)||0).toFixed(2)}, Scope 2: ${(Number(entry.scope2)||0).toFixed(2)}, Scope 3: ${(Number(entry.scope3)||0).toFixed(2)})`);
-          }
-        }
-      });
-      const grandTotal = totalScope1 + totalScope2 + totalScope3;
-
-      if (grandTotal > 0 || productLines.length > 0) {
-        lines.push('ACTUAL GHG EMISSIONS DATA (from product LCA calculations — use these exact numbers in the report):');
-        lines.push(`- Scope 1 (Direct): ${totalScope1.toFixed(2)} kgCO2e`);
-        lines.push(`- Scope 2 (Purchased Energy): ${totalScope2.toFixed(2)} kgCO2e`);
-        lines.push(`- Scope 3 (Value Chain): ${totalScope3.toFixed(2)} kgCO2e`);
-        lines.push(`- Total GHG: ${grandTotal.toFixed(2)} kgCO2e`);
-        if (productLines.length > 0) {
-          lines.push('Product-level breakdown (top products by emissions):');
-          productLines.sort((a, b) => {
-            const getTotal = (s) => { const m = s.match(/(\d+\.?\d*) kgCO2e total/); return m ? parseFloat(m[1]) : 0; };
-            return getTotal(b) - getTotal(a);
+      if (isMaritimeInventoryCompany()) {
+        const { rows, totalKg } = await fetchMaritimeVoyageInventoryRows();
+        if (rows.length > 0) {
+          lines.push('ACTUAL GHG EMISSIONS DATA (maritime — approximate voyage LCA per vessel from AIS-based model; use these exact numbers in the report):');
+          lines.push(`- Scope 1 (voyage / direct operational, approx.): ${totalKg.toFixed(2)} kgCO2e`);
+          lines.push(`- Scope 2 (Purchased Energy): 0.00 kgCO2e (not allocated in voyage model)`);
+          lines.push(`- Scope 3 (Value Chain): ${totalKg.toFixed(2)} kgCO2e (same rough total shown on Voyage Emissions for comparability)`);
+          lines.push(`- Total GHG (approx., voyage-based): ${totalKg.toFixed(2)} kgCO2e`);
+          lines.push('Vessel-level breakdown:');
+          rows.slice(0, 12).forEach((v) => {
+            lines.push(`  - ${v.name} (MMSI ${v.mmsi}): ${v.kg.toFixed(2)} kgCO2e`);
           });
-          productLines.slice(0, 8).forEach((l) => lines.push(l));
+          if (rows.length > 12) lines.push(`  … and ${rows.length - 12} more vessel(s)`);
+          lines.push('');
         }
-        lines.push('');
+      } else {
+        const lcaByName = JSON.parse(localStorage.getItem('carbonx_lca_cache_by_name_v1') || '{}');
+        const nameEntries = Object.entries(lcaByName);
+
+        let totalScope1 = 0; let totalScope2 = 0; let totalScope3 = 0;
+        const productLines = [];
+        nameEntries.forEach(([name, entry]) => {
+          if (entry && typeof entry === 'object') {
+            totalScope1 += Number(entry.scope1) || 0;
+            totalScope2 += Number(entry.scope2) || 0;
+            totalScope3 += Number(entry.scope3) || 0;
+            const total = Number(entry.total) || ((Number(entry.scope1) || 0) + (Number(entry.scope2) || 0) + (Number(entry.scope3) || 0));
+            if (total > 0) {
+              productLines.push(`  - ${name}: ${total.toFixed(2)} kgCO2e total (Scope 1: ${(Number(entry.scope1) || 0).toFixed(2)}, Scope 2: ${(Number(entry.scope2) || 0).toFixed(2)}, Scope 3: ${(Number(entry.scope3) || 0).toFixed(2)})`);
+            }
+          }
+        });
+        const grandTotal = totalScope1 + totalScope2 + totalScope3;
+
+        if (grandTotal > 0 || productLines.length > 0) {
+          lines.push('ACTUAL GHG EMISSIONS DATA (from product LCA calculations — use these exact numbers in the report):');
+          lines.push(`- Scope 1 (Direct): ${totalScope1.toFixed(2)} kgCO2e`);
+          lines.push(`- Scope 2 (Purchased Energy): ${totalScope2.toFixed(2)} kgCO2e`);
+          lines.push(`- Scope 3 (Value Chain): ${totalScope3.toFixed(2)} kgCO2e`);
+          lines.push(`- Total GHG: ${grandTotal.toFixed(2)} kgCO2e`);
+          if (productLines.length > 0) {
+            lines.push('Product-level breakdown (top products by emissions):');
+            productLines.sort((a, b) => {
+              const getTotal = (s) => { const m = s.match(/(\d+\.?\d*) kgCO2e total/); return m ? parseFloat(m[1]) : 0; };
+              return getTotal(b) - getTotal(a);
+            });
+            productLines.slice(0, 8).forEach((l) => lines.push(l));
+          }
+          lines.push('');
+        }
       }
     } catch (_) {}
 
@@ -681,7 +834,9 @@ const SproutAiPage = () => {
       role: msg.sender === 'user' ? 'user' : 'assistant',
       content: msg.sender === 'user' ? msg.text : (msg.content || (msg.type === 'report_success' ? 'I generated a report for the user.' : '')),
     })).filter(m => m.content && m.content.trim());
-    const inventoryCtx = buildChatInventoryContext();
+    const inventoryCtx = isMaritimeInventoryCompany()
+      ? await buildMaritimeChatInventoryContext()
+      : buildChatInventoryContext();
     const dynamicSystemPrompt = buildDynamicSystemPrompt();
     const systemContent = inventoryCtx
       ? `${dynamicSystemPrompt}\n\n---\n${inventoryCtx}`
@@ -694,7 +849,7 @@ const SproutAiPage = () => {
 
     try {
       if (isReportRequest(textToSend)) {
-        const fullRequest = buildReportRequestWithContext(textToSend);
+        const fullRequest = await buildReportRequestWithContext(textToSend);
 
         // Step 1: get the chat summary fast and show it immediately — don't wait for the full report
         const rawChatSummary = await reportSummaryForChat(fullRequest);
@@ -744,10 +899,10 @@ const SproutAiPage = () => {
         // Show a "generating..." toast with live elapsed timer
         showGeneratingToast(reportId);
 
-        // Hard timeout: abort if background generation takes more than 90 seconds
-        const TIMEOUT_MS = 90_000;
+        // Allow time for primary + optional JSON repair retry in generateStructuredReport
+        const TIMEOUT_MS = 180_000;
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Report generation timed out after 90 seconds.')), TIMEOUT_MS)
+          setTimeout(() => reject(new Error('Report generation timed out after 3 minutes.')), TIMEOUT_MS)
         );
 
         // Step 2: generate the full structured report in the background
@@ -787,6 +942,25 @@ const SproutAiPage = () => {
           showReportToast(reportId, false);
         }).catch((err) => {
           console.warn('[Sprout AI] Background report generation failed:', err);
+          try {
+            const detail = err?.message || String(err);
+            const current = JSON.parse(localStorage.getItem(getReportsStorageKey()) || '[]');
+            const updated = current.map((r) =>
+              r.id === reportId
+                ? {
+                    ...r,
+                    fullData: {
+                      ...(r.fullData || {}),
+                      generating: false,
+                      generationFailed: true,
+                      generationError: detail,
+                      boardStatement: `Report generation did not complete: ${detail}. Use Sprout AI again with the same request, or check your OpenRouter API key and network.`,
+                    },
+                  }
+                : r
+            );
+            localStorage.setItem(getReportsStorageKey(), JSON.stringify(updated));
+          } catch (_) {}
           showReportToast(reportId, true);
         });
 

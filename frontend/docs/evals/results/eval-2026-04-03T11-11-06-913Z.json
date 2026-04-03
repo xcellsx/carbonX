@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-04-03T11:11:06.907Z",
+  "models": {
+    "chat": "Gemini 2.5 Pro",
+    "chatId": "google/gemini-2.5-pro",
+    "report": "Claude Sonnet 4.6",
+    "reportId": "anthropic/claude-sonnet-4.6"
+  },
+  "summary": {
+    "chat": {
+      "passed": 2,
+      "total": 3,
+      "avgLatencyMs": 6767
+    },
+    "report": {
+      "passed": 0,
+      "total": 2,
+      "avgLatencyMs": 82901
+    }
+  },
+  "chatResults": [
+    {
+      "id": "scope-definition",
+      "description": "Must explain GHG scopes correctly",
+      "pass": false,
+      "keywordMatches": [
+        "scope 1"
+      ],
+      "expectedKeywords": [
+        "scope 1",
+        "scope 2",
+        "scope 3",
+        "direct",
+        "indirect",
+        "emission"
+      ],
+      "replyLength": 72,
+      "replyPreview": "Scope 1, 2, and 3 are categories used to classify a company's greenhouse",
+      "latencyMs": 6762
+    },
+    {
+      "id": "lca-brief",
+      "description": "Must describe LCA in sustainability context",
+      "pass": true,
+      "keywordMatches": [
+        "life cycle",
+        "LCA",
+        "product",
+        "impact"
+      ],
+      "expectedKeywords": [
+        "life cycle",
+        "LCA",
+        "product",
+        "impact",
+        "carbon"
+      ],
+      "replyLength": 104,
+      "replyPreview": "A Life Cycle Assessment (LCA) is a method for evaluating the environmental impacts of a product, service",
+      "latencyMs": 7310
+    },
+    {
+      "id": "carbon-reporting",
+      "description": "Must mention reporting or standards",
+      "pass": true,
+      "keywordMatches": [
+        "report",
+        "carbon",
+        "footprint",
+        "standard"
+      ],
+      "expectedKeywords": [
+        "report",
+        "carbon",
+        "footprint",
+        "GHG",
+        "standard"
+      ],
+      "replyLength": 125,
+      "replyPreview": "Companies report their carbon footprint by following established standards and frameworks. The process generally involves:\n\n1",
+      "latencyMs": 6228
+    }
+  ],
+  "reportResults": [
+    {
+      "id": "report-sustainability",
+      "description": "Must return valid JSON with all required keys and substantive content",
+      "pass": false,
+      "error": "Unterminated string in JSON at position 17063 (line 58 column 195)",
+      "latencyMs": 82280
+    },
+    {
+      "id": "report-carbon",
+      "description": "Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets",
+      "pass": false,
+      "error": "Unexpected token '`', \"```json\n{\n\"... is not valid JSON",
+      "latencyMs": 83521
+    }
+  ]
+}

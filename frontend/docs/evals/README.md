@@ -7,7 +7,7 @@ This folder holds **golden prompts** and instructions for evaluating Sprout AI a
 Edit `golden-prompts.json` to add or change test prompts:
 
 - **chat**: List of `{ id, prompt, expectKeywords?, description }`. The script sends each prompt to the main chat model (Gemini 2.5) and checks that the reply contains at least 2 of the listed keywords (or all if fewer than 2).
-- **report**: List of `{ id, prompt, description }`. The script asks the report model (Claude) to generate a report, parses JSON, and validates required keys and non-empty content.
+- **report**: List of `{ id, prompt, description }`. The script asks the report model configured in `frontend/scripts/run-evals.js` (`REPORT_MODEL`) to generate a report, parses JSON, and validates required keys and non-empty content.
 
 ## Running evals
 
@@ -24,6 +24,15 @@ OPENROUTER_API_KEY=your_openrouter_key node scripts/run-evals.js
 ```
 
 Requires **Node 18+** (for `fetch`). The script prints pass/fail per prompt and a short summary. Use this to catch regressions after changing models or system prompts.
+
+### Detailed outputs (for reports)
+
+Each run also writes structured artifacts to:
+
+- `frontend/docs/evals/results/latest.md` (human-readable report: per-test **golden prompt**, **full chat replies**, **full report raw output** — very large runs produce large files; `latest.json` still has the same content for tooling)
+- `frontend/docs/evals/results/latest.json` (machine-readable details, including full `reply` / `rawResponse` per test)
+
+Timestamped files are also created in the same folder (e.g. `eval-2026-04-03T10-40-24-611Z.md`), so you can compare runs over time.
 
 ## In-app evaluation
 

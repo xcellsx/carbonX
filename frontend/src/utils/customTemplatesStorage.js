@@ -12,7 +12,8 @@ export function getCustomTemplatesStorageKey() {
 
 /**
  * Custom templates for the logged-in user (same key scheme as Inventory).
- * Migrates from the legacy non-scoped key once if the user key is empty.
+ * Legacy `carbonx-custom-templates` (no suffix) is migrated only into the **guest** key — never into
+ * `carbonx-custom-templates:<userId>` or a new account would inherit another user's Browse Templates / BOM cards.
  */
 export function getStoredCustomTemplates() {
   try {
@@ -20,21 +21,18 @@ export function getStoredCustomTemplates() {
     const saved = localStorage.getItem(key);
     if (saved != null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-    const legacy = localStorage.getItem(CUSTOM_TEMPLATES_STORAGE_PREFIX);
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        localStorage.setItem(key, JSON.stringify(parsed));
-        return parsed;
-      }
-    }
-    if (saved != null) {
-      const parsed = JSON.parse(saved);
       return Array.isArray(parsed) ? parsed : [];
+    }
+    const isGuestKey = key === `${CUSTOM_TEMPLATES_STORAGE_PREFIX}:guest`;
+    if (isGuestKey) {
+      const legacy = localStorage.getItem(CUSTOM_TEMPLATES_STORAGE_PREFIX);
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localStorage.setItem(key, JSON.stringify(parsed));
+          return parsed;
+        }
+      }
     }
     return [];
   } catch {

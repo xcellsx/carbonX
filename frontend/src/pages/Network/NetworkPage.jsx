@@ -521,6 +521,73 @@ const NetworkPage = () => {
     };
   };
 
+  /**
+   * When the backend graph has no edges (typical for self-created / template products),
+   * build a readable supply-chain view from Inventory BOM (dppData): each ingredient
+   * or process links to the final product. Not a verified LCA graph — same information
+   * as the BOM, shown as a network (AI could extend this later with richer tiers).
+   */
+  function buildBomFallbackGraph(productName, dppRaw, rootProductId) {
+    let dpp;
+    try {
+      dpp = typeof dppRaw === 'string' ? JSON.parse(dppRaw) : dppRaw;
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(dpp) || dpp.length === 0) return null;
+
+    const finalName = (productName || 'Product').trim() || 'Product';
+    const safeRoot = String(rootProductId ?? finalName).replace(/[^\w-]/g, '-').slice(0, 80);
+    const finalId = `bom-final:${safeRoot}`;
+    const nodes = [{
+      id: finalId,
+      name: finalName,
+      type: 'product',
+      isMainProduct: true,
+      isRoot: true,
+      totalResult: 0,
+    }];
+    const edges = [];
+    const componentMap = new Map([[finalId, 'product']]);
+
+    dpp.forEach((item, idx) => {
+      const raw = String(item?.ingredient ?? item?.component ?? '').trim();
+      if (!raw) return;
+      const isProcess = raw.startsWith('Process:');
+      const stripped = raw
+        .replace(/^Process:\s*/i, '')
+        .replace(/^Element:\s*/i, '')
+        .trim();
+      const paren = stripped.indexOf(' (');
+      const baseName = (paren >= 0 ? stripped.slice(0, paren) : stripped).trim()
+        || (isProcess ? 'Process' : 'Ingredient');
+      const slug = `${idx}-${baseName}`.replace(/\s+/g, '-').replace(/[^\w-]/g, '_').slice(0, 48);
+      const nodeId = `bom-${isProcess ? 'p' : 'm'}-${slug}`;
+      nodes.push({
+        id: nodeId,
+        name: baseName,
+        type: isProcess ? 'process' : 'product',
+        isMainProduct: false,
+        isRoot: false,
+        totalResult: 0,
+      });
+      componentMap.set(nodeId, isProcess ? 'process' : 'product');
+      edges.push({ source: nodeId, target: finalId });
+    });
+
+    if (edges.length === 0) return null;
+
+    const componentNames = [...new Set(nodes.map((n) => componentMap.get(n.id) || n.type || 'product'))];
+    return {
+      nodes,
+      edges,
+      componentMap,
+      rootNodeId: rootProductId,
+      productName: finalName,
+      componentNames,
+    };
+  }
+
   // --- Fetch Product List (exact same logic as Analytics/Inventory) ---
   const fetchProducts = useCallback(async () => {
     try {
@@ -693,6 +760,7 @@ const NetworkPage = () => {
     }
     setLoadingNetwork(true);
     setError('');
+    let usedBomFallback = false;
 
     // Vessel route demo for Transportation industry (no API call)
     if (productId === VESSEL_DEMO_PRODUCT_ID) {
@@ -793,6 +861,20 @@ const NetworkPage = () => {
         }
       }
 
+      // Template / self-created products often have no edges in the API graph; derive links from BOM (dppData).
+      const bomFallback = buildBomFallbackGraph(productName, selectedProduct?.dppData, productId);
+      if (backendLinks.length === 0 && bomFallback) {
+        usedBomFallback = true;
+        backendNodes = bomFallback.nodes.map((n) => ({
+          id: n.id,
+          label: n.name,
+          name: n.name,
+          type: n.isMainProduct ? 'products' : (n.type === 'process' ? 'process' : 'products'),
+        }));
+        backendLinks = bomFallback.edges.map((e) => ({ source: e.source, target: e.target }));
+        console.log('[Network] Using BOM fallback graph:', backendNodes.length, 'nodes,', backendLinks.length, 'edges');
+      }
+
       if (backendNodes.length === 0 && backendLinks.length === 0) {
         setConsolidatedData(null);
         setComponentGraphData([]);
@@ -837,6 +919,7 @@ const NetworkPage = () => {
         rootNodeId: productId,
         productName,
         componentNames,
+        ...(usedBomFallback ? { _bomFallback: true } : {}),
       };
 
       // Console log graph data for debugging (same shape as passed to D3)
@@ -861,25 +944,67 @@ const NetworkPage = () => {
         try {
           const dppComponents = JSON.parse(selectedProduct.dppData);
           const normalizeName = (s) => String(s || '').toLowerCase().trim();
-          
-          componentGraphs = dppComponents.map((comp) => {
-            const componentName = (comp.ingredient || comp.component || '').toString().trim().replace(/^Process:\s*/, '');
-            if (!componentName) return null;
-            return filterGraphForComponent(consolidated, componentName) || consolidated;
-          }).filter(Boolean);
-          
-          // Which components have at least one input edge in the full graph?
-          meta = dppComponents.map((comp) => {
-            const componentName = (comp.ingredient || comp.component || '').toString().trim().replace(/^Process:\s*/, '');
-            const normalizedName = normalizeName(componentName);
-            const node = consolidated.nodes.find((n) => {
-              const nName = normalizeName(n.name);
-              return nName === normalizedName || nName.includes(normalizedName) || normalizedName.includes(nName);
+
+          // Star-shaped BOM fallback: edges point at the final product only; use per-component mini graphs.
+          if (usedBomFallback) {
+            const finalNode = consolidated.nodes.find((n) => n.isMainProduct);
+            const finalId = finalNode?.id;
+            componentGraphs = dppComponents.map((comp) => {
+              const rawLine = (comp.ingredient || comp.component || '').toString().trim();
+              const componentName = rawLine.replace(/^Process:\s*/, '');
+              if (!componentName) return null;
+              const stripped = componentName.replace(/^Element:\s*/i, '').trim();
+              const paren = stripped.indexOf(' (');
+              const baseName = (paren >= 0 ? stripped.slice(0, paren) : stripped).trim() || componentName;
+              const norm = normalizeName(baseName);
+              const node = consolidated.nodes.find((n) => {
+                if (n.isMainProduct) return false;
+                const nName = normalizeName(n.name);
+                return nName === norm || nName.includes(norm) || norm.includes(nName);
+              });
+              if (!node || !finalNode || !finalId) return null;
+              const miniMap = new Map();
+              [node, finalNode].forEach((n) => miniMap.set(n.id, consolidated.componentMap.get(n.id) || n.type || 'product'));
+              const miniNames = [...new Set([...miniMap.values()])];
+              return {
+                nodes: [node, finalNode],
+                edges: [{ source: node.id, target: finalId }],
+                componentMap: miniMap,
+                rootNodeId: node.id,
+                componentNames: miniNames,
+                productName,
+              };
             });
-            const targetId = node?.id;
-            const hasInputs = !!targetId && consolidated.edges.some((e) => e.target === targetId || e.target?.id === targetId);
-            return { name: componentName || 'Component', hasInputs };
-          });
+
+            meta = dppComponents.map((comp) => {
+              const rawLine = (comp.ingredient || comp.component || '').toString().trim();
+              const componentName = rawLine.replace(/^Process:\s*/, '');
+              const isProcessLine = rawLine.startsWith('Process:');
+              return {
+                name: componentName || 'Component',
+                hasInputs: !!componentName && !isProcessLine,
+              };
+            });
+          } else {
+            componentGraphs = dppComponents.map((comp) => {
+              const componentName = (comp.ingredient || comp.component || '').toString().trim().replace(/^Process:\s*/, '');
+              if (!componentName) return null;
+              return filterGraphForComponent(consolidated, componentName) || consolidated;
+            }).filter(Boolean);
+
+            // Which components have at least one input edge in the full graph?
+            meta = dppComponents.map((comp) => {
+              const componentName = (comp.ingredient || comp.component || '').toString().trim().replace(/^Process:\s*/, '');
+              const normalizedName = normalizeName(componentName);
+              const node = consolidated.nodes.find((n) => {
+                const nName = normalizeName(n.name);
+                return nName === normalizedName || nName.includes(normalizedName) || normalizedName.includes(nName);
+              });
+              const targetId = node?.id;
+              const hasInputs = !!targetId && consolidated.edges.some((e) => e.target === targetId || e.target?.id === targetId);
+              return { name: componentName || 'Component', hasInputs };
+            });
+          }
         } catch (e) {
           console.error('[Network] Error parsing dppData for component graphs:', e);
           componentGraphs = [consolidated];

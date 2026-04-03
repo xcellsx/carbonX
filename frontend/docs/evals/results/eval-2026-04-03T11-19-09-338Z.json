@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-04-03T11:19:09.334Z",
+  "models": {
+    "chat": "Gemini 2.5 Pro",
+    "chatId": "google/gemini-2.5-pro",
+    "report": "Claude Sonnet 4.6",
+    "reportId": "anthropic/claude-sonnet-4.6"
+  },
+  "summary": {
+    "chat": {
+      "passed": 1,
+      "total": 3,
+      "avgLatencyMs": 11989
+    },
+    "report": {
+      "passed": 1,
+      "total": 2,
+      "avgLatencyMs": 160322
+    }
+  },
+  "chatResults": [
+    {
+      "id": "scope-definition",
+      "description": "Must explain GHG scopes correctly",
+      "pass": false,
+      "keywordMatches": [
+        "scope 1"
+      ],
+      "expectedKeywords": [
+        "scope 1",
+        "scope 2",
+        "scope 3",
+        "direct",
+        "indirect",
+        "emission"
+      ],
+      "replyLength": 76,
+      "replyPreview": "Scope 1, 2, and 3 are categories used to classify a company's greenhouse gas",
+      "latencyMs": 8094
+    },
+    {
+      "id": "lca-brief",
+      "description": "Must describe LCA in sustainability context",
+      "pass": true,
+      "keywordMatches": [
+        "life cycle",
+        "LCA",
+        "product",
+        "impact"
+      ],
+      "expectedKeywords": [
+        "life cycle",
+        "LCA",
+        "product",
+        "impact",
+        "carbon"
+      ],
+      "replyLength": 106,
+      "replyPreview": "A Life Cycle Assessment (LCA) is a method for evaluating the environmental impacts of a product or service",
+      "latencyMs": 6716
+    },
+    {
+      "id": "carbon-reporting",
+      "description": "Must mention reporting or standards",
+      "pass": false,
+      "keywordMatches": [],
+      "expectedKeywords": [
+        "report",
+        "carbon",
+        "footprint",
+        "GHG",
+        "standard"
+      ],
+      "replyLength": 2,
+      "replyPreview": "\n\n",
+      "latencyMs": 21157
+    }
+  ],
+  "reportResults": [
+    {
+      "id": "report-sustainability",
+      "description": "Must return valid JSON with all required keys and substantive content",
+      "pass": false,
+      "error": "Could not parse JSON from model output",
+      "latencyMs": 172318
+    },
+    {
+      "id": "report-carbon",
+      "description": "Must return valid JSON with reportTitle, boardStatement, pillars, futureTargets",
+      "pass": true,
+      "errors": [],
+      "rawLength": 29198,
+      "latencyMs": 148326
+    }
+  ]
+}

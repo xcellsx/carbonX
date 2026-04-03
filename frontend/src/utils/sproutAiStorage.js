@@ -23,6 +23,11 @@ export function sproutFeedbackKey() {
   return uid ? `sproutai_feedback:${uid}` : `sproutai_feedback:guest`;
 }
 
+/** Copy old unscoped data only into the guest bucket — never into `sproutai_*:<userId>` or every account shared one history. */
+function allowLegacyMigrationIntoKey(key) {
+  return typeof key === 'string' && key.endsWith(':guest');
+}
+
 function migrateLegacySessions(key) {
   try {
     const cur = localStorage.getItem(key);
@@ -30,6 +35,7 @@ function migrateLegacySessions(key) {
       const p = JSON.parse(cur);
       if (Array.isArray(p) && p.length > 0) return;
     }
+    if (!allowLegacyMigrationIntoKey(key)) return;
     const leg = localStorage.getItem(LEGACY_SESSIONS);
     if (!leg) return;
     const p = JSON.parse(leg);
@@ -46,6 +52,7 @@ function migrateLegacyMessages(key) {
       const p = JSON.parse(cur);
       if (Array.isArray(p) && p.length > 0) return;
     }
+    if (!allowLegacyMigrationIntoKey(key)) return;
     const leg = localStorage.getItem(LEGACY_MESSAGES);
     if (!leg) return;
     const p = JSON.parse(leg);
@@ -62,6 +69,7 @@ function migrateLegacyFeedback(key) {
       const p = JSON.parse(cur);
       if (p && typeof p === 'object' && Object.keys(p).length > 0) return;
     }
+    if (!allowLegacyMigrationIntoKey(key)) return;
     const leg = localStorage.getItem(LEGACY_FEEDBACK);
     if (!leg) return;
     const p = JSON.parse(leg);

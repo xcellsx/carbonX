@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './InventoryPage.css';
 import { productAPI, maritimeAPI, normalizeUserIdKey } from '../../services/api';
+import { estimateProductLcaFromWeb } from '../../services/openRouter';
 import {
   getStoredCustomTemplates as getStoredTemplates,
   setStoredCustomTemplates as setStoredTemplates,
@@ -1330,6 +1331,69 @@ function dppDataToTemplate(dppJson) {
     }
 
     let backendKey = '';
+    const tryWebLcaFallback = async () => {
+      const components = parseDppArray(product.dppData)
+        .map((item) => String(item?.ingredient || '').replace(/^Process:\s*/i, '').trim())
+        .filter(Boolean)
+        .slice(0, 20);
+      const estimate = await estimateProductLcaFromWeb({
+        productName: product.productName || product.name || 'Unknown product',
+        quantity: q != null && Number.isFinite(Number(q)) ? Number(q) : 1,
+        unit: product.productQuantifiableUnit || 'unit',
+        components,
+      });
+      if (!estimate) return false;
+
+      const factor = quantityFactor(q);
+      const scaled = {
+        scope1: estimate.scope1 * factor,
+        scope2: estimate.scope2 * factor,
+        scope3: estimate.scope3 * factor,
+        total: estimate.total * factor,
+      };
+
+      if (userId) {
+        setLocalLca(userId, productId, scaled.total);
+      }
+      setLcaQtySnapshot(productId, q);
+
+      try {
+        const cacheRaw = localStorage.getItem(LCA_CACHE_KEY) || '{}';
+        const cache = JSON.parse(cacheRaw) || {};
+        const nameKey = String(product.productName || '').toLowerCase().trim();
+        if (nameKey) {
+          cache[nameKey] = {
+            scope1: scaled.scope1,
+            scope2: scaled.scope2,
+            scope3: scaled.scope3,
+            total: scaled.total,
+            confidence: estimate.confidence,
+            rationale: estimate.rationale,
+            source: 'web-estimate',
+            updatedAt: Date.now(),
+          };
+          localStorage.setItem(LCA_CACHE_KEY, JSON.stringify(cache));
+        }
+      } catch (_) {}
+
+      setProducts((currentProducts) =>
+        currentProducts.map((prod) =>
+          prod.productId === productId
+            ? {
+                ...prod,
+                scope1: scaled.scope1,
+                scope2: scaled.scope2,
+                scope3: scaled.scope3,
+                lcaResult: scaled.total,
+                hasCalculatedLca: true,
+              }
+            : prod
+        )
+      );
+      setLcaDirtyMap((prev) => ({ ...prev, [productId]: false }));
+      return true;
+    };
+
     if (product._fromTemplate) {
       // Template-only: find a backend product with the same name and run LCA on it; do not store template in backend
       const name = (product.productName || product.name || '').trim();
@@ -1346,7 +1410,10 @@ function dppDataToTemplate(dppJson) {
         backendKey = first ? getBackendKey(first) : '';
         if (!backendKey) {
           console.warn('[LCA] No backend product found with name:', name);
-          alert(`No backend product named "${name}" found. LCA runs on backend data only. Create the product in the backend (e.g. Upload BOM) or ensure a product with this name exists.`);
+          const estimated = await tryWebLcaFallback();
+          if (!estimated) {
+            alert(`No backend product named "${name}" found, and web LCA estimation also failed. Try creating the product in backend or add more product breakdown details.`);
+          }
           return;
         }
         console.log('[LCA] Matched by name – backend key:', backendKey);
@@ -1486,8 +1553,11 @@ function dppDataToTemplate(dppJson) {
       }
     } catch (err) {
       console.error('[LCA] Error:', err?.response?.status, err?.response?.data ?? err?.message, err);
-      const msg = err?.response?.data?.message || err?.response?.data || err?.message || "LCA calculation failed.";
-      alert(typeof msg === "string" ? msg : "Failed to calculate LCA. Ensure the product is in the supply chain graph and upstream nodes have DPP data.");
+      const estimated = await tryWebLcaFallback();
+      if (!estimated) {
+        const msg = err?.response?.data?.message || err?.response?.data || err?.message || "LCA calculation failed.";
+        alert(typeof msg === "string" ? msg : "Failed to calculate LCA. Ensure the product is in the supply chain graph and upstream nodes have DPP data.");
+      }
     } finally {
       setCalculatingProductId((prev) => (prev === productId ? null : prev));
     }
