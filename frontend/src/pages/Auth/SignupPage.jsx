@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 import Lottie from 'lottie-react';
 import animationData from '../../lottie/logo.json';
-import dashboard from '../../assets/dashboard.png';
+import dashboard from '../../assets/inventory.png';
 import { authAPI, usersAPI, stableSessionUserId, notifyCarbonXSessionUpdated } from '../../services/api';
 
 const SignupPage = () => {
