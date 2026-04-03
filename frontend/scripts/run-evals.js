@@ -6,6 +6,11 @@
  * Usage (from repo root or frontend):
  *   OPENROUTER_API_KEY=your_key node frontend/scripts/run-evals.js
  *   Or from frontend/: OPENROUTER_API_KEY=your_key node scripts/run-evals.js
+ *
+ * Chat golden prompts run on both production chat models: Gemini (main) + Perplexity (popup).
+ * Report prompts use the configured REPORT_MODEL (Claude) by default.
+ * For the same report tests on Gemini + Perplexity too (comparison / school write-ups):
+ *   node frontend/scripts/run-evals.js --full
  */
 
 import fs from 'node:fs';
@@ -43,9 +48,15 @@ const __dirname = path.dirname(__filename);
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 const DEFAULT_MODEL = 'google/gemini-2.5-pro';
+const POPUP_MODEL = 'perplexity/sonar-pro';
 const REPORT_MODEL = 'anthropic/claude-sonnet-4.6';
-const CHAT_MODEL_LABEL = 'Gemini 2.5 Pro';
-const REPORT_MODEL_LABEL = 'Claude Sonnet 4.6';
+
+const CHAT_EVAL_MODELS = [
+  { key: 'gemini', id: DEFAULT_MODEL, label: 'Gemini 2.5 Pro (main Sprout AI)' },
+  { key: 'perplexity', id: POPUP_MODEL, label: 'Perplexity Sonar Pro (Dashboard / Analytics popup)' },
+];
+
+const REPORT_MODEL_LABEL = 'Claude Sonnet 4.6 (report writer)';
 
 const REPORT_WRITER_SYSTEM = `You are a sustainability report writer for CarbonX. The user has requested a report – generate ALL content yourself based on their request. Do not use static templates or placeholder text. Invent plausible, professional content tailored to whatever they asked for (e.g. a company name, sector like F&B or retail, a product, Scope 3, packaging, year). Use the conversation context if provided to infer company/sector/scope.
 
@@ -136,7 +147,7 @@ function promptsPath() {
   throw new Error('golden-prompts.json not found. Run from repo root or frontend/.');
 }
 
-async function runChatEvals(prompts) {
+async function runChatEvals(prompts, modelId = DEFAULT_MODEL) {
   const systemContent = 'You are Sprout AI, a helpful assistant for CarbonX—a sustainability and carbon footprint platform. Answer concisely.';
   const results = [];
   for (const t of prompts) {
@@ -147,12 +158,13 @@ async function runChatEvals(prompts) {
           { role: 'system', content: systemContent },
           { role: 'user', content: t.prompt },
         ],
-        { max_tokens: 2048, temperature: 0.3 }
+        { model: modelId, max_tokens: 2048, temperature: 0.3 }
       );
       const lower = reply.toLowerCase();
       const matched = (t.expectKeywords || []).filter((k) => lower.includes(k.toLowerCase()));
       const pass = matched.length >= Math.min(2, (t.expectKeywords || []).length);
       results.push({
+        modelId,
         id: t.id,
         description: t.description,
         prompt: t.prompt,
@@ -166,6 +178,7 @@ async function runChatEvals(prompts) {
       });
     } catch (err) {
       results.push({
+        modelId,
         id: t.id,
         description: t.description,
         prompt: t.prompt,
@@ -178,7 +191,7 @@ async function runChatEvals(prompts) {
   return results;
 }
 
-async function runReportEvals(prompts) {
+async function runReportEvals(prompts, modelId = REPORT_MODEL) {
   const results = [];
   for (const t of prompts) {
     const started = Date.now();
@@ -189,11 +202,12 @@ async function runReportEvals(prompts) {
           { role: 'system', content: REPORT_WRITER_SYSTEM },
           { role: 'user', content: t.prompt },
         ],
-        { model: REPORT_MODEL, max_tokens: 16384, temperature: 0.6 }
+        { model: modelId, max_tokens: 16384, temperature: 0.6 }
       );
       const data = parseReportText(raw);
       const validation = validateReportMinimal(data);
       results.push({
+        modelId,
         id: t.id,
         description: t.description,
         prompt: t.prompt,
@@ -210,6 +224,7 @@ async function runReportEvals(prompts) {
       });
     } catch (err) {
       results.push({
+        modelId,
         id: t.id,
         description: t.description,
         prompt: t.prompt,
@@ -249,18 +264,8 @@ function ensureResultsDir() {
   return p;
 }
 
-function writeDetailedOutputs(payload) {
-  const dir = ensureResultsDir();
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const jsonPath = path.join(dir, `eval-${stamp}.json`);
-  const mdPath = path.join(dir, `eval-${stamp}.md`);
-  const latestJson = path.join(dir, 'latest.json');
-  const latestMd = path.join(dir, 'latest.md');
-
-  fs.writeFileSync(jsonPath, JSON.stringify(payload, null, 2), 'utf8');
-  fs.writeFileSync(latestJson, JSON.stringify(payload, null, 2), 'utf8');
-
-  const chatSections = payload.chatResults.map((r) => {
+function chatDetailSections(results) {
+  return results.map((r) => {
     const lines = [
       `### Chat test: \`${r.id}\``,
       '',
@@ -278,8 +283,10 @@ function writeDetailedOutputs(payload) {
     else lines.push('**Model response (full):**', mdFence('', r.reply ?? ''));
     return lines.filter(Boolean).join('\n');
   });
+}
 
-  const reportSections = payload.reportResults.map((r) => {
+function reportDetailSections(results) {
+  return results.map((r) => {
     const raw = r.rawResponse ?? '';
     const lines = [
       `### Report test: \`${r.id}\``,
@@ -308,47 +315,100 @@ function writeDetailedOutputs(payload) {
     }
     return lines.join('\n');
   });
+}
+
+function writeDetailedOutputs(payload) {
+  const dir = ensureResultsDir();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const jsonPath = path.join(dir, `eval-${stamp}.json`);
+  const mdPath = path.join(dir, `eval-${stamp}.md`);
+  const latestJson = path.join(dir, 'latest.json');
+  const latestMd = path.join(dir, 'latest.md');
+
+  fs.writeFileSync(jsonPath, JSON.stringify(payload, null, 2), 'utf8');
+  fs.writeFileSync(latestJson, JSON.stringify(payload, null, 2), 'utf8');
+
+  const chatBlocks = (payload.chatEvals || []).map(
+    (block) =>
+      `## Chat tests — ${block.label}\n\n\`${block.id}\`\n\n` + chatDetailSections(block.results).join('\n\n---\n\n')
+  );
+
+  const reportBlocks = (payload.reportEvals || []).map(
+    (block) =>
+      `## Report tests — ${block.label}\n\n\`${block.id}\`\n\n` + reportDetailSections(block.results).join('\n\n---\n\n')
+  );
+
+  const summaryChatLines = (payload.chatEvals || []).map(
+    (block) =>
+      `- **${block.label}** (\`${block.id}\`): ${block.summary.passed}/${block.summary.total} passed (${pct(block.summary.passed, block.summary.total)}%), avg latency ${block.summary.avgLatencyMs} ms`
+  );
+  const summaryReportLines = (payload.reportEvals || []).map(
+    (block) =>
+      `- **${block.label}** (\`${block.id}\`): ${block.summary.passed}/${block.summary.total} passed (${pct(block.summary.passed, block.summary.total)}%), avg latency ${block.summary.avgLatencyMs} ms`
+  );
+
+  const quickChatTables = (payload.chatEvals || [])
+    .map((block) => {
+      const rows = [
+        `#### ${block.label}`,
+        '',
+        '| Test ID | Pass | Latency (ms) | Keyword matches |',
+        '|---|---:|---:|---|',
+        ...block.results.map(
+          (r) => `| ${r.id} | ${r.pass ? 'YES' : 'NO'} | ${r.latencyMs || 0} | ${(r.keywordMatches || []).join(', ') || '-'} |`
+        ),
+        '',
+      ];
+      return rows.join('\n');
+    })
+    .join('\n');
+
+  const quickReportTables = (payload.reportEvals || [])
+    .map((block) => {
+      const rows = [
+        `#### ${block.label}`,
+        '',
+        '| Test ID | Pass | Latency (ms) | Notes |',
+        '|---|---:|---:|---|',
+        ...block.results.map((r) => {
+          const note = r.error || (r.errors?.length ? r.errors.join('; ') : 'OK');
+          return `| ${r.id} | ${r.pass ? 'YES' : 'NO'} | ${r.latencyMs || 0} | ${String(note).replace(/\|/g, '\\|')} |`;
+        }),
+        '',
+      ];
+      return rows.join('\n');
+    })
+    .join('\n');
 
   const md = [
     '# Sprout AI Eval Report',
     '',
     `- Timestamp: ${payload.timestamp}`,
     payload.source?.goldenPromptsFile ? `- Golden prompts file: \`${payload.source.goldenPromptsFile}\`` : '',
-    `- Chat model: ${payload.models.chat} (\`${payload.models.chatId}\`)`,
-    `- Report model: ${payload.models.report} (\`${payload.models.reportId}\`)`,
+    payload.options?.fullReportMatrix
+      ? '- Mode: **full** (report JSON tests run on Claude, Gemini, and Perplexity)'
+      : '- Mode: **default** (report JSON tests on Claude only; chat still runs on Gemini + Perplexity)',
     '',
     '## Summary',
     '',
-    `- Chat pass rate: ${payload.summary.chat.passed}/${payload.summary.chat.total} (${pct(payload.summary.chat.passed, payload.summary.chat.total)}%)`,
-    `- Report pass rate: ${payload.summary.report.passed}/${payload.summary.report.total} (${pct(payload.summary.report.passed, payload.summary.report.total)}%)`,
-    `- Avg chat latency: ${payload.summary.chat.avgLatencyMs} ms`,
-    `- Avg report latency: ${payload.summary.report.avgLatencyMs} ms`,
+    '### Chat',
     '',
-    '## Chat tests (prompt + output)',
+    ...summaryChatLines,
     '',
-    chatSections.join('\n\n---\n\n'),
+    '### Report',
     '',
-    '## Report tests (prompt + output)',
+    ...summaryReportLines,
     '',
-    reportSections.join('\n\n---\n\n'),
-    '',
+    ...chatBlocks.flatMap((b) => ['', b, '']),
+    ...reportBlocks.flatMap((b) => ['', b, '']),
     '## Quick tables',
     '',
     '### Chat',
     '',
-    '| Test ID | Pass | Latency (ms) | Keyword matches |',
-    '|---|---:|---:|---|',
-    ...payload.chatResults.map((r) => `| ${r.id} | ${r.pass ? 'YES' : 'NO'} | ${r.latencyMs || 0} | ${(r.keywordMatches || []).join(', ') || '-'} |`),
-    '',
+    quickChatTables,
     '### Report',
     '',
-    '| Test ID | Pass | Latency (ms) | Notes |',
-    '|---|---:|---:|---|',
-    ...payload.reportResults.map((r) => {
-      const note = r.error || (r.errors?.length ? r.errors.join('; ') : 'OK');
-      return `| ${r.id} | ${r.pass ? 'YES' : 'NO'} | ${r.latencyMs || 0} | ${String(note).replace(/\|/g, '\\|')} |`;
-    }),
-    '',
+    quickReportTables,
   ].join('\n');
 
   fs.writeFileSync(mdPath, md, 'utf8');
@@ -358,49 +418,77 @@ function writeDetailedOutputs(payload) {
 }
 
 async function main() {
+  const fullReportMatrix = process.argv.includes('--full');
   const promptsFile = promptsPath();
   const json = JSON.parse(fs.readFileSync(promptsFile, 'utf8'));
 
-  console.log('Running chat evals (Gemini 2.5)...\n');
-  const chatResults = await runChatEvals(json.chat || []);
-  chatResults.forEach((r) => {
-    console.log(r.pass ? '  ✓' : '  ✗', r.id, r.description || '');
-    if (r.keywordMatches) console.log('    Keywords matched:', r.keywordMatches.join(', '));
-    if (r.error) console.log('    Error:', r.error);
-  });
+  const chatEvals = [];
+  for (const m of CHAT_EVAL_MODELS) {
+    console.log(`\nRunning chat evals — ${m.label}...\n`);
+    const results = await runChatEvals(json.chat || [], m.id);
+    results.forEach((r) => {
+      console.log(r.pass ? '  ✓' : '  ✗', r.id, r.description || '');
+      if (r.keywordMatches?.length) console.log('    Keywords matched:', r.keywordMatches.join(', '));
+      if (r.error) console.log('    Error:', r.error);
+    });
+    const passed = results.filter((r) => r.pass).length;
+    chatEvals.push({
+      key: m.key,
+      id: m.id,
+      label: m.label,
+      results,
+      summary: { passed, total: results.length, avgLatencyMs: avgLatency(results) },
+    });
+  }
 
-  console.log('\nRunning report evals (Claude)...\n');
-  const reportResults = await runReportEvals(json.report || []);
-  reportResults.forEach((r) => {
-    console.log(r.pass ? '  ✓' : '  ✗', r.id, r.description || '');
-    if (r.errors?.length) console.log('    Errors:', r.errors.join('; '));
-    if (r.error) console.log('    Error:', r.error);
-  });
+  const reportModels = fullReportMatrix
+    ? [
+        { key: 'claude', id: REPORT_MODEL, label: REPORT_MODEL_LABEL },
+        {
+          key: 'gemini-report',
+          id: DEFAULT_MODEL,
+          label: 'Gemini 2.5 Pro (cross-model report JSON)',
+        },
+        {
+          key: 'perplexity-report',
+          id: POPUP_MODEL,
+          label: 'Perplexity Sonar Pro (cross-model report JSON)',
+        },
+      ]
+    : [{ key: 'claude', id: REPORT_MODEL, label: REPORT_MODEL_LABEL }];
 
-  const chatPass = chatResults.filter((r) => r.pass).length;
-  const reportPass = reportResults.filter((r) => r.pass).length;
+  const reportEvals = [];
+  for (const m of reportModels) {
+    console.log(`\nRunning report evals — ${m.label}...\n`);
+    const results = await runReportEvals(json.report || [], m.id);
+    results.forEach((r) => {
+      console.log(r.pass ? '  ✓' : '  ✗', r.id, r.description || '');
+      if (r.errors?.length) console.log('    Errors:', r.errors.join('; '));
+      if (r.error) console.log('    Error:', r.error);
+    });
+    const passed = results.filter((r) => r.pass).length;
+    reportEvals.push({
+      key: m.key,
+      id: m.id,
+      label: m.label,
+      results,
+      summary: { passed, total: results.length, avgLatencyMs: avgLatency(results) },
+    });
+  }
+
   const payload = {
     timestamp: new Date().toISOString(),
     source: {
       goldenPromptsFile: path.relative(process.cwd(), promptsFile).replace(/\\/g, '/'),
     },
-    models: {
-      chat: CHAT_MODEL_LABEL,
-      chatId: DEFAULT_MODEL,
-      report: REPORT_MODEL_LABEL,
-      reportId: REPORT_MODEL,
-    },
-    summary: {
-      chat: { passed: chatPass, total: chatResults.length, avgLatencyMs: avgLatency(chatResults) },
-      report: { passed: reportPass, total: reportResults.length, avgLatencyMs: avgLatency(reportResults) },
-    },
-    chatResults,
-    reportResults,
+    options: { fullReportMatrix },
+    chatEvals,
+    reportEvals,
   };
   const out = writeDetailedOutputs(payload);
   console.log('\n--- Summary ---');
-  console.log(`Chat:   ${chatPass}/${chatResults.length} passed`);
-  console.log(`Report: ${reportPass}/${reportResults.length} passed`);
+  chatEvals.forEach((b) => console.log(`Chat (${b.key}): ${b.summary.passed}/${b.summary.total} passed`));
+  reportEvals.forEach((b) => console.log(`Report (${b.key}): ${b.summary.passed}/${b.summary.total} passed`));
   console.log(`\nSaved detailed reports:\n- ${out.latestMd}\n- ${out.latestJson}`);
 }
 
